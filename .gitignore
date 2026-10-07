@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+*.tsbuildinfo
+.env*
+.sites-runtime
+
+dist
+.wrangler
+.dev.vars

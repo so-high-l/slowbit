@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "offscript-board",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-10-06",
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "html_handling": "force-trailing-slash"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "offscript-board-local",
+      "database_id": "local-offscript-board",
+      "migrations_dir": "./drizzle"
+    }
+  ]
+}
