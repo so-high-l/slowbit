@@ -19,7 +19,7 @@ export function useAudioMixer(
   }, [engine, prefs, playing, masterScale, active]);
   useEffect(() => () => {
     // Keep the unlocked audio context between check-in and session routes.
-    if (engine.current) engine.current.master.gain.setTargetAtTime(0, engine.current.context.currentTime, 0.45);
+    engine.current?.stop();
   }, [engine]);
   return audio;
 }

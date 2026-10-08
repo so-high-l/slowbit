@@ -12,12 +12,20 @@ import { checkIns, checkInMix, availableCheckInScene, stationOrder } from "@/lib
 import { sceneMix } from "@/lib/sound-presets";
 import type { Mood, VisualId } from "@/lib/types";
 
+const landingAssets = [
+  "/images/checkin-rain.png",
+  "/images/mood-warm.png",
+  "/images/mood-cool.png",
+  "/images/mood-sage.png",
+];
+
 export default function Home() {
   const router = useRouter();
   const { preferences: p, ready, update } = usePreferences();
   const [entered, setEntered] = useState(false);
   const [mood, setMood] = useState<Mood>("fried");
   const [duration, setDuration] = useState<number | null>(10);
+  const [assetProgress, setAssetProgress] = useState(0);
   const [customScene, setCustomScene] = useState<VisualId | null>(null);
   const [choosingScene, setChoosingScene] = useState(false);
   const fullscreen = useFullscreen();
@@ -36,6 +44,34 @@ export default function Home() {
   });
   const useMoodMix = scene === profile.scene;
   const pace = useMoodMix ? profile.pace : 1;
+  const assetsReady = ready && assetProgress === 100;
+  useEffect(() => {
+    let loaded = 0;
+    let cancelled = false;
+    const images = landingAssets.map(src => {
+      const image = new Image();
+      let counted = false;
+      const complete = () => {
+        if (counted) return;
+        counted = true;
+        loaded += 1;
+        if (!cancelled)
+          setAssetProgress(Math.min(100, Math.round((loaded / landingAssets.length) * 100)));
+      };
+      image.onload = complete;
+      image.onerror = complete;
+      image.src = src;
+      if (image.complete) complete();
+      return image;
+    });
+    return () => {
+      cancelled = true;
+      images.forEach(image => {
+        image.onload = null;
+        image.onerror = null;
+      });
+    };
+  }, []);
   useEffect(() => {
     if (!ready) return;
     const initialMood = p.lastMood ?? "fried";
@@ -86,9 +122,16 @@ export default function Home() {
       <MoodAtmosphere mood={mood} />
       {!entered ? (
         <div className="entry-gate">
-          <button className="enter-fullscreen" onClick={enter} disabled={!ready} aria-keyshortcuts="f" aria-label="Go fullscreen — press F or click">
-            <span>go fullscreen</span><kbd>F</kbd>
-          </button>
+          {!assetsReady ? (
+            <div className="asset-loader" role="status" aria-live="polite" aria-label={`Loading assets ${assetProgress}%`}>
+              <span className="asset-loader-track"><span style={{ width: `${assetProgress}%` }} /></span>
+              <span>{assetProgress}%</span>
+            </div>
+          ) : (
+            <button className="enter-fullscreen" onClick={enter} aria-keyshortcuts="f" aria-label="Go fullscreen — press F or click">
+              <span>go fullscreen</span><kbd>F</kbd>
+            </button>
+          )}
         </div>
       ) : (
         <div className="checkin-layout">

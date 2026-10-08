@@ -2893,6 +2893,44 @@ input[type="range"] {
   padding: 24px;
 }
 
+.asset-loader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #899694;
+  font: 11px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .08em;
+}
+
+.asset-loader-track {
+  width: min(180px, 42vw);
+  height: 2px;
+  overflow: hidden;
+  background: #d0dad01a;
+}
+
+.asset-loader-track span {
+  display: block;
+  height: 100%;
+  background: #c9d8d0;
+  transition: width 350ms ease;
+  animation: asset-loader-shimmer 1.4s linear infinite;
+}
+
+@keyframes asset-loader-shimmer {
+  from {
+    opacity: .45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: .45;
+  }
+}
+
 .enter-fullscreen {
   gap: 13px;
   padding: 15px 18px;
