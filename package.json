@@ -12,6 +12,7 @@
     "db:migrate:local": "wrangler d1 migrations apply DB --local --persist-to .wrangler/state"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "gsap": "^3.13.0",
     "lucide-react": "^0.468.0",
     "next": "^16.0.0",

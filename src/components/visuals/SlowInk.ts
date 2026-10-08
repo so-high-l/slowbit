@@ -1,100 +1,691 @@
-import { background, glow, type ScenePainter } from "./drawing";
+import { background, type ScenePainter } from "./drawing";
 
 const TAU = Math.PI * 2;
 
-function inkBlob(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  radius: number,
-  t: number,
-  phase: number,
-  color: string,
-  alpha: number,
-) {
-  ctx.beginPath();
+const clamp = (v: number, min = 0, max = 1) =>
+  Math.max(min, Math.min(max, v));
 
-  const points = 64;
-  for (let i = 0; i <= points; i++) {
-    const a = (i / points) * TAU;
-    const wobble =
-      Math.sin(a * 3 + t * 0.18 + phase) * 0.09 +
-      Math.sin(a * 5 - t * 0.13 + phase * 1.7) * 0.045 +
-      Math.sin(a * 2 + t * 0.08) * 0.03;
+const mix = (a: number, b: number, t: number) =>
+  a + (b - a) * t;
 
-    const r = radius * (1 + wobble);
-    const x = cx + Math.cos(a) * r * 1.2;
-    const y = cy + Math.sin(a) * r * 0.82;
+/*
+ * We render the interference field at a deliberately lower
+ * resolution and scale it smoothly to fullscreen.
+ *
+ * This gives us:
+ * - soft fluid edges
+ * - good performance
+ * - a more atmospheric appearance
+ */
+let bufferCanvas: HTMLCanvasElement | null = null;
+let bufferCtx: CanvasRenderingContext2D | null = null;
+let bufferImage: ImageData | null = null;
 
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+let bufferW = 0;
+let bufferH = 0;
+
+function ensureBuffer(w: number, h: number) {
+  /*
+   * 190px wide is enough because this visual should
+   * remain soft rather than pixel-sharp.
+   */
+  const targetW = 190;
+
+  const targetH = Math.max(
+    80,
+    Math.round(targetW * (h / w)),
+  );
+
+  if (
+    bufferCanvas &&
+    bufferCtx &&
+    bufferImage &&
+    bufferW === targetW &&
+    bufferH === targetH
+  ) {
+    return;
   }
 
-  ctx.closePath();
+  bufferW = targetW;
+  bufferH = targetH;
 
-  const grad = ctx.createRadialGradient(cx, cy, radius * 0.08, cx, cy, radius * 1.45);
-  grad.addColorStop(0, color.replace("ALPHA", String(alpha * 0.75)));
-  grad.addColorStop(0.55, color.replace("ALPHA", String(alpha * 0.36)));
-  grad.addColorStop(1, color.replace("ALPHA", "0"));
+  bufferCanvas = document.createElement("canvas");
 
-  ctx.fillStyle = grad;
-  ctx.fill();
+  bufferCanvas.width = bufferW;
+  bufferCanvas.height = bufferH;
+
+  bufferCtx = bufferCanvas.getContext("2d", {
+    alpha: false,
+  });
+
+  if (!bufferCtx) {
+    bufferCanvas = null;
+    return;
+  }
+
+  bufferImage = bufferCtx.createImageData(
+    bufferW,
+    bufferH,
+  );
 }
 
-export const paintSlowInk: ScenePainter = ({ ctx, w, h, t }) => {
-  background(ctx, w, h, "#080d14", "#171728");
+/*
+ * Main scalar interference field.
+ *
+ * Four waves travel at unrelated angles, speeds,
+ * frequencies and phases.
+ *
+ * Their angles themselves also change very slowly.
+ *
+ * This is what stops the visual from looking like
+ * a simple repeating sine-wave animation.
+ */
+function fieldAt(
+  x: number,
+  y: number,
+  t: number,
+) {
+  const a1 =
+    0.22 +
+    Math.sin(t * 0.0067) * 0.14;
 
-  const bg = ctx.createLinearGradient(0, 0, w, h);
-  bg.addColorStop(0, "#070d15");
-  bg.addColorStop(0.5, "#151725");
-  bg.addColorStop(1, "#0a1118");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
+  const a2 =
+    1.48 +
+    Math.sin(t * 0.0049 + 1.8) * 0.11;
 
-  // Faint light behind the ink makes it feel suspended in water.
-  glow(ctx, w * 0.5, h * 0.48, Math.min(w, h) * 0.32, "#7893b014");
+  const a3 =
+    -0.86 +
+    Math.sin(t * 0.0083 + 3.2) * 0.10;
 
-  const driftX = Math.sin(t * 0.07) * w * 0.025;
-  const driftY = Math.sin(t * 0.05) * h * 0.018;
+  const a4 =
+    2.18 +
+    Math.sin(t * 0.0039 + 0.7) * 0.13;
 
-  inkBlob(ctx, w * 0.45 + driftX, h * 0.46 + driftY, Math.min(w, h) * 0.18, t, 0.2, "rgba(66, 104, 137, ALPHA)", 0.45);
-  inkBlob(ctx, w * 0.57 - driftX * 0.7, h * 0.52 - driftY * 0.6, Math.min(w, h) * 0.14, t, 2.1, "rgba(103, 72, 125, ALPHA)", 0.32);
-  inkBlob(ctx, w * 0.50 + driftX * 0.4, h * 0.58, Math.min(w, h) * 0.10, t, 4.4, "rgba(49, 126, 125, ALPHA)", 0.26);
+  const p1 =
+    (
+      x * Math.cos(a1) +
+      y * Math.sin(a1)
+    ) *
+    4.05 +
+    t * 0.105 +
+    Math.sin(t * 0.013) * 0.65;
 
-  // Thin tendrils drifting out of the main cloud
-  for (let i = 0; i < 8; i++) {
-    const sx = w * 0.5 + (i - 3.5) * 20;
-    const sy = h * 0.56;
-    const sway = Math.sin(t * 0.16 + i * 1.2) * 18;
+  const p2 =
+    (
+      x * Math.cos(a2) +
+      y * Math.sin(a2)
+    ) *
+    5.15 -
+    t * 0.078 +
+    Math.sin(t * 0.009 + 1.4) * 0.72;
 
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.bezierCurveTo(
-      sx + sway * 0.3,
-      sy + h * 0.08,
-      sx - sway * 0.7,
-      sy + h * 0.16,
-      sx + sway,
-      sy + h * 0.25,
+  const p3 =
+    (
+      x * Math.cos(a3) +
+      y * Math.sin(a3)
+    ) *
+    3.18 +
+    t * 0.059 +
+    Math.sin(t * 0.016 + 2.3) * 0.5;
+
+  const p4 =
+    (
+      x * Math.cos(a4) +
+      y * Math.sin(a4)
+    ) *
+    6.35 -
+    t * 0.044 +
+    Math.sin(t * 0.006 + 4.1) * 0.82;
+
+  /*
+   * The fourth wave is also slightly modulated by the
+   * first two systems.
+   *
+   * This produces moments where patterns suddenly become
+   * more complicated before relaxing again.
+   */
+  const modulation =
+    Math.sin(
+      p4 +
+      Math.sin(p1 * 0.55 + p2 * 0.31) *
+      0.75,
     );
-    ctx.strokeStyle = `rgba(102, 151, 160, ${0.025 + (i % 3) * 0.012})`;
-    ctx.lineWidth = 1.2 + (i % 2) * 0.5;
-    ctx.stroke();
+
+  return (
+    Math.sin(p1) * 0.92 +
+    Math.sin(p2) * 0.73 +
+    Math.sin(p3) * 0.55 +
+    modulation * 0.39
+  );
+}
+
+/*
+ * Render the interference texture.
+ */
+function renderField(
+  t: number,
+  screenW: number,
+  screenH: number,
+) {
+  if (
+    !bufferCtx ||
+    !bufferImage
+  ) {
+    return;
   }
 
-  // A few suspended micro bubbles / dust points
-  for (let i = 0; i < 18; i++) {
-    const x = w * (0.25 + ((i * 0.137) % 0.5)) + Math.sin(t * 0.11 + i) * 4;
-    const y = h * (0.24 + ((i * 0.091) % 0.54)) - ((t * (0.5 + (i % 3) * 0.2)) % 30);
-    ctx.beginPath();
-    ctx.arc(x, y, 0.7 + (i % 4) * 0.25, 0, TAU);
-    ctx.fillStyle = "rgba(194, 215, 220, .035)";
-    ctx.fill();
+  const data =
+    bufferImage.data;
+
+  const aspect =
+    screenW / screenH;
+
+  let ptr = 0;
+
+  for (
+    let py = 0;
+    py < bufferH;
+    py++
+  ) {
+    const ny =
+      (py / (bufferH - 1)) *
+      2 -
+      1;
+
+    for (
+      let px = 0;
+      px < bufferW;
+      px++
+    ) {
+      const nx =
+        (
+          (px / (bufferW - 1)) *
+          2 -
+          1
+        ) *
+        aspect;
+
+      /*
+       * Tiny additional distortion.
+       *
+       * This means the wave field isn't perfectly
+       * mathematically straight.
+       */
+      const warpX =
+        nx +
+        Math.sin(
+          ny * 2.4 +
+          t * 0.009,
+        ) *
+        0.045 +
+        Math.sin(
+          ny * 5.2 -
+          t * 0.006,
+        ) *
+        0.018;
+
+      const warpY =
+        ny +
+        Math.sin(
+          nx * 1.7 -
+          t * 0.007,
+        ) *
+        0.038;
+
+      const field =
+        fieldAt(
+          warpX,
+          warpY,
+          t,
+        );
+
+      /*
+       * Convert the scalar field into contour-like
+       * luminous bands.
+       *
+       * This is the key visual trick.
+       */
+      const q =
+        field * 1.18 +
+        Math.sin(
+          nx * 1.3 +
+          ny * 1.7 +
+          t * 0.008,
+        ) *
+        0.16;
+
+      /*
+       * Narrow bright ridges.
+       */
+      const ridgeRaw =
+        1 -
+        Math.abs(
+          Math.sin(
+            q * Math.PI,
+          ),
+        );
+
+      const ridge =
+        Math.pow(
+          clamp(ridgeRaw),
+          5.8,
+        );
+
+      /*
+       * Wider halo surrounding each ridge.
+       */
+      const haloRaw =
+        1 -
+        Math.abs(
+          Math.sin(
+            (
+              q +
+              0.035 *
+              Math.sin(
+                t * 0.017,
+              )
+            ) *
+            Math.PI,
+          ),
+        );
+
+      const halo =
+        Math.pow(
+          clamp(haloRaw),
+          2.15,
+        );
+
+      /*
+       * Slowly shift between slightly blue and
+       * slightly teal sections.
+       */
+      const colorShift =
+        0.5 +
+        0.5 *
+        Math.sin(
+          field * 0.72 +
+          t * 0.012 +
+          nx * 0.8,
+        );
+
+      /*
+       * Dark edge falloff.
+       */
+      const radial =
+        Math.sqrt(
+          Math.pow(
+            nx / Math.max(aspect, 1),
+            2,
+          ) +
+          Math.pow(ny, 2),
+        );
+
+      const vignette =
+        1 -
+        smoothVignette(radial);
+
+      /*
+       * Interference brightness.
+       */
+      const strength =
+        (
+          ridge * 0.76 +
+          halo * 0.105
+        ) *
+        vignette;
+
+      /*
+       * Dark navy base.
+       */
+      const baseR = 2;
+      const baseG = 6;
+      const baseB = 12;
+
+      /*
+       * Alternate gently between:
+       *
+       * blue-grey
+       * teal-grey
+       */
+      const tideR =
+        mix(
+          53,
+          65,
+          colorShift,
+        );
+
+      const tideG =
+        mix(
+          78,
+          111,
+          colorShift,
+        );
+
+      const tideB =
+        mix(
+          111,
+          121,
+          colorShift,
+        );
+
+      /*
+       * A small atmospheric lift prevents the spaces
+       * between lines from becoming completely flat.
+       */
+      const ambient =
+        halo * 0.025;
+
+      data[ptr++] =
+        Math.round(
+          baseR +
+          tideR *
+          (
+            strength +
+            ambient
+          ),
+        );
+
+      data[ptr++] =
+        Math.round(
+          baseG +
+          tideG *
+          (
+            strength +
+            ambient
+          ),
+        );
+
+      data[ptr++] =
+        Math.round(
+          baseB +
+          tideB *
+          (
+            strength +
+            ambient
+          ),
+        );
+
+      data[ptr++] = 255;
+    }
   }
 
-  const vignette = ctx.createRadialGradient(w * 0.5, h * 0.48, 80, w * 0.5, h * 0.5, Math.max(w, h) * 0.75);
-  vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,.36)");
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, w, h);
+  bufferCtx.putImageData(
+    bufferImage,
+    0,
+    0,
+  );
+}
+
+function smoothVignette(
+  radius: number,
+) {
+  const start = 0.54;
+  const end = 1.25;
+
+  const x =
+    clamp(
+      (radius - start) /
+      (end - start),
+    );
+
+  return (
+    x *
+    x *
+    (3 - 2 * x)
+  );
+}
+
+/*
+ * A few extremely subtle large gradients move underneath
+ * the interference pattern.
+ *
+ * They're not meant to be consciously noticed.
+ */
+function drawAtmosphere(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  t: number,
+) {
+  const x1 =
+    w *
+    (
+      0.35 +
+      Math.sin(t * 0.008) *
+      0.08
+    );
+
+  const y1 =
+    h *
+    (
+      0.42 +
+      Math.cos(t * 0.006) *
+      0.07
+    );
+
+  const g1 =
+    ctx.createRadialGradient(
+      x1,
+      y1,
+      0,
+      x1,
+      y1,
+      Math.min(w, h) *
+      0.48,
+    );
+
+  g1.addColorStop(
+    0,
+    "rgba(36,67,86,0.065)",
+  );
+
+  g1.addColorStop(
+    1,
+    "rgba(0,0,0,0)",
+  );
+
+  ctx.fillStyle = g1;
+
+  ctx.fillRect(
+    0,
+    0,
+    w,
+    h,
+  );
+
+  const x2 =
+    w *
+    (
+      0.67 +
+      Math.cos(t * 0.005) *
+      0.07
+    );
+
+  const y2 =
+    h *
+    (
+      0.55 +
+      Math.sin(t * 0.007) *
+      0.08
+    );
+
+  const g2 =
+    ctx.createRadialGradient(
+      x2,
+      y2,
+      0,
+      x2,
+      y2,
+      Math.min(w, h) *
+      0.38,
+    );
+
+  g2.addColorStop(
+    0,
+    "rgba(51,52,87,0.045)",
+  );
+
+  g2.addColorStop(
+    1,
+    "rgba(0,0,0,0)",
+  );
+
+  ctx.fillStyle = g2;
+
+  ctx.fillRect(
+    0,
+    0,
+    w,
+    h,
+  );
+}
+
+export const paintSlowInk: ScenePainter = ({
+  ctx,
+  w,
+  h,
+  t,
+}) => {
+  /*
+   * Base.
+   */
+  background(
+    ctx,
+    w,
+    h,
+    "#01040a",
+    "#06101a",
+  );
+
+  drawAtmosphere(
+    ctx,
+    w,
+    h,
+    t,
+  );
+
+  ensureBuffer(
+    w,
+    h,
+  );
+
+  if (
+    !bufferCanvas ||
+    !bufferCtx ||
+    !bufferImage
+  ) {
+    return;
+  }
+
+  renderField(
+    t,
+    w,
+    h,
+  );
+
+  /*
+   * Scale the small field smoothly across the display.
+   */
+  ctx.save();
+
+  ctx.imageSmoothingEnabled =
+    true;
+
+  ctx.imageSmoothingQuality =
+    "high";
+
+  /*
+   * A tiny blur gets rid of the low-res raster character
+   * and makes the bands feel fluid.
+   */
+  ctx.filter =
+    "blur(1.8px)";
+
+  ctx.globalAlpha =
+    0.96;
+
+  ctx.globalCompositeOperation =
+    "screen";
+
+  ctx.drawImage(
+    bufferCanvas,
+    0,
+    0,
+    bufferW,
+    bufferH,
+    0,
+    0,
+    w,
+    h,
+  );
+
+  ctx.restore();
+
+  /*
+   * Very faint second pass.
+   *
+   * Offset by a few pixels to give the bright ridges
+   * soft depth rather than looking like perfectly flat lines.
+   */
+  ctx.save();
+
+  ctx.globalCompositeOperation =
+    "screen";
+
+  ctx.globalAlpha =
+    0.07;
+
+  ctx.filter =
+    "blur(8px)";
+
+  ctx.drawImage(
+    bufferCanvas,
+    -w * 0.004,
+    -h * 0.004,
+    w * 1.008,
+    h * 1.008,
+  );
+
+  ctx.restore();
+
+  /*
+   * Final dark vignette.
+   */
+  const vignette =
+    ctx.createRadialGradient(
+      w * 0.5,
+      h * 0.48,
+      Math.min(w, h) *
+      0.15,
+
+      w * 0.5,
+      h * 0.5,
+      Math.max(w, h) *
+      0.72,
+    );
+
+  vignette.addColorStop(
+    0,
+    "rgba(0,0,0,0)",
+  );
+
+  vignette.addColorStop(
+    0.68,
+    "rgba(0,0,0,0.04)",
+  );
+
+  vignette.addColorStop(
+    1,
+    "rgba(0,2,6,0.42)",
+  );
+
+  ctx.fillStyle =
+    vignette;
+
+  ctx.fillRect(
+    0,
+    0,
+    w,
+    h,
+  );
 };
