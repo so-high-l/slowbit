@@ -18,6 +18,9 @@ export const visualIds: VisualId[] = [
   "ink",
   "vinyl",
   "nightSky",
+  "thread",
+  "ribbonTunnel",
+  "magneticField",
 ];
 const soundIds: SoundId[] = [
   "rain",

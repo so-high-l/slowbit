@@ -1,11 +1,12 @@
 "use client";
 import { useEffect } from "react";
 import { useAudioSession } from "@/components/audio/AudioProvider";
-import type { Preferences } from "@/lib/types";
+import type { Preferences, VisualId } from "@/lib/types";
 export function useAudioMixer(
   prefs: Preferences,
   playing: boolean,
   masterScale = 1,
+  scene: VisualId = prefs.lastVisual ?? "rain",
 ) {
   const audio = useAudioSession();
   const { engine, active } = audio;
@@ -15,8 +16,9 @@ export function useAudioMixer(
       prefs.globalVolume * masterScale,
       playing,
       prefs.muted,
+      scene,
     );
-  }, [engine, prefs, playing, masterScale, active]);
+  }, [engine, prefs, playing, masterScale, active, scene]);
   useEffect(() => () => {
     // Keep the unlocked audio context between check-in and session routes.
     engine.current?.stop();

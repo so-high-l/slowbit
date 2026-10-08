@@ -42,6 +42,7 @@ The bucket should contain:
 
 - `audio/mixkit-light-rain-looping-1249.wav`
 - `audio/night-crickets.wav`
+- `audio/mixkit-campfire-crackles-1330.wav`
 
 Allow the app's development and production origins in the bucket's CORS policy. Other sound layers are procedural; failed recording loads use a quiet fallback.
 

@@ -1,68 +1,33 @@
-import type { SoundId } from "./types";
+import type { SoundId, VisualId } from "./types";
+import { recordingProfile, type RecordedChannel } from "./audio-profiles.ts";
 
-const ASSET_URL = process.env.NEXT_PUBLIC_ASSET_URL ?? "";
-const RAIN_URL = ASSET_URL
-  ? `${ASSET_URL.replace(/\/$/, "")}/audio/mixkit-light-rain-looping-1249.wav`
-  : "";
-const NIGHT_URL = `${ASSET_URL.replace(/\/$/, "")}/audio/night-crickets.wav`;
-const EXTERNAL_RAIN_FADE = 2.5;
-const EXTERNAL_RAIN_STOP_FADE = 1.8;
+const ASSET_URL = (process.env.NEXT_PUBLIC_ASSET_URL ?? "").replace(/\/$/, "");
+type Voice = { source: AudioBufferSourceNode; gain: GainNode; filter: BiquadFilterNode };
 
-type RainMode = "external" | "procedural";
-
-// Procedural Web Audio loops remain the fallback for every channel, including rain.
 export class AmbientEngine {
   context: AudioContext;
   master: GainNode;
   tracks = new Map<SoundId, GainNode>();
   sources: AudioBufferSourceNode[] = [];
-  private rainGain: GainNode;
-  private proceduralRainGain: GainNode | null = null;
-  private externalRainGain: GainNode | null = null;
-  private externalRain: HTMLAudioElement | null = null;
-  private externalRainSource: MediaElementAudioSourceNode | null = null;
-  private externalRainErrorHandler: (() => void) | null = null;
-  private rainPauseTimer: ReturnType<typeof setTimeout> | null = null;
-  private rainMode: RainMode = "procedural";
-  private externalRainWarningShown = false;
-  private startPromise: Promise<void> | null = null;
-  private nightLoad = new AbortController();
-  private nightFallbackGain: GainNode | null = null;
-  private nightRecordingGain: GainNode | null = null;
+  private recordingFallbackGains = new Map<SoundId, GainNode>();
+  private buffers = new Map<string, Promise<AudioBuffer>>();
+  private requests = new Map<RecordedChannel, { key: string }>();
+  private voices = new Map<RecordedChannel, Voice>();
+  private liveVoices = new Set<Voice>();
+  private loads = new Set<AbortController>();
+  private closed = false;
 
   constructor() {
     this.context = new AudioContext();
     this.master = this.context.createGain();
     this.master.gain.value = 0;
     this.master.connect(this.context.destination);
-    this.rainGain = this.context.createGain();
-    this.rainGain.gain.value = 0;
-    this.rainGain.connect(this.master);
-    this.tracks.set("rain", this.rainGain);
   }
 
   async start() {
+    if (this.closed) return;
     await this.context.resume();
-    if (this.sources.length) {
-      if (this.rainMode === "external") await this.playExternalRain();
-      return;
-    }
-    if (this.startPromise) return this.startPromise;
-    this.startPromise = this.initializeSources();
-    try {
-      await this.startPromise;
-    } finally {
-      this.startPromise = null;
-    }
-  }
-
-  private async initializeSources() {
-    await this.tryExternalRain();
-    this.createProceduralTracks();
-    void this.loadNightRecording();
-    if (this.rainMode === "procedural") {
-      this.proceduralRainGain?.gain.setValueAtTime(1, this.context.currentTime);
-    }
+    if (!this.sources.length && !this.closed) this.createProceduralTracks();
   }
 
   private createProceduralTracks() {
@@ -93,20 +58,10 @@ export class AmbientEngine {
           let value = 0;
           if (id === "rain") value = white * 0.19 + brown * 0.35;
           if (id === "brown") value = brown * 2.6;
-          if (id === "wind") value = smooth * 2.3 * swell;
-          if (id === "fire")
-            value = brown * 0.9 + (Math.random() > 0.9992 ? white * 0.55 : 0);
-          if (id === "forest") {
-            const call = Math.pow(
-              Math.max(0, Math.sin((2 * Math.PI * t) / 4)),
-              20,
-            );
-            value =
-              smooth * 0.8 +
-              Math.sin(2 * Math.PI * (1800 * t + 25 * Math.sin(t * 8))) *
-              call *
-              0.06;
-          }
+          if (id === "wind") value = smooth * 0.2 * swell;
+          // A quiet, warm fallback without synthetic popping while fire loads.
+          if (id === "fire") value = brown * 0.1;
+          if (id === "forest") value = smooth * 0.1;
           if (id === "night") {
             // Quiet air while the recording loads; never fall back to a tone.
             value = smooth * 0.1;
@@ -137,199 +92,136 @@ export class AmbientEngine {
       source.buffer = buffer;
       source.loop = true;
       const gain = c.createGain();
-      gain.gain.value = id === "rain" ? 0 : 0;
-      if (id === "night") {
-        this.nightFallbackGain = c.createGain();
-        source.connect(this.nightFallbackGain);
-        this.nightFallbackGain.connect(gain);
+      gain.gain.value = 0;
+      if (id !== "brown" && id !== "tones") {
+        const fallback = c.createGain();
+        this.recordingFallbackGains.set(id, fallback);
+        source.connect(fallback);
+        fallback.connect(gain);
       } else {
         source.connect(gain);
       }
-      if (id === "rain") {
-        this.proceduralRainGain = gain;
-        gain.connect(this.rainGain);
-      } else {
-        gain.connect(this.master);
-        this.tracks.set(id, gain);
-      }
+      gain.connect(this.master);
+      this.tracks.set(id, gain);
       source.start();
       this.sources.push(source);
     }
   }
 
-  private async loadNightRecording() {
-    const timeout = setTimeout(() => this.nightLoad.abort(), 15000);
-    try {
-      const response = await fetch(NIGHT_URL, {
-        signal: this.nightLoad.signal,
-      });
-      if (!response.ok) throw new Error(`Night recording: ${response.status}`);
-      const buffer = await this.context.decodeAudioData(await response.arrayBuffer());
-      if (this.nightLoad.signal.aborted) return;
-      const track = this.tracks.get("night");
-      if (!track) return;
 
+  private async buffer(file: string) {
+    let pending = this.buffers.get(file);
+    if (!pending) {
+      pending = (async () => {
+        const controller = new AbortController();
+        this.loads.add(controller);
+        const timeout = setTimeout(() => controller.abort(), 30000);
+        try {
+          const response = await fetch(`${ASSET_URL}/audio/${file}`, { signal: controller.signal });
+          if (!response.ok) throw new Error(`Audio HTTP ${response.status}`);
+          const buffer = await this.context.decodeAudioData(await response.arrayBuffer());
+          // Blend the tail into the opening once, so even non-loop wind has no hard seam.
+          const overlap = Math.min(Math.floor(buffer.sampleRate * 2), Math.floor(buffer.length / 4));
+          const length = buffer.length - overlap;
+          const loop = this.context.createBuffer(buffer.numberOfChannels, length, buffer.sampleRate);
+          for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const input = buffer.getChannelData(channel);
+            const output = loop.getChannelData(channel);
+            output.set(input.subarray(0, length));
+            for (let i = 0; i < overlap; i++) {
+              const blend = i / overlap;
+              output[i] = input[length + i] * (1 - blend) + input[i] * blend;
+            }
+          }
+          return loop;
+        } finally {
+          clearTimeout(timeout);
+          this.loads.delete(controller);
+        }
+      })();
+      this.buffers.set(file, pending);
+      void pending.catch(() => this.buffers.delete(file));
+    }
+    return pending;
+  }
+
+  private async selectRecording(id: RecordedChannel, scene: VisualId) {
+    const profile = recordingProfile(scene, id);
+    const key = JSON.stringify(profile);
+    if (this.requests.get(id)?.key === key || this.closed) return;
+    const request = { key };
+    this.requests.set(id, request);
+    try {
+      const buffer = await this.buffer(profile.file);
+      if (this.closed || this.requests.get(id) !== request) return;
+      const track = this.tracks.get(id);
+      if (!track) return;
       const source = this.context.createBufferSource();
       source.buffer = buffer;
       source.loop = true;
-      this.nightRecordingGain = this.context.createGain();
-      this.nightRecordingGain.gain.value = 0;
-      source.connect(this.nightRecordingGain);
-      this.nightRecordingGain.connect(track);
-      source.start();
-      this.sources.push(source);
+      const filter = this.context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = profile.cutoff;
+      filter.Q.value = 0.5;
+      const gain = this.context.createGain();
+      gain.gain.value = 0;
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(track);
+      const voice = { source, gain, filter };
+      this.liveVoices.add(voice);
+      source.onended = () => {
+        source.disconnect(); filter.disconnect(); gain.disconnect();
+        this.liveVoices.delete(voice);
+      };
       const now = this.context.currentTime;
-      this.nightRecordingGain.gain.linearRampToValueAtTime(1, now + 2);
-      this.nightFallbackGain?.gain.linearRampToValueAtTime(0, now + 2);
+      source.start();
+      gain.gain.linearRampToValueAtTime(profile.level, now + 2);
+      const previous = this.voices.get(id);
+      if (previous) {
+        previous.gain.gain.cancelAndHoldAtTime(now);
+        previous.gain.gain.linearRampToValueAtTime(0, now + 2);
+        previous.source.stop(now + 2.1);
+      }
+      this.voices.set(id, voice);
+      const fallback = this.recordingFallbackGains.get(id);
+      fallback?.gain.cancelAndHoldAtTime(now);
+      fallback?.gain.linearRampToValueAtTime(0, now + 2);
     } catch {
-      if (!this.nightLoad.signal.aborted)
-        this.logDevelopment("Night recording unavailable; keeping the quiet air fallback");
-    } finally {
-      clearTimeout(timeout);
+      // Leave the previous recording or quiet fallback running if R2 is unavailable.
+      if (this.requests.get(id) === request) this.requests.delete(id);
     }
-  }
-
-  private async tryExternalRain() {
-    if (!RAIN_URL) {
-      this.useProceduralRain();
-      return;
-    }
-    const audio = new Audio();
-    audio.loop = true;
-    audio.preload = "auto";
-    audio.crossOrigin = "anonymous";
-    audio.src = RAIN_URL;
-    this.externalRain = audio;
-    try {
-      this.externalRainGain = this.context.createGain();
-      this.externalRainGain.gain.value = 0;
-      this.externalRainGain.connect(this.rainGain);
-      this.externalRainSource = this.context.createMediaElementSource(audio);
-      this.externalRainSource.connect(this.externalRainGain);
-    } catch {
-      this.useProceduralRain();
-      return;
-    }
-
-    let rejectLoad!: (reason?: unknown) => void;
-    const failed = new Promise<never>((_, reject) => {
-      rejectLoad = reject;
-    });
-    this.externalRainErrorHandler = () => {
-      this.useProceduralRain();
-      rejectLoad(new Error("Rain audio failed"));
-    };
-    audio.addEventListener("error", this.externalRainErrorHandler);
-    audio.load();
-    const timeout = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error("Rain audio timed out")), 8000);
-    });
-    try {
-      await Promise.race([audio.play(), failed, timeout]);
-      this.rainMode = "external";
-      this.proceduralRainGain?.gain.setValueAtTime(0, this.context.currentTime);
-      this.fadeExternalRainIn();
-      this.logDevelopment("Using external rain audio");
-    } catch {
-      this.useProceduralRain();
-    }
-  }
-
-  private async playExternalRain() {
-    if (!this.externalRain) return;
-    try {
-      await this.externalRain.play();
-      this.fadeExternalRainIn();
-    } catch {
-      this.useProceduralRain();
-    }
-  }
-
-  private fadeExternalRainIn() {
-    if (!this.externalRainGain) return;
-    if (this.rainPauseTimer) clearTimeout(this.rainPauseTimer);
-    const now = this.context.currentTime;
-    this.externalRainGain.gain.cancelScheduledValues(now);
-    this.externalRainGain.gain.setValueAtTime(0, now);
-    this.externalRainGain.gain.linearRampToValueAtTime(
-      1,
-      now + EXTERNAL_RAIN_FADE,
-    );
-  }
-
-  private useProceduralRain() {
-    this.rainMode = "procedural";
-    this.externalRain?.pause();
-    const now = this.context.currentTime;
-    if (this.externalRainGain) {
-      this.externalRainGain.gain.cancelScheduledValues(now);
-      this.externalRainGain.gain.setTargetAtTime(0, now, 0.3);
-    }
-    if (this.proceduralRainGain) {
-      this.proceduralRainGain.gain.cancelScheduledValues(now);
-      this.proceduralRainGain.gain.setTargetAtTime(1, now, 0.3);
-    }
-    this.logDevelopment("External rain unavailable, using procedural fallback");
-  }
-
-  private pauseExternalRain() {
-    if (!this.externalRain || !this.externalRainGain) return;
-    const now = this.context.currentTime;
-    this.externalRainGain.gain.cancelScheduledValues(now);
-    this.externalRainGain.gain.setTargetAtTime(0, now, 0.3);
-    if (this.rainPauseTimer) clearTimeout(this.rainPauseTimer);
-    this.rainPauseTimer = setTimeout(() => {
-      this.externalRain?.pause();
-      this.rainPauseTimer = null;
-    }, EXTERNAL_RAIN_STOP_FADE * 1000);
   }
 
   stop() {
-    if (this.rainMode === "external") this.pauseExternalRain();
-    this.master.gain.setTargetAtTime(0, this.context.currentTime, 0.45);
+    if (!this.closed) this.master.gain.setTargetAtTime(0, this.context.currentTime, 0.45);
   }
 
-  private logDevelopment(message: string) {
-    if (process.env.NODE_ENV !== "development" || this.externalRainWarningShown && message.includes("unavailable")) return;
-    if (message.includes("unavailable")) this.externalRainWarningShown = true;
-    console.warn(`[Slowbit audio] ${message}`);
-  }
-
-  mix(
-    volumes: Record<SoundId, number>,
-    global: number,
-    playing: boolean,
-    muted: boolean,
-  ) {
+  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain") {
+    if (this.closed) return;
     const now = this.context.currentTime;
-    for (const [id, gain] of this.tracks)
+    for (const [id, gain] of this.tracks) {
       gain.gain.setTargetAtTime(volumes[id] ?? 0, now, 0.3);
+      if (playing && !muted && volumes[id] > 0 && id !== "brown" && id !== "tones")
+        void this.selectRecording(id, scene);
+    }
     this.master.gain.setTargetAtTime(playing && !muted ? global : 0, now, 0.45);
-    if (!playing && this.rainMode === "external") this.pauseExternalRain();
   }
 
   async close() {
-    this.nightLoad.abort();
-    this.stop();
-    if (this.rainPauseTimer) clearTimeout(this.rainPauseTimer);
-    if (this.externalRain && this.externalRainErrorHandler)
-      this.externalRain.removeEventListener("error", this.externalRainErrorHandler);
-    this.externalRain?.pause();
-    this.externalRain?.removeAttribute("src");
-    this.externalRain?.load();
-    this.externalRainSource?.disconnect();
-    this.externalRainGain?.disconnect();
-    this.rainGain.disconnect();
-    this.nightFallbackGain?.disconnect();
-    this.nightRecordingGain?.disconnect();
-    for (const source of this.sources) {
-      try {
-        source.stop();
-      } catch {
-        // The source may already be stopped during teardown.
-      }
-      source.disconnect();
+    if (this.closed) return;
+    this.closed = true;
+    for (const load of this.loads) load.abort();
+    for (const voice of this.liveVoices) {
+      voice.source.onended = null;
+      voice.source.stop();
+      voice.source.disconnect(); voice.filter.disconnect(); voice.gain.disconnect();
     }
+    for (const source of this.sources) { source.stop(); source.disconnect(); }
+    for (const gain of this.tracks.values()) gain.disconnect();
+    for (const gain of this.recordingFallbackGains.values()) gain.disconnect();
+    this.buffers.clear(); this.liveVoices.clear(); this.voices.clear();
+    this.master.disconnect();
     await this.context.close();
   }
 }

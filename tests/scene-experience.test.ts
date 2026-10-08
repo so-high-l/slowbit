@@ -3,11 +3,10 @@ import assert from "node:assert/strict";
 import { sceneMix } from "../src/lib/sound-presets.ts";
 import { visuals } from "../src/data/catalog.ts";
 import { advanceDepth } from "../src/components/visuals/depth.ts";
-import { defaults } from "../src/lib/preferences.ts";
 test("scene presets replace old tracks, remain editable, and never mutate their defaults", () => {
   const rain = sceneMix(visuals.find((v) => v.id === "rain")!);
   const stars = sceneMix(visuals.find((v) => v.id === "stars")!);
-  assert.deepEqual(rain, defaults.audioVolumes);
+  assert.deepEqual(rain, { rain: 0.35, wind: 0.08, brown: 0.08, fire: 0, forest: 0, night: 0, tones: 0 });
   assert.equal(stars.rain, 0);
   assert.ok(stars.tones > 0);
   stars.tones = 0.9;

@@ -18,6 +18,9 @@ import { paintPaperLantern } from "./PaperLantern";
 import { paintSlowInk } from "./SlowInk";
 import { paintLateNightRecord } from "./LateNightRecord";
 import { paintNightSky } from "./NightSky";
+import { paintFlowingThread } from "./FlowingThread";
+import { paintRibbonTunnel } from "./InfiniteRibbonTunnel";
+import { paintMagneticField } from "./MagneticField";
 import { glow } from "./drawing";
 import { advanceDepth } from "./depth";
 const painters = {
@@ -38,6 +41,9 @@ const painters = {
   ink: paintSlowInk,
   vinyl: paintLateNightRecord,
   nightSky: paintNightSky,
+  thread: paintFlowingThread,
+  ribbonTunnel: paintRibbonTunnel,
+  magneticField: paintMagneticField,
 };
 export default function CanvasScene({
   kind,

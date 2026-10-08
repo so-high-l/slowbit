@@ -16,7 +16,10 @@ export type VisualId =
   | "lantern"
   | "ink"
   | "vinyl"
-  | "nightSky";
+  | "nightSky"
+  | "thread"
+  | "ribbonTunnel"
+  | "magneticField";
 export type SoundId =
   "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones";
 export interface Preferences {

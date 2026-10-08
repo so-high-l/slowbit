@@ -99,11 +99,11 @@ export const visuals: Visual[] = [
   },
   {
     id: "mist",
-    name: "Quiet forest",
-    subtitle: "Let the distance soften.",
-    tags: ["Forest", "Fog", "Nature"],
+    name: "Mosslight cavern",
+    subtitle: "A quiet pocket of green light.",
+    tags: ["Cave", "Glow", "Still"],
     recommendedMoods: ["overstimulated", "fried"],
-    defaultSounds: { forest: 0.28, wind: 0.12, brown: 0.05 },
+    defaultSounds: { wind: 0.12, brown: 0.06, tones: 0.1, night: 0.04 },
   },
   {
     id: "snow",
@@ -176,6 +176,30 @@ export const visuals: Visual[] = [
     tags: ["Sky", "Stars", "Night"],
     recommendedMoods: ["fried", "chill", "restless"],
     defaultSounds: { wind: 0.08, tones: 0.14, night: 0.12 },
+  },
+  {
+    id: "thread",
+    name: "Flowing Thread",
+    subtitle: "Let the line carry the noise.",
+    tags: ["Abstract", "Flow", "Minimal"],
+    recommendedMoods: ["stuck", "restless", "chill"],
+    defaultSounds: { tones: 0.16, brown: 0.07, wind: 0.04 },
+  },
+  {
+    id: "ribbonTunnel",
+    name: "Ribbon Tunnel",
+    subtitle: "Drift through the quiet.",
+    tags: ["Abstract", "Infinite", "Slow"],
+    recommendedMoods: ["fried", "overstimulated", "chill"],
+    defaultSounds: { tones: 0.12, brown: 0.08, wind: 0.07 },
+  },
+  {
+    id: "magneticField",
+    name: "Magnetic Field",
+    subtitle: "Let everything find its path.",
+    tags: ["Abstract", "Field", "Generative"],
+    recommendedMoods: ["stuck", "restless", "fried"],
+    defaultSounds: { tones: 0.15, brown: 0.08, night: 0.05 },
   },
 ];
 export const sounds: { id: SoundId; name: string; note: string }[] = [

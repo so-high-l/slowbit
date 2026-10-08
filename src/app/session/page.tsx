@@ -81,7 +81,7 @@ function Session() {
   const endRef = useRef<HTMLDivElement>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fullscreen = useFullscreen();
-  const audio = useAudioMixer(p, playing);
+  const audio = useAudioMixer(p, playing, 1, visualId);
   const timer = useSessionTimer(
     p.defaultSessionDuration,
     phase === "running" && playing,
