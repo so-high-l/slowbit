@@ -29,12 +29,12 @@ export default function Home() {
   const [customScene, setCustomScene] = useState<VisualId | null>(null);
   const [choosingScene, setChoosingScene] = useState(false);
   const fullscreen = useFullscreen();
-  const audio = useAudioMixer(p, entered, 0.18);
   const stationRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const sceneDialog = useRef<HTMLDialogElement>(null);
   const profile = checkIns[mood];
   const recommended = availableCheckInScene(mood, p.hiddenVisuals);
   const scene = customScene && !p.hiddenVisuals.includes(customScene) ? customScene : recommended;
+  const audio = useAudioMixer(p, entered, 0.18, scene ?? "rain");
   const visual = visuals.find(v => v.id === scene);
   const availableScenes = visuals.filter(v => !p.hiddenVisuals.includes(v.id));
   const prioritizedScenes = [...availableScenes].sort((a, b) => {

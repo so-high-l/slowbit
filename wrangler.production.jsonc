@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "slowbit-board",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-10-06",
+  "workers_dev": true,
+  "vars": {
+    "BOARD_ALLOWED_ORIGINS": "https://slowbit.vercel.app"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "slowbit-board",
+      // Replace with the ID printed by `wrangler d1 create slowbit-board`.
+      "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+      "migrations_dir": "./drizzle"
+    }
+  ]
+}

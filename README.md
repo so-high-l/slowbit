@@ -44,7 +44,12 @@ The bucket should contain:
 - `audio/night-crickets.wav`
 - `audio/mixkit-campfire-crackles-1330.wav`
 
-Allow the app's development and production origins in the bucket's CORS policy. Other sound layers are procedural; failed recording loads use a quiet fallback.
+Allow the app's development and production origins in the bucket's CORS policy. Rain, fire, wind, forest, and night use recordings; brown noise and tones remain procedural. The complete recording list is in [asset licenses](ASSET_LICENSES.md). Failed loads retain a fallback.
+
+## Deploy the board
+
+Vercel hosts the frontend only. Deploy the Worker/D1 separately and set
+`NEXT_PUBLIC_BOARD_API_URL` before rebuilding. See [board setup](docs/board-deployment.md).
 
 ## Checks
 

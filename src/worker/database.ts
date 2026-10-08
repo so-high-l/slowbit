@@ -10,7 +10,8 @@ export interface Database {
 }
 export interface Bindings {
   DB?: Database;
-  ASSETS: { fetch(request: Request): Promise<Response> };
+  BOARD_ALLOWED_ORIGINS?: string;
+  ASSETS?: { fetch(request: Request): Promise<Response> };
 }
 export function database(env: Bindings): Database {
   if (!env.DB) throw new Error("Board database is unavailable");

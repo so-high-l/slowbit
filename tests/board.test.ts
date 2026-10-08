@@ -157,3 +157,35 @@ test("database failure returns a recoverable response", async () => {
     /try again/,
   );
 });
+
+test("Vercel frontend can preflight, submit, and read from the separate Worker", async () => {
+  const { env, sqlite } = setup();
+  env.BOARD_ALLOWED_ORIGINS = "https://slowbit.vercel.app";
+  const origin = "https://slowbit.vercel.app";
+  const call = (path: string, init: RequestInit = {}) => worker.fetch(new Request(
+    `https://slowbit-board.example.workers.dev/api/board${path}`, {
+      ...init, headers: { Origin: origin, "Sec-Fetch-Site": "cross-site", ...init.headers },
+    }), env);
+  try {
+    const preflight = await call("/session", { method: "OPTIONS", headers: {
+      "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type",
+    } });
+    assert.equal(preflight.status, 204);
+    assert.equal(preflight.headers.get("Access-Control-Allow-Origin"), origin);
+    const session = await call("/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    assert.equal(session.status, 201);
+    const { token } = await session.json() as { token: string };
+    const posted = await call("/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, body: "A quieter moment." }) });
+    assert.equal(posted.status, 201);
+    assert.equal(posted.headers.get("Access-Control-Allow-Origin"), origin);
+    const listed = await call("/messages");
+    assert.equal((await listed.json() as { messages: unknown[] }).messages.length, 1);
+    const denied = await call("/session", { method: "POST", headers: { Origin: "https://attacker.test" }, body: "{}" });
+    assert.equal(denied.status, 403);
+    assert.equal(denied.headers.get("Access-Control-Allow-Origin"), null);
+    delete env.DB;
+    const failure = await call("/messages");
+    assert.equal(failure.status, 503);
+    assert.equal(failure.headers.get("Access-Control-Allow-Origin"), origin);
+  } finally { sqlite.close(); }
+});

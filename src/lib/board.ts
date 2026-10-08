@@ -23,11 +23,14 @@ export async function boardRequest<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`/api/board${path}`, {
+  const boardApiUrl = (process.env.NEXT_PUBLIC_BOARD_API_URL ?? "").replace(/\/+$/, "");
+  const response = await fetch(`${boardApiUrl}/api/board${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
     cache: "no-store",
-    signal: init?.signal ?? AbortSignal.timeout(12000),
+    signal: init?.signal
+      ? AbortSignal.any([init.signal, AbortSignal.timeout(12000)])
+      : AbortSignal.timeout(12000),
   });
   let data: { error?: string };
   try {
