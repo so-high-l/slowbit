@@ -73,7 +73,7 @@ export default {
         (origin && origin !== url.origin) ||
         request.headers.get("Sec-Fetch-Site") === "cross-site"
       )
-        return json({ error: "Please post from Offscript." }, 403);
+        return json({ error: "Please post from slowbit." }, 403);
     }
     try {
       const db = database(env);

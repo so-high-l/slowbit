@@ -43,18 +43,18 @@ function setup() {
   const request = (
     path: string,
     body?: unknown,
-    origin = "https://offscript.test",
+    origin = "https://slowbit.test",
   ) =>
     worker.fetch(
       new Request(
-        `https://offscript.test/api/board${path}`,
+        `https://slowbit.test/api/board${path}`,
         body === undefined
           ? {}
           : {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Origin: origin },
-              body: JSON.stringify(body),
-            },
+            method: "POST",
+            headers: { "Content-Type": "application/json", Origin: origin },
+            body: JSON.stringify(body),
+          },
       ),
       env,
     );
@@ -142,7 +142,7 @@ test("Unicode character limit and text-only content remain predictable", () => {
 });
 test("database failure returns a recoverable response", async () => {
   const response = await worker.fetch(
-    new Request("https://offscript.test/api/board/messages"),
+    new Request("https://slowbit.test/api/board/messages"),
     {
       ASSETS: {
         async fetch() {

@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { Settings2, Heart, AudioLines } from "lucide-react";
 export function Logo() {
   return (
-    <Link className="brand" href="/" aria-label="Offscript home">
+    <Link className="brand" href="/" aria-label="Slowbit home">
       <AudioLines size={25} strokeWidth={1.5} />
       <span>
         slowbit<span className="brand-period">.</span>
