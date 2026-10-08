@@ -3,6 +3,13 @@
 Vercel serves the static Next.js export. It does not deploy the Cloudflare Worker
 or D1 database. The board needs both the backend below and a frontend rebuild.
 
+The deployed API is `https://slowbit-board.elmahdanisouhail.workers.dev`.
+The production D1 binding is configured in `wrangler.production.jsonc`.
+Production Vercel builds use this URL by default through `next.config.ts`;
+`NEXT_PUBLIC_BOARD_API_URL` can override it. Local previews stay same-origin.
+
+For a new account or replacement backend:
+
 1. Sign in and create the production database:
 
    ```sh

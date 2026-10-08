@@ -48,8 +48,8 @@ Allow the app's development and production origins in the bucket's CORS policy. 
 
 ## Deploy the board
 
-Vercel hosts the frontend only. Deploy the Worker/D1 separately and set
-`NEXT_PUBLIC_BOARD_API_URL` before rebuilding. See [board setup](docs/board-deployment.md).
+Vercel hosts the frontend; production builds connect to the deployed Cloudflare
+Worker/D1. Override it with `NEXT_PUBLIC_BOARD_API_URL`. See [board setup](docs/board-deployment.md).
 
 ## Checks
 

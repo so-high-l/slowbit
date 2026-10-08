@@ -11,8 +11,7 @@
     {
       "binding": "DB",
       "database_name": "slowbit-board",
-      // Replace with the ID printed by `wrangler d1 create slowbit-board`.
-      "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+      "database_id": "c2e7e9c9-89c4-4267-914a-3e225e7729df",
       "migrations_dir": "./drizzle"
     }
   ]
