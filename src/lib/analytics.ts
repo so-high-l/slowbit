@@ -1,6 +1,6 @@
 import posthog from "posthog-js";
 import { allowedEvents, type ProductCapture } from "./analytics-events";
-import type { VisualId } from "./types";
+import type { AnalyticsScene } from "./analytics-events";
 let initialized = false;
 
 export function initializeAnalytics() {
@@ -37,7 +37,7 @@ export const captureProductEvent: ProductCapture = (event, properties) => {
   try { posthog.capture(event, properties); } catch { /* Best-effort analytics. */ }
 };
 export const analytics = {
-  sceneSelected: (scene: VisualId) => captureProductEvent("scene_selected", { scene }),
-  sceneFavorited: (scene: VisualId) => captureProductEvent("scene_favorited", { scene }),
-  sceneHidden: (scene: VisualId) => captureProductEvent("scene_hidden", { scene }),
+  sceneSelected: (scene: AnalyticsScene) => captureProductEvent("scene_selected", { scene_id: scene.id, scene_name: scene.name }),
+  sceneFavorited: (scene: AnalyticsScene) => captureProductEvent("scene_favorited", { scene_id: scene.id, scene_name: scene.name }),
+  sceneHidden: (scene: AnalyticsScene) => captureProductEvent("scene_hidden", { scene_id: scene.id, scene_name: scene.name }),
 };

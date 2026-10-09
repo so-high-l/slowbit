@@ -11,15 +11,18 @@ test("PostHog stays off without configuration and is restricted to the MVP event
         "process.env.NEXT_PUBLIC_POSTHOG_HOST": JSON.stringify("https://eu.i.posthog.com"),
         "window": "{}",
       },
-      plugins: [{ name: "mock-posthog", setup(builder) {
-        builder.onResolve({ filter: /^posthog-js$/ }, () => ({ path: "sdk", namespace: "mock" }));
-        builder.onLoad({ filter: /.*/, namespace: "mock" }, () => ({ contents: `
+      plugins: [{
+        name: "mock-posthog", setup(builder) {
+          builder.onResolve({ filter: /^posthog-js$/ }, () => ({ path: "sdk", namespace: "mock" }));
+          builder.onLoad({ filter: /.*/, namespace: "mock" }, () => ({
+            contents: `
           export default {
             init(token, config) { globalThis.__slowbitAnalyticsTest.config = config; },
             capture(name, properties) { globalThis.__slowbitAnalyticsTest.events.push({name, properties}); }
           };
         ` }));
-      } }],
+        }
+      }],
     });
     return import("data:text/javascript;base64," + Buffer.from(built.outputFiles[0].text).toString("base64"));
   };
@@ -28,12 +31,12 @@ test("PostHog stays off without configuration and is restricted to the MVP event
   try {
     const disabled = await load("");
     disabled.initializeAnalytics();
-    disabled.analytics.sceneSelected("rain");
+    disabled.analytics.sceneSelected({ id: "rain", name: "Rainy window" });
     assert.equal(globals.__slowbitAnalyticsTest.config, undefined);
     assert.equal(globals.__slowbitAnalyticsTest.events.length, 0);
     const enabled = await load("phc_test_not_a_real_project");
     enabled.initializeAnalytics();
-    enabled.analytics.sceneSelected("ocean");
+    enabled.analytics.sceneSelected({ id: "ocean", name: "Open water" });
     const config = globals.__slowbitAnalyticsTest.config!;
     assert.equal(config.autocapture, false);
     assert.equal(config.disable_session_recording, true);
@@ -42,6 +45,6 @@ test("PostHog stays off without configuration and is restricted to the MVP event
     assert.equal(filter({ event: "$snapshot" }), null);
     assert.equal(filter({ event: "$autocapture" }), null);
     assert.deepEqual(filter({ event: "$pageview" }), { event: "$pageview" });
-    assert.deepEqual(globals.__slowbitAnalyticsTest.events, [{ name: "scene_selected", properties: { scene: "ocean" } }]);
+    assert.deepEqual(globals.__slowbitAnalyticsTest.events, [{ name: "scene_selected", properties: { scene_id: "ocean", scene_name: "Open water" } }]);
   } finally { delete globals.__slowbitAnalyticsTest; }
 });

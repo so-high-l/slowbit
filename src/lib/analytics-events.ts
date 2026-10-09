@@ -1,10 +1,11 @@
-import type { Mood, VisualId } from "./types";
+import type { Mood, Visual } from "./types";
+export type AnalyticsScene = Pick<Visual, "id" | "name">;
 export interface ProductEvents {
-  session_started: { duration_minutes: number | null; mood: Mood; initial_scene: VisualId };
-  scene_selected: { scene: VisualId };
-  session_completed: { duration_minutes: number | null; final_scene: VisualId; completed_naturally: true };
-  scene_favorited: { scene: VisualId };
-  scene_hidden: { scene: VisualId };
+  session_started: { duration_minutes: number | null; mood: Mood; initial_scene_id: Visual["id"] };
+  scene_selected: { scene_id: Visual["id"]; scene_name: string };
+  session_completed: { duration_minutes: number | null; mood: Mood; final_scene_id: Visual["id"]; completed_naturally: true };
+  scene_favorited: { scene_id: Visual["id"]; scene_name: string };
+  scene_hidden: { scene_id: Visual["id"]; scene_name: string };
 }
 export type ProductCapture = <E extends keyof ProductEvents>(event: E, properties: ProductEvents[E]) => void;
 export const allowedEvents = new Set(["$pageview", "session_started", "scene_selected", "session_completed", "scene_favorited", "scene_hidden"]);
@@ -15,17 +16,19 @@ export function createSessionAnalytics(capture: ProductCapture) {
   let started = false;
   let completed = false;
   let duration: number | null = null;
+  let mood: Mood | null = null;
   return {
-    start(minutes: number | null, mood: Mood, scene: VisualId) {
+    start(minutes: number | null, sessionMood: Mood, scene: AnalyticsScene) {
       if (started) return;
       started = true;
       duration = minutes;
-      capture("session_started", { duration_minutes: minutes, mood, initial_scene: scene });
+      mood = sessionMood;
+      capture("session_started", { duration_minutes: minutes, mood: sessionMood, initial_scene_id: scene.id });
     },
-    complete(scene: VisualId) {
+    complete(scene: AnalyticsScene) {
       if (!started || completed || duration === null) return;
       completed = true;
-      capture("session_completed", { duration_minutes: duration, final_scene: scene, completed_naturally: true });
+      capture("session_completed", { duration_minutes: duration, mood: mood!, final_scene_id: scene.id, completed_naturally: true });
     },
     extend() {
       if (completed) { started = false; completed = false; }

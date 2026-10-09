@@ -20,11 +20,11 @@ Leave local configuration empty to keep development activity out of production.
 | Event | Trigger / properties |
 | --- | --- |
 | `$pageview` | Initial visit and SPA route changes, managed by PostHog |
-| `session_started` | Once per session; `duration_minutes`, `mood`, `initial_scene` |
-| `scene_selected` | Explicit scene changes/picker/favorites; `scene` |
-| `session_completed` | Timer reaches zero; `duration_minutes`, `final_scene`, `completed_naturally: true` |
-| `scene_favorited` | Adding a favorite, not removing; `scene` |
-| `scene_hidden` | Hiding a scene; `scene` |
+| `session_started` | Once per session; `duration_minutes`, `mood`, `initial_scene_id` |
+| `scene_selected` | Explicit scene changes/picker/favorites; `scene_id`, `scene_name` |
+| `session_completed` | Timer reaches zero; `duration_minutes`, `mood`, `final_scene_id`, `completed_naturally: true` |
+| `scene_favorited` | Adding a favorite, not removing; `scene_id`, `scene_name` |
+| `scene_hidden` | Hiding a scene; `scene_id`, `scene_name` |
 
 Pauses and early finishes do not complete a session. Resuming an early finish
 continues it. Extending after a completed timer starts a new session. Untimed
@@ -38,9 +38,9 @@ sessions have `duration_minutes: null` and no natural completion event.
 - Completion: funnel `session_started` → `session_completed`; filter out
   `duration_minutes: null`. Use total events for session counts rather than
   confusing repeat sessions with unique users.
-- Top scenes: `scene_selected` by `scene`; also examine `session_started` by
-  `initial_scene` to include defaults that users never changed.
-- Favorites: `scene_favorited` by `scene`.
+- Top scenes: `scene_selected` by `scene_id` or `scene_name`; also examine `session_started` by
+  `initial_scene_id` to include defaults that users never changed.
+- Favorites: `scene_favorited` by `scene_id` or `scene_name`.
 - Seven-day retention: initial and returning events both `session_started`.
 
 Check Live Events after configuring the token: visit, begin, switch scene,

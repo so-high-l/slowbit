@@ -58,9 +58,10 @@ function Session() {
   const [phase, setPhase] = useState<"ready" | "running" | "ended">(arrival ? "running" : "ready");
   const [playing, setPlaying] = useState(!!arrival);
   const [sessionAnalytics] = useState(() => createSessionAnalytics(captureProductEvent));
+  const visual = visuals.find((v) => v.id === visualId)!;
   useEffect(() => {
     if (phase === "running" && !p.hiddenVisuals.includes(visualId))
-      sessionAnalytics.start(p.defaultSessionDuration, p.lastMood ?? "fried", visualId);
+      sessionAnalytics.start(p.defaultSessionDuration, p.lastMood ?? "fried", visual);
   }, [phase, sessionAnalytics, p.defaultSessionDuration, p.lastMood, p.hiddenVisuals, visualId]);
   const [opening, setOpening] = useState(!!arrival);
   const [motionScale, setMotionScale] = useState(arrival?.pace ?? 1);
@@ -93,7 +94,7 @@ function Session() {
     p.defaultSessionDuration,
     phase === "running" && playing,
     () => {
-      sessionAnalytics.complete(visualId);
+      sessionAnalytics.complete(visual);
       setPlaying(false);
       setPhase("ended");
       setPanel(false);
@@ -105,7 +106,6 @@ function Session() {
     setPlaying(true);
     void audio.start();
   }, [arrival, audio.start, phase]);
-  const visual = visuals.find((v) => v.id === visualId)!;
   const available = visuals.filter((v) => !p.hiddenVisuals.includes(v.id));
   const reveal = useCallback(() => {
     setVisible(true);
@@ -185,11 +185,11 @@ function Session() {
   }
   function switchVisual(id: VisualId, trackSelection = true) {
     if (id === visualId) return;
-    if (trackSelection) analytics.sceneSelected(id);
+    const nextVisual = visuals.find((v) => v.id === id)!;
+    if (trackSelection) analytics.sceneSelected(nextVisual);
     setVisualId(id);
     setOpening(false);
     setMotionScale(1);
-    const nextVisual = visuals.find((v) => v.id === id)!;
     update({ lastVisual: id, audioVolumes: sceneMix(nextVisual) });
     setNotice("");
     reveal();
@@ -212,7 +212,7 @@ function Session() {
   }
   function hide() {
     const remaining = available.filter((v) => v.id !== visualId);
-    if (!p.hiddenVisuals.includes(visualId)) analytics.sceneHidden(visualId);
+    if (!p.hiddenVisuals.includes(visualId)) analytics.sceneHidden(visual);
     hideVisual(visualId);
     if (remaining.length) switchVisual(remaining[0].id, false);
     else {
@@ -384,7 +384,7 @@ function Session() {
                   }
                   aria-pressed={p.favoriteVisuals.includes(visualId)}
                   onClick={(e) => {
-                    if (!p.favoriteVisuals.includes(visualId)) analytics.sceneFavorited(visualId);
+                    if (!p.favoriteVisuals.includes(visualId)) analytics.sceneFavorited(visual);
                     toggleFavorite(visualId);
                     gsap.fromTo(
                       e.currentTarget,

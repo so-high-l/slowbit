@@ -31,7 +31,7 @@ export default function Favorites() {
                   className="saved-preview"
                   aria-label={`Start ${v.name}`}
                   onClick={() => {
-                    analytics.sceneSelected(v.id);
+                    analytics.sceneSelected(v);
                     update({
                       lastVisual: v.id,
                       hiddenVisuals: p.hiddenVisuals.filter(
