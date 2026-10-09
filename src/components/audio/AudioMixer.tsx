@@ -11,7 +11,6 @@ import {
   Music2,
 } from "lucide-react";
 import type { Visual } from "@/lib/types";
-import { sceneMix } from "@/lib/sound-presets";
 import { sounds } from "@/data/catalog";
 import { usePreferences } from "@/hooks/usePreferences";
 const icons = {
@@ -24,7 +23,8 @@ const icons = {
   tones: Music2,
 };
 export default function AudioMixer({ visual }: { visual: Visual }) {
-  const { preferences: p, setVolume, update } = usePreferences();
+  const { preferences: p, getSceneSoundMix, setVolume, resetSceneSoundMix, update } = usePreferences();
+  const mix = getSceneSoundMix(visual);
   return (
     <div className="mixer">
       <div className="mixer-heading">
@@ -42,8 +42,8 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
       </div>
       <div className="mixer-preset">
         <span>{visual.name} mix</span>
-        <button onClick={() => update({ audioVolumes: sceneMix(visual) })}>
-          Reset preset
+        <button onClick={() => resetSceneSoundMix(visual.id)}>
+          Reset
         </button>
       </div>
       {sounds.map((s) => {
@@ -52,15 +52,15 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
           <div className="sound-track" key={s.id}>
             <Icon size={19} />
             <label htmlFor={`volume-${s.id}`}>{s.name}</label>
-            <output>{Math.round(p.audioVolumes[s.id] * 100)}%</output>
+            <output>{Math.round(mix[s.id] * 100)}%</output>
             <input
               id={`volume-${s.id}`}
               type="range"
               min="0"
               max="1"
               step=".01"
-              value={p.audioVolumes[s.id]}
-              onChange={(e) => setVolume(s.id, Number(e.target.value))}
+              value={mix[s.id]}
+              onChange={(e) => setVolume(visual.id, s.id, Number(e.target.value))}
               aria-label={`${s.name} volume`}
             />
           </div>

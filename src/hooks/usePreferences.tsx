@@ -7,8 +7,17 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { defaults, normalize, STORAGE_KEY } from "@/lib/preferences";
-import type { Preferences, VisualId, SoundId } from "@/lib/types";
+import {
+  defaults,
+  completeTour as markTourComplete,
+  getSceneSoundMix as resolveSceneSoundMix,
+  hasCompletedTour as isTourComplete,
+  normalize,
+  resetSceneSoundMix as removeSceneSoundMix,
+  saveSceneSoundMix as persistSceneSoundMix,
+  STORAGE_KEY,
+} from "@/lib/preferences";
+import type { Preferences, Visual, VisualId, SoundId, SoundMix } from "@/lib/types";
 function useStore() {
   const [preferences, setPreferences] = useState<Preferences>(defaults);
   const [ready, setReady] = useState(false);
@@ -24,11 +33,14 @@ function useStore() {
   }, []);
   useEffect(() => {
     if (!ready) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
-    } catch {
-      setStorageError(true);
-    }
+    const timeout = window.setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+      } catch {
+        setStorageError(true);
+      }
+    }, 280);
+    return () => window.clearTimeout(timeout);
   }, [preferences, ready]);
   const update = useCallback(
     (patch: Partial<Preferences>) =>
@@ -61,13 +73,30 @@ function useStore() {
       })),
     [],
   );
-  const setVolume = useCallback(
-    (id: SoundId, volume: number) =>
-      setPreferences((p) => ({
-        ...p,
-        audioVolumes: { ...p.audioVolumes, [id]: volume },
-      })),
+  const getSceneSoundMix = useCallback(
+    (visual: Pick<Visual, "id" | "defaultSounds">) => resolveSceneSoundMix(preferences, visual),
+    [preferences],
+  );
+  const saveSceneSoundMix = useCallback(
+    (sceneId: VisualId, mix: Partial<SoundMix>) =>
+      setPreferences((p) => persistSceneSoundMix(p, sceneId, mix)),
     [],
+  );
+  const resetSceneSoundMix = useCallback(
+    (sceneId: VisualId) => setPreferences((p) => removeSceneSoundMix(p, sceneId)),
+    [],
+  );
+  const hasCompletedTour = useCallback(
+    (tourId: string) => isTourComplete(preferences, tourId),
+    [preferences],
+  );
+  const completeTour = useCallback(
+    (tourId: string) => setPreferences((p) => markTourComplete(p, tourId)),
+    [],
+  );
+  const setVolume = useCallback(
+    (sceneId: VisualId, id: SoundId, volume: number) => saveSceneSoundMix(sceneId, { [id]: volume }),
+    [saveSceneSoundMix],
   );
   return {
     preferences,
@@ -77,6 +106,11 @@ function useStore() {
     toggleFavorite,
     hideVisual,
     restoreVisual,
+    getSceneSoundMix,
+    saveSceneSoundMix,
+    resetSceneSoundMix,
+    hasCompletedTour,
+    completeTour,
     setVolume,
     setDuration: (n: number | null) => update({ defaultSessionDuration: n }),
   };

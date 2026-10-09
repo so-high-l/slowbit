@@ -10,7 +10,6 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { useFullscreen } from "@/hooks/useFullscreen";
 import { checkIns, checkInMix, availableCheckInScene, stationOrder } from "@/lib/check-in";
-import { sceneMix } from "@/lib/sound-presets";
 import type { Mood, VisualId } from "@/lib/types";
 
 const landingAssets = [
@@ -35,7 +34,6 @@ export default function Home() {
   const profile = checkIns[mood];
   const recommended = availableCheckInScene(mood, p.hiddenVisuals);
   const scene = customScene && !p.hiddenVisuals.includes(customScene) ? customScene : recommended;
-  const audio = useAudioMixer(p, entered, 0.18, scene ?? "rain");
   const visual = visuals.find(v => v.id === scene);
   const availableScenes = visuals.filter(v => !p.hiddenVisuals.includes(v.id));
   const prioritizedScenes = [...availableScenes].sort((a, b) => {
@@ -45,6 +43,7 @@ export default function Home() {
   });
   const useMoodMix = scene === profile.scene;
   const pace = useMoodMix ? profile.pace : 1;
+  const audio = useAudioMixer(p, entered, 0.18, scene ?? "rain", useMoodMix ? checkInMix(mood) : undefined);
   const assetsReady = ready && assetProgress === 100;
   useEffect(() => {
     let loaded = 0;
@@ -82,10 +81,6 @@ export default function Home() {
     if (document.fullscreenElement) setEntered(true);
   }, [ready]);
   useEffect(() => {
-    if (!entered || !visual) return;
-    update({ audioVolumes: useMoodMix ? checkInMix(mood) : sceneMix(visual) });
-  }, [entered, visual, mood, useMoodMix, update]);
-  useEffect(() => {
     if (entered) void audio.start();
   }, [entered, audio.start]);
   useEffect(() => {
@@ -114,7 +109,7 @@ export default function Home() {
   }
   function begin() {
     if (!visual) return;
-    update({ lastMood: mood, lastVisual: visual.id, defaultSessionDuration: duration, audioVolumes: useMoodMix ? checkInMix(mood) : sceneMix(visual) });
+    update({ lastMood: mood, lastVisual: visual.id, defaultSessionDuration: duration });
     audio.prepareSession({ pace, opening: useMoodMix ? [...profile.opening] : [profile.opening[0], "You chose " + visual.name.toLowerCase() + ".", "We’ll start there. You can change anything as you go."] });
     router.push("/session/");
   }

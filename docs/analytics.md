@@ -1,6 +1,6 @@
 # MVP analytics
 
-PostHog Cloud receives pageviews and five custom events. No analytics backend,
+PostHog Cloud receives pageviews and nine custom events. No analytics backend,
 user accounts, `identify()` calls, autocapture, session recordings, surveys, or
 message-board text. A persistent anonymous browser ID supports retention; it is
 not a person's identity and resets when browser storage is cleared.
@@ -25,6 +25,10 @@ Leave local configuration empty to keep development activity out of production.
 | `session_completed` | Timer reaches zero; `duration_minutes`, `mood`, `final_scene_id`, `completed_naturally: true` |
 | `scene_favorited` | Adding a favorite, not removing; `scene_id`, `scene_name` |
 | `scene_hidden` | Hiding a scene; `scene_id`, `scene_name` |
+| `tour_started` | Session guide starts; `tour_id`, `step`, `target` |
+| `tour_step_viewed` | Session guide advances; `tour_id`, `step`, `target` |
+| `tour_completed` | Session guide finishes; `tour_id`, `step`, `target` |
+| `tour_skipped` | Session guide is skipped; `tour_id`, `step`, `target` |
 
 Pauses and early finishes do not complete a session. Resuming an early finish
 continues it. Extending after a completed timer starts a new session. Untimed

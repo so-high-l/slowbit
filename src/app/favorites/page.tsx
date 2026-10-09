@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import Shell from "@/components/Shell";
 import { usePreferences } from "@/hooks/usePreferences";
-import { sceneMix } from "@/lib/sound-presets";
 import { visuals } from "@/data/catalog";
 export default function Favorites() {
   const { preferences: p, ready, toggleFavorite, update } = usePreferences();
@@ -37,7 +36,6 @@ export default function Favorites() {
                       hiddenVisuals: p.hiddenVisuals.filter(
                         (id) => id !== v.id,
                       ),
-                      audioVolumes: sceneMix(v),
                     });
                     router.push("/session/");
                   }}

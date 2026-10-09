@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import Shell from "@/components/Shell";
 import { usePreferences } from "@/hooks/usePreferences";
 import { durations, visuals } from "@/data/catalog";
@@ -106,6 +107,13 @@ export default function Settings() {
               ) : (
                 <p className="muted">Nothing hidden. Every space is open.</p>
               )}
+            </section>
+            <section className="settings-section">
+              <h2>Find your way around</h2>
+              <p>Replay the short guide to the controls on the session screen.</p>
+              <Link className="secondary-button settings-tour-link" href="/session/?tour=1">
+                Replay session guide
+              </Link>
             </section>
             <section className="settings-section">
               <h2>A little connection</h2>

@@ -33,7 +33,7 @@ test("untimed sessions and sessions that never started cannot complete naturally
   assert.deepEqual(events.map(event => event.name), ["session_started"]);
 });
 test("only the six requested events are allowed", () => {
-  assert.equal(allowedEvents.size, 6);
+  assert.equal(allowedEvents.size, 10);
   for (const event of ["$autocapture", "$snapshot", "$pageleave", "$exception", "session_ended_early"])
     assert.equal(allowedEvents.has(event), false);
 });

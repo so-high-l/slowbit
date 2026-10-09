@@ -25,12 +25,12 @@ import AudioMixer from "@/components/audio/AudioMixer";
 import AnonymousBoard from "@/components/board/AnonymousBoard";
 import MessageComposer from "@/components/board/MessageComposer";
 import SessionOpening from "@/components/checkin/SessionOpening";
+import SessionTour from "@/components/onboarding/SessionTour";
 import { useAudioSession } from "@/components/audio/AudioProvider";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { useFullscreen } from "@/hooks/useFullscreen";
 import { useSessionTimer } from "@/hooks/useSessionTimer";
-import { sceneMix } from "@/lib/sound-presets";
 import { visuals } from "@/data/catalog";
 import { analytics, captureProductEvent } from "@/lib/analytics";
 import { createSessionAnalytics } from "@/lib/analytics-events";
@@ -57,6 +57,10 @@ function Session() {
   const [arrival] = useState(audioSession.pendingSession);
   const [phase, setPhase] = useState<"ready" | "running" | "ended">(arrival ? "running" : "ready");
   const [playing, setPlaying] = useState(!!arrival);
+  const [tourActive, setTourActive] = useState(false);
+  const [replayTour] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tour") === "1",
+  );
   const [sessionAnalytics] = useState(() => createSessionAnalytics(captureProductEvent));
   const visual = visuals.find((v) => v.id === visualId)!;
   useEffect(() => {
@@ -72,6 +76,12 @@ function Session() {
       void audioSession.start();
     }
   }, [arrival, audioSession.clearSession, audioSession.start]);
+  useEffect(() => {
+    if (!replayTour || arrival || phase !== "ready") return;
+    setPhase("running");
+    setPlaying(true);
+    void audioSession.start();
+  }, [arrival, audioSession.start, phase, replayTour]);
   const [exploring, setExploring] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   useEffect(() => {
@@ -101,7 +111,7 @@ function Session() {
     },
   );
   useEffect(() => {
-    if (arrival || phase !== "ready" || !document.fullscreenElement) return;
+    if (replayTour || arrival || phase !== "ready" || !document.fullscreenElement) return;
     setPhase("running");
     setPlaying(true);
     void audio.start();
@@ -190,7 +200,7 @@ function Session() {
     setVisualId(id);
     setOpening(false);
     setMotionScale(1);
-    update({ lastVisual: id, audioVolumes: sceneMix(nextVisual) });
+    update({ lastVisual: id });
     setNotice("");
     reveal();
   }
@@ -279,7 +289,7 @@ function Session() {
     );
   return (
     <main
-      className={`session ${opening ? "opening-active" : ""} ${p.showBoard ? "board-open" : ""} ${phase === "running" && !visible ? "controls-hidden" : ""}`}
+      className={`session ${opening ? "opening-active" : ""} ${p.showBoard ? "board-open" : ""} ${phase === "running" && !visible && !tourActive ? "controls-hidden" : ""}`}
       onPointerMove={reveal}
       onPointerDown={reveal}
       onFocusCapture={reveal}
@@ -377,6 +387,7 @@ function Session() {
               <div className="dock-group">
                 <button
                   className={`icon-button ${p.favoriteVisuals.includes(visualId) ? "is-favorite" : ""}`}
+                  data-tour="favorite"
                   aria-label={
                     p.favoriteVisuals.includes(visualId)
                       ? "Remove favorite"
@@ -411,6 +422,7 @@ function Session() {
                 </button>
                 <button
                   className="icon-button"
+                  data-tour="hide"
                   aria-label="Hide this space"
                   onClick={hide}
                 >
@@ -418,7 +430,7 @@ function Session() {
                 </button>
               </div>
               <span className="dock-divider" />
-              <div className="dock-group">
+              <div className="dock-group" data-tour="scene-navigation">
                 <button
                   className="icon-button"
                   aria-label="Previous visual"
@@ -446,6 +458,7 @@ function Session() {
               </div>
               <button
                 className="play-button"
+                data-tour="playback"
                 aria-label={playing ? "Pause session" : "Resume session"}
                 onClick={togglePlay}
               >
@@ -457,6 +470,7 @@ function Session() {
               </button>
               <button
                 className={`sounds-button ${panel ? "active" : ""}`}
+                data-tour="audio"
                 aria-expanded={panel}
                 aria-controls="audio-panel"
                 aria-label="Sounds"
@@ -470,6 +484,7 @@ function Session() {
               </button>
               <button
                 className="icon-button mute-control"
+                data-tour="mute"
                 aria-label={p.muted ? "Unmute audio" : "Mute audio"}
                 onClick={() => update({ muted: !p.muted })}
               >
@@ -477,6 +492,7 @@ function Session() {
               </button>
               <button
                 className={`icon-button board-toggle ${p.showBoard ? "active" : ""}`}
+                data-tour="chat"
                 aria-label={
                   p.showBoard ? "Hide message board" : "Show message board"
                 }
@@ -563,7 +579,7 @@ function Session() {
                   className="primary-button"
                   onClick={() => {
                     sessionAnalytics.extend();
-                    timer.resumeOrExtend(p.defaultSessionDuration);
+                    timer.resumeOrExtend(null);
                     setPhase("running");
                     setPlaying(true);
                     void audio.start();
@@ -577,10 +593,6 @@ function Session() {
                 <Link
                   className="text-button"
                   href="/"
-                  onClick={() => {
-                    if (document.fullscreenElement)
-                      void document.exitFullscreen();
-                  }}
                 >
                   Finish
                 </Link>
@@ -589,6 +601,14 @@ function Session() {
           </div>
         </div>
       )}
+      <SessionTour
+        enabled={phase === "running"}
+        force={replayTour}
+        onActiveChange={(active) => {
+          setTourActive(active);
+          if (active) reveal();
+        }}
+      />
     </main>
   );
 }

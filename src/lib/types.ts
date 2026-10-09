@@ -22,10 +22,13 @@ export type VisualId =
   | "magneticField";
 export type SoundId =
   "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones";
+export type SoundMix = Record<SoundId, number>;
+export type SoundMixesByScene = Partial<Record<VisualId, Partial<SoundMix>>>;
 export interface Preferences {
   favoriteVisuals: VisualId[];
   hiddenVisuals: VisualId[];
-  audioVolumes: Record<SoundId, number>;
+  soundMixesByScene: SoundMixesByScene;
+  completedTours: string[];
   defaultSessionDuration: number | null;
   lastVisual?: VisualId;
   lastMood?: Mood;

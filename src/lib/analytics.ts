@@ -40,4 +40,8 @@ export const analytics = {
   sceneSelected: (scene: AnalyticsScene) => captureProductEvent("scene_selected", { scene_id: scene.id, scene_name: scene.name }),
   sceneFavorited: (scene: AnalyticsScene) => captureProductEvent("scene_favorited", { scene_id: scene.id, scene_name: scene.name }),
   sceneHidden: (scene: AnalyticsScene) => captureProductEvent("scene_hidden", { scene_id: scene.id, scene_name: scene.name }),
+  tourStarted: (tour_id: string, step: number, target: string) => captureProductEvent("tour_started", { tour_id, step, target }),
+  tourStepViewed: (tour_id: string, step: number, target: string) => captureProductEvent("tour_step_viewed", { tour_id, step, target }),
+  tourCompleted: (tour_id: string, step: number, target: string) => captureProductEvent("tour_completed", { tour_id, step, target }),
+  tourSkipped: (tour_id: string, step: number, target: string) => captureProductEvent("tour_skipped", { tour_id, step, target }),
 };
