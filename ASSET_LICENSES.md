@@ -56,5 +56,30 @@
 
 
 
-**Source, author, and license:** Unknown. These assets are not covered by
-Slowbit's MIT source-code license.
+### Underwater loop
+
+- **R2 object:** `audio/underwater-loop.wav`
+- **Title:** Underwater [Loop] AMB.wav
+- **Author:** DCSFX
+- **Source:** https://freesound.org/people/DCSFX/sounds/366159/
+- **License:** Creative Commons Zero (CC0 1.0)
+- **Usage:** Deep Blue ambience under the existing wind control, with reduced gain and bass filtering.
+- **MIT status:** Public-domain audio; not licensed under Slowbit's MIT source-code license.
+
+### Soft brown noise
+
+- **R2 object:** `audio/soft-brown-noise.flac`
+- **Title:** Soft Brownian noise (sub 2khz) Mono
+- **Author:** Sadiquecat
+- **Source:** https://freesound.org/people/Sadiquecat/sounds/853302/
+- **License:** Creative Commons Zero (CC0 1.0)
+- **Usage:** Opt-in brown-noise channel, attenuated and filtered; loop seam blended by the audio engine.
+- **MIT status:** Public-domain audio; not licensed under Slowbit's MIT source-code license.
+
+### Pond drop
+
+- **R2 object:** `audio/mixkit-water-bubble.wav`
+- **Source:** Mixkit, Water bubble (1317)
+- **Original recording:** https://assets.mixkit.co/active_storage/sfx/1317/1317.wav
+- **License:** Mixkit Sound Effects Free License; not covered by the source-code MIT license.
+- **Usage:** Quiet single-shot sounds synchronized to Still Pond ripples.

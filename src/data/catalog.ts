@@ -43,7 +43,7 @@ export const visuals: Visual[] = [
     subtitle: "Let the world blur a little.",
     tags: ["Rain", "Slow"],
     recommendedMoods: ["fried", "overstimulated"],
-    defaultSounds: { rain: 0.35, wind: 0.08, brown: 0.08 },
+    defaultSounds: { rain: 0.35, wind: 0.08 },
   },
   {
     id: "aurora",
@@ -51,7 +51,7 @@ export const visuals: Visual[] = [
     subtitle: "Nothing to do. Just look up.",
     tags: ["Fluid", "Dreamy"],
     recommendedMoods: ["stuck", "chill"],
-    defaultSounds: { wind: 0.18, brown: 0.05, tones: 0.38 },
+    defaultSounds: { wind: 0.18, tones: 0.38 },
   },
   {
     id: "stars",
@@ -84,9 +84,7 @@ export const visuals: Visual[] = [
     tags: ["Water", "Slow"],
     recommendedMoods: ["fried", "chill"],
     defaultSounds: {
-      wind: 0.12,
-      tones: 0.14,
-      brown: 0.05,
+      wind: 0.24,
     },
   },
   {
@@ -95,7 +93,7 @@ export const visuals: Visual[] = [
     subtitle: "Nothing needs to move quickly.",
     tags: ["Water", "Minimal", "Slow"],
     recommendedMoods: ["fried", "chill"],
-    defaultSounds: { wind: 0.12, tones: 0.08, brown: 0.04 },
+    defaultSounds: { wind: 0.24, tones: 0.06, night: 0.05 },
   },
   {
     id: "mist",
@@ -103,7 +101,7 @@ export const visuals: Visual[] = [
     subtitle: "A quiet pocket of green light.",
     tags: ["Cave", "Glow", "Still"],
     recommendedMoods: ["overstimulated", "fried"],
-    defaultSounds: { wind: 0.12, brown: 0.06, tones: 0.1, night: 0.04 },
+    defaultSounds: { wind: 0.12, tones: 0.1, night: 0.04 },
   },
   {
     id: "snow",
@@ -111,7 +109,7 @@ export const visuals: Visual[] = [
     subtitle: "Watch the world slow down.",
     tags: ["Snow", "Night", "Slow"],
     recommendedMoods: ["restless", "chill"],
-    defaultSounds: { wind: 0.08, tones: 0.12, brown: 0.06 },
+    defaultSounds: { wind: 0.08, tones: 0.12 },
   },
   {
     id: "dunes",
@@ -135,7 +133,7 @@ export const visuals: Visual[] = [
     subtitle: "Let yourself drift.",
     tags: ["Water", "Deep", "Floating"],
     recommendedMoods: ["restless", "chill"],
-    defaultSounds: { wind: 0.14, tones: 0.18, brown: 0.04 },
+    defaultSounds: { wind: 0.24 },
   },
   {
     id: "meadow",
@@ -151,7 +149,7 @@ export const visuals: Visual[] = [
     subtitle: "A little light is enough.",
     tags: ["Warm", "Minimal", "Dark"],
     recommendedMoods: ["overstimulated", "restless"],
-    defaultSounds: { brown: 0.12, tones: 0.1, night: 0.06 },
+    defaultSounds: { tones: 0.1, night: 0.06 },
   },
   {
     id: "ink",
@@ -159,7 +157,7 @@ export const visuals: Visual[] = [
     subtitle: "Let the edges disappear.",
     tags: ["Abstract", "Fluid", "Dark"],
     recommendedMoods: ["stuck", "restless"],
-    defaultSounds: { tones: 0.16, brown: 0.08 },
+    defaultSounds: { tones: 0.16 },
   },
   {
     id: "vinyl",
@@ -183,7 +181,7 @@ export const visuals: Visual[] = [
     subtitle: "Let the line carry the noise.",
     tags: ["Abstract", "Flow", "Minimal"],
     recommendedMoods: ["stuck", "restless", "chill"],
-    defaultSounds: { tones: 0.16, brown: 0.07, wind: 0.04 },
+    defaultSounds: { tones: 0.16, wind: 0.04 },
   },
   {
     id: "ribbonTunnel",
@@ -191,7 +189,7 @@ export const visuals: Visual[] = [
     subtitle: "Drift through the quiet.",
     tags: ["Abstract", "Infinite", "Slow"],
     recommendedMoods: ["fried", "overstimulated", "chill"],
-    defaultSounds: { tones: 0.12, brown: 0.08, wind: 0.07 },
+    defaultSounds: { tones: 0.12, wind: 0.07 },
   },
   {
     id: "magneticField",
@@ -199,7 +197,7 @@ export const visuals: Visual[] = [
     subtitle: "Let everything find its path.",
     tags: ["Abstract", "Field", "Generative"],
     recommendedMoods: ["stuck", "restless", "fried"],
-    defaultSounds: { tones: 0.15, brown: 0.08, night: 0.05 },
+    defaultSounds: { tones: 0.15, night: 0.05 },
   },
 ];
 export const sounds: { id: SoundId; name: string; note: string }[] = [

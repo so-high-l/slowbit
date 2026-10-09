@@ -1,4 +1,6 @@
 "use client";
+import { useAudioSession } from "@/components/audio/AudioProvider";
+import { pondDropStarted } from "@/lib/pond-timing";
 import { useRef, useEffect } from "react";
 import type { VisualId } from "@/lib/types";
 import { paintRain } from "./RainWindow";
@@ -56,6 +58,7 @@ export default function CanvasScene({
   exploring?: boolean;
   motionScale?: number;
 }) {
+  const { engine } = useAudioSession();
   const canvas = useRef<HTMLCanvasElement>(null);
   const isPaused = useRef(paused);
   const active = useRef(exploring);
@@ -117,7 +120,9 @@ export default function CanvasScene({
       if (document.hidden) return;
       if (!dirty.current && (isPaused.current || reduced)) return;
       if (!isPaused.current && !reduced) {
+        const previousTime = t;
         t += dt;
+        if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
         focus += ((active.current ? 1 : 0) - focus) * Math.min(1, dt * 1.4);
         if (kind === "stars" || kind === "drift")
           advanceDepth(particles, dt, focus, kind === "stars" ? 0.09 : 0.045);
@@ -154,6 +159,6 @@ export default function CanvasScene({
       observer.disconnect();
       media.removeEventListener("change", sync);
     };
-  }, [kind]);
+  }, [kind, engine]);
   return <canvas ref={canvas} className="scene-canvas" aria-hidden="true" />;
 }

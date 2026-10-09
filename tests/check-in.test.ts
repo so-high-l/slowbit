@@ -8,6 +8,7 @@ test("mood suggestions have distinct scenes and mixes; quieter moods do not inhe
   assert.equal(new Set(stationOrder.map(mood => JSON.stringify(checkInMix(mood)))).size, stationOrder.length);
   assert.equal(checkInMix("fried").tones, 0);
   assert.equal(checkInMix("overstimulated").tones, 0);
+  for (const mood of stationOrder) assert.equal(checkInMix(mood).brown, 0);
   assert.ok(checkIns.overstimulated.pace < checkIns.restless.pace);
   const mix = checkInMix("fried");
   mix.rain = 1;

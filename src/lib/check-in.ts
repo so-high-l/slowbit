@@ -14,7 +14,7 @@ export const checkIns: Record<Mood, CheckInProfile> = {
   fried: {
     label: "Fried", title: "Fried.", scene: "rain", pace: 0.45,
     description: "Rain. Low sound. Very little movement.",
-    mix: { rain: 0.4, brown: 0.07 },
+    mix: { rain: 0.4 },
     opening: ["You picked fried.", "That can mean a lot of things.", "We’ll start with less sound. Less movement. Less happening."],
   },
   restless: {
@@ -31,8 +31,8 @@ export const checkIns: Record<Mood, CheckInProfile> = {
   },
   overstimulated: {
     label: "Too much", title: "Too much.", scene: "stars", pace: 0.25,
-    description: "A still sky. A low hum. Nothing in the foreground.",
-    mix: { brown: 0.09, night: 0.06 },
+    description: "A still sky. Quiet night sounds. Nothing in the foreground.",
+    mix: { night: 0.06 },
     opening: ["You picked too much.", "We’ll keep this one sparse.", "A little sound. An almost-still sky. No more questions."],
   },
   chill: {

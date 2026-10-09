@@ -1,5 +1,7 @@
 import { background, glow, type ScenePainter } from "./drawing";
 
+import { pondRippleCycle } from "@/lib/pond-timing";
+
 const TAU = Math.PI * 2;
 
 const fract = (n: number) => n - Math.floor(n);
@@ -61,7 +63,7 @@ export const paintPond: ScenePainter = ({ ctx, w, h, t }) => {
 
   // Gentle ripples - staggered so something catches the eye every few seconds.
   for (let r = 0; r < 3; r++) {
-    const cycle = (t * 0.075 + r * 0.34) % 1;
+    const cycle = pondRippleCycle(t, r) % 1;
     const centerX = w * (0.42 + r * 0.12);
     const centerY = h * (0.57 + r * 0.05);
     const radiusX = 10 + cycle * w * 0.11;

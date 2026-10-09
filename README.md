@@ -44,7 +44,7 @@ The bucket should contain:
 - `audio/night-crickets.wav`
 - `audio/mixkit-campfire-crackles-1330.wav`
 
-Allow the app's development and production origins in the bucket's CORS policy. Rain, fire, wind, forest, and night use recordings; brown noise and tones remain procedural. The complete recording list is in [asset licenses](ASSET_LICENSES.md). Failed loads retain a fallback.
+Allow the app's development and production origins in the bucket's CORS policy. Rain, fire, wind, forest, and night use recordings; loading or failed channels stay silent. Brown noise uses a quiet, opt-in recording; only tones remain procedural. See [asset licenses](ASSET_LICENSES.md) for recordings.
 
 ## Deploy the board
 
