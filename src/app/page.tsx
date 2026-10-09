@@ -1,4 +1,5 @@
 "use client";
+import { analytics } from "@/lib/analytics";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -182,9 +183,9 @@ export default function Home() {
       <dialog ref={sceneDialog} className="scene-picker" onCancel={() => setChoosingScene(false)} onClose={() => setChoosingScene(false)} onClick={e => { if (e.target === e.currentTarget) setChoosingScene(false); }}>
         <div><header><h2>Somewhere else?</h2><button autoFocus aria-label="Close scene selection" onClick={() => setChoosingScene(false)}><X size={20} /></button></header>
           <p>Your choice. You can change the sound later.</p>
-          <div className="scene-picker-options">{prioritizedScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { setCustomScene(v.id); setChoosingScene(false); }}><span>{v.name}</span><small>{v.tags.join(" · ")}</small><ArrowRight size={17} /></button>)}</div>
+          <div className="scene-picker-options">{prioritizedScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { if (scene !== v.id) analytics.sceneSelected(v.id); setCustomScene(v.id); setChoosingScene(false); }}><span>{v.name}</span><small>{v.tags.join(" · ")}</small><ArrowRight size={17} /></button>)}</div>
           {!visual && <Link href="/settings/">Restore scenes in Settings</Link>}
-          <button className="scene-picker-reset" onClick={() => { setCustomScene(recommended ?? null); setChoosingScene(false); }}>Use a suggested scene for {profile.label.toLowerCase()}</button>
+          <button className="scene-picker-reset" onClick={() => { if (recommended && scene !== recommended) analytics.sceneSelected(recommended); setCustomScene(recommended ?? null); setChoosingScene(false); }}>Use a suggested scene for {profile.label.toLowerCase()}</button>
         </div>
       </dialog>
     </main>

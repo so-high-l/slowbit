@@ -32,6 +32,8 @@ import { useFullscreen } from "@/hooks/useFullscreen";
 import { useSessionTimer } from "@/hooks/useSessionTimer";
 import { sceneMix } from "@/lib/sound-presets";
 import { visuals } from "@/data/catalog";
+import { analytics, captureProductEvent } from "@/lib/analytics";
+import { createSessionAnalytics } from "@/lib/analytics-events";
 import type { VisualId } from "@/lib/types";
 export default function SessionPage() {
   const store = usePreferences();
@@ -55,6 +57,11 @@ function Session() {
   const [arrival] = useState(audioSession.pendingSession);
   const [phase, setPhase] = useState<"ready" | "running" | "ended">(arrival ? "running" : "ready");
   const [playing, setPlaying] = useState(!!arrival);
+  const [sessionAnalytics] = useState(() => createSessionAnalytics(captureProductEvent));
+  useEffect(() => {
+    if (phase === "running" && !p.hiddenVisuals.includes(visualId))
+      sessionAnalytics.start(p.defaultSessionDuration, p.lastMood ?? "fried", visualId);
+  }, [phase, sessionAnalytics, p.defaultSessionDuration, p.lastMood, p.hiddenVisuals, visualId]);
   const [opening, setOpening] = useState(!!arrival);
   const [motionScale, setMotionScale] = useState(arrival?.pace ?? 1);
   const finishOpening = useCallback(() => setOpening(false), []);
@@ -86,6 +93,7 @@ function Session() {
     p.defaultSessionDuration,
     phase === "running" && playing,
     () => {
+      sessionAnalytics.complete(visualId);
       setPlaying(false);
       setPhase("ended");
       setPanel(false);
@@ -175,8 +183,9 @@ function Session() {
     setPlaying(true);
     void audio.start();
   }
-  function switchVisual(id: VisualId) {
+  function switchVisual(id: VisualId, trackSelection = true) {
     if (id === visualId) return;
+    if (trackSelection) analytics.sceneSelected(id);
     setVisualId(id);
     setOpening(false);
     setMotionScale(1);
@@ -203,8 +212,9 @@ function Session() {
   }
   function hide() {
     const remaining = available.filter((v) => v.id !== visualId);
+    if (!p.hiddenVisuals.includes(visualId)) analytics.sceneHidden(visualId);
     hideVisual(visualId);
-    if (remaining.length) switchVisual(remaining[0].id);
+    if (remaining.length) switchVisual(remaining[0].id, false);
     else {
       setPlaying(false);
       setPanel(false);
@@ -374,6 +384,7 @@ function Session() {
                   }
                   aria-pressed={p.favoriteVisuals.includes(visualId)}
                   onClick={(e) => {
+                    if (!p.favoriteVisuals.includes(visualId)) analytics.sceneFavorited(visualId);
                     toggleFavorite(visualId);
                     gsap.fromTo(
                       e.currentTarget,
@@ -551,6 +562,7 @@ function Session() {
                 <button
                   className="primary-button"
                   onClick={() => {
+                    sessionAnalytics.extend();
                     timer.resumeOrExtend(p.defaultSessionDuration);
                     setPhase("running");
                     setPlaying(true);

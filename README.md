@@ -51,6 +51,11 @@ Allow the app's development and production origins in the bucket's CORS policy. 
 Vercel hosts the frontend; production builds connect to the deployed Cloudflare
 Worker/D1. Override it with `NEXT_PUBLIC_BOARD_API_URL`. See [board setup](docs/board-deployment.md).
 
+## Analytics
+
+Optional PostHog setup and the six-event dashboard: [analytics guide](docs/analytics.md).
+Tracking stays off until the public project token and host are configured.
+
 ## Checks
 
 ```sh

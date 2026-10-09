@@ -1,4 +1,5 @@
 "use client";
+import { analytics } from "@/lib/analytics";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Heart } from "lucide-react";
@@ -30,6 +31,7 @@ export default function Favorites() {
                   className="saved-preview"
                   aria-label={`Start ${v.name}`}
                   onClick={() => {
+                    analytics.sceneSelected(v.id);
                     update({
                       lastVisual: v.id,
                       hiddenVisuals: p.hiddenVisuals.filter(
