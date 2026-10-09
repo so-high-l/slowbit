@@ -7,30 +7,31 @@ export type TourStep = {
 };
 
 export const sessionTourSteps: TourStep[] = [
-    {
-        target: "scene-navigation",
-        title: "Explore at your own pace",
-        description: "Move between scenes whenever you want. There’s no right way to unwind.",
-    },
-    {
-        target: "playback",
-        title: "Pause whenever you need",
-        description: "Pause or resume the scene without losing your place.",
-    },
+    // {
+    //     target: "scene-navigation",
+    //     title: "Explore at your own pace",
+    //     description: "Move between scenes whenever you want. There’s no right way to unwind.",
+    // },
+    // {
+    //     target: "playback",
+    //     title: "Pause whenever you need",
+    //     description: "Pause or resume the scene without losing your place.",
+    // },
+
+    // {
+    //     target: "mute",
+    //     title: "Quiet, instantly",
+    //     description: "Mute every sound while keeping your scene moving.",
+    // },
+    // {
+    //     target: "chat",
+    //     title: "Leave a little note",
+    //     description: "Open the anonymous board when you want to share a thought.",
+    // },
     {
         target: "audio",
         title: "Make it yours",
         description: "Adjust the sounds for each scene. Slowbit remembers your mix locally.",
-    },
-    {
-        target: "mute",
-        title: "Quiet, instantly",
-        description: "Mute every sound while keeping your scene moving.",
-    },
-    {
-        target: "chat",
-        title: "Leave a little note",
-        description: "Open the anonymous board when you want to share a thought.",
     },
     {
         target: "favorite",
