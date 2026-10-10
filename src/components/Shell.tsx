@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings2, Heart, AudioLines } from "lucide-react";
+import { Settings2, Heart, AudioLines, Github } from "lucide-react";
 export function Logo() {
   return (
     <Link className="brand" href="/" aria-label="Slowbit home">
@@ -32,6 +32,16 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           >
             <Settings2 size={19} />
           </Link>
+          <a
+            href="https://github.com/so-high-l/slowbit"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Slowbit on GitHub (opens in a new tab)"
+            title="View on GitHub"
+            className="icon-link"
+          >
+            <Github size={19} aria-hidden="true" />
+          </a>
         </nav>
       </header>
       {children}
