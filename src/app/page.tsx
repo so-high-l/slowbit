@@ -3,7 +3,7 @@ import { analytics } from "@/lib/analytics";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Heart, Settings2, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowRight, Github, Heart, Settings2, Volume2, VolumeX, X } from "lucide-react";
 import MoodAtmosphere from "@/components/checkin/MoodAtmosphere";
 import { durations, visuals } from "@/data/catalog";
 import { usePreferences } from "@/hooks/usePreferences";
@@ -137,6 +137,7 @@ export default function Home() {
               <button aria-label={p.muted ? "Unmute preview" : "Mute preview"} onClick={() => update({ muted: !p.muted })}>{p.muted ? <VolumeX size={21} strokeWidth={1.4} /> : <Volume2 size={21} strokeWidth={1.4} />}</button>
               <Link href="/favorites/" aria-label="Saved spaces"><Heart size={20} strokeWidth={1.4} /></Link>
               <Link href="/settings/" aria-label="Settings"><Settings2 size={22} strokeWidth={1.4} /></Link>
+              <a href="https://github.com/so-high-l/slowbit" target="_blank" rel="noopener noreferrer" aria-label="Slowbit on GitHub (opens in a new tab)" title="View on GitHub"><Github size={22} strokeWidth={1.4} aria-hidden="true" /></a>
             </nav>
           </header>
           <section className="checkin-main" aria-labelledby="checkin-question">
