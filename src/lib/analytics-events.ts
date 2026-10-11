@@ -1,11 +1,11 @@
-import type { Mood, Visual } from "./types";
+import type { Mood, FocusMood, SessionMode, Visual } from "./types";
 export type AnalyticsScene = Pick<Visual, "id" | "name">;
 export interface ProductEvents {
-  session_started: { duration_minutes: number | null; mood: Mood; initial_scene_id: Visual["id"] };
-  scene_selected: { scene_id: Visual["id"]; scene_name: string };
-  session_completed: { duration_minutes: number | null; mood: Mood; final_scene_id: Visual["id"]; completed_naturally: true };
-  scene_favorited: { scene_id: Visual["id"]; scene_name: string };
-  scene_hidden: { scene_id: Visual["id"]; scene_name: string };
+  session_started: { duration_minutes: number | null; mood: Mood | FocusMood; mode?: SessionMode; initial_scene_id: Visual["id"] };
+  scene_selected: { scene_id: Visual["id"]; scene_name: string; mode?: SessionMode };
+  session_completed: { duration_minutes: number | null; mood: Mood | FocusMood; mode?: SessionMode; final_scene_id: Visual["id"]; completed_naturally: true };
+  scene_favorited: { scene_id: Visual["id"]; scene_name: string; mode?: SessionMode };
+  scene_hidden: { scene_id: Visual["id"]; scene_name: string; mode?: SessionMode };
   tour_started: { tour_id: string; step: number; target: string };
   tour_step_viewed: { tour_id: string; step: number; target: string };
   tour_completed: { tour_id: string; step: number; target: string };
@@ -20,19 +20,21 @@ export function createSessionAnalytics(capture: ProductCapture) {
   let started = false;
   let completed = false;
   let duration: number | null = null;
-  let mood: Mood | null = null;
+  let mode: SessionMode | undefined;
+  let mood: Mood | FocusMood | null = null;
   return {
-    start(minutes: number | null, sessionMood: Mood, scene: AnalyticsScene) {
+    start(minutes: number | null, sessionMood: Mood | FocusMood, scene: AnalyticsScene, sessionMode?: SessionMode) {
       if (started) return;
       started = true;
       duration = minutes;
       mood = sessionMood;
-      capture("session_started", { duration_minutes: minutes, mood: sessionMood, initial_scene_id: scene.id });
+      mode = sessionMode;
+      capture("session_started", { duration_minutes: minutes, mood: sessionMood, initial_scene_id: scene.id, ...(mode ? { mode } : {}) });
     },
     complete(scene: AnalyticsScene) {
       if (!started || completed || duration === null) return;
       completed = true;
-      capture("session_completed", { duration_minutes: duration, mood: mood!, final_scene_id: scene.id, completed_naturally: true });
+      capture("session_completed", { duration_minutes: duration, mood: mood!, final_scene_id: scene.id, completed_naturally: true, ...(mode ? { mode } : {}) });
     },
     extend() {
       if (completed) { started = false; completed = false; }

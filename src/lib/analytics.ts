@@ -1,3 +1,4 @@
+import type { SessionMode } from "./types";
 import posthog from "posthog-js";
 import { allowedEvents, type ProductCapture } from "./analytics-events";
 import type { AnalyticsScene } from "./analytics-events";
@@ -37,9 +38,9 @@ export const captureProductEvent: ProductCapture = (event, properties) => {
   try { posthog.capture(event, properties); } catch { /* Best-effort analytics. */ }
 };
 export const analytics = {
-  sceneSelected: (scene: AnalyticsScene) => captureProductEvent("scene_selected", { scene_id: scene.id, scene_name: scene.name }),
-  sceneFavorited: (scene: AnalyticsScene) => captureProductEvent("scene_favorited", { scene_id: scene.id, scene_name: scene.name }),
-  sceneHidden: (scene: AnalyticsScene) => captureProductEvent("scene_hidden", { scene_id: scene.id, scene_name: scene.name }),
+  sceneSelected: (scene: AnalyticsScene, mode: SessionMode = "unwind") => captureProductEvent("scene_selected", { scene_id: scene.id, scene_name: scene.name, mode }),
+  sceneFavorited: (scene: AnalyticsScene, mode: SessionMode = "unwind") => captureProductEvent("scene_favorited", { scene_id: scene.id, scene_name: scene.name, mode }),
+  sceneHidden: (scene: AnalyticsScene, mode: SessionMode = "unwind") => captureProductEvent("scene_hidden", { scene_id: scene.id, scene_name: scene.name, mode }),
   tourStarted: (tour_id: string, step: number, target: string) => captureProductEvent("tour_started", { tour_id, step, target }),
   tourStepViewed: (tour_id: string, step: number, target: string) => captureProductEvent("tour_step_viewed", { tour_id, step, target }),
   tourCompleted: (tour_id: string, step: number, target: string) => captureProductEvent("tour_completed", { tour_id, step, target }),

@@ -4,7 +4,7 @@ import { useAudioSession } from "@/components/audio/AudioProvider";
 import { visuals } from "@/data/catalog";
 import { getSceneSoundMix } from "@/lib/preferences";
 import { silentMix } from "@/lib/sound-presets";
-import type { Preferences, SoundMix, VisualId } from "@/lib/types";
+import type { Preferences, SoundMix, VisualId, SessionMode } from "@/lib/types";
 export function useAudioMixer(
   prefs: Preferences,
   playing: boolean,
@@ -12,6 +12,7 @@ export function useAudioMixer(
   scene: VisualId = prefs.lastVisual ?? "rain",
   mixOverride?: SoundMix,
   exploring = false,
+  mode: SessionMode = prefs.mode ?? "unwind",
 ) {
   const audio = useAudioSession();
   const { engine, active } = audio;
@@ -26,7 +27,9 @@ export function useAudioMixer(
       playing,
       prefs.muted,
       scene,
-      scene === "meadow" || scene === "magneticField" ? 1.5 : 0.3,
+      scene === "morningLattice" ? 2 : scene === "meadow" || scene === "magneticField" ? 1.5 : 0.3,
+      mode,
+      scene === "morningLattice" && exploring,
     );
   }, [
     engine,
@@ -39,7 +42,9 @@ export function useAudioMixer(
     mixOverride?.night,
     mixOverride?.tones,
     mixOverride?.train,
+    mixOverride?.piano,
     exploring,
+    mode,
     prefs.soundMixesByScene,
     prefs.globalVolume,
     playing,

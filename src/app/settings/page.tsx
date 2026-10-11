@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Shell from "@/components/Shell";
 import { usePreferences } from "@/hooks/usePreferences";
+import { availableVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
 import { modeDurations } from "@/lib/session-mode";
 export default function Settings() {
@@ -13,7 +14,7 @@ export default function Settings() {
     restoreVisual,
     setDuration,
   } = usePreferences();
-  const hidden = visuals.filter((v) => p.hiddenVisuals.includes(v.id));
+  const hidden = availableVisuals(visuals, p.mode).filter((v) => p.hiddenVisuals.includes(v.id));
   return (
     <Shell>
       <main className="content-page settings-page">

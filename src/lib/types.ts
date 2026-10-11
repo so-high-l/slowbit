@@ -2,6 +2,7 @@ export type FocusMood = "fresh" | "low_energy" | "sleepy" | "distracted" | "focu
 export type SessionMode = "focus" | "unwind";
 export type Mood = "fried" | "restless" | "stuck" | "overstimulated" | "burned_out" | "chill";
 export type VisualId =
+  | "morningLattice"
   | "rain"
   | "aurora"
   | "stars"
@@ -23,7 +24,7 @@ export type VisualId =
   | "ribbonTunnel"
   | "magneticField";
 export type SoundId =
-  "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones" | "train";
+  "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones" | "train" | "piano";
 export type SoundMix = Record<SoundId, number>;
 export type SoundMixesByScene = Partial<Record<VisualId, Partial<SoundMix>>>;
 export interface Preferences {
@@ -45,6 +46,7 @@ export interface Visual {
   name: string;
   subtitle: string;
   tags: string[];
+  modes?: SessionMode[];
   recommendedMoods: Mood[];
   defaultSounds: Partial<Record<SoundId, number>>;
 }

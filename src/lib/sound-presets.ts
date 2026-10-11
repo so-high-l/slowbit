@@ -8,6 +8,7 @@ export const silentMix: Record<SoundId, number> = {
   night: 0,
   tones: 0,
   train: 0,
+  piano: 0,
 };
 export function sceneMix(
   visual: Pick<Visual, "defaultSounds">,

@@ -5,11 +5,12 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import Shell from "@/components/Shell";
 import { usePreferences } from "@/hooks/usePreferences";
+import { availableVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
 export default function Favorites() {
   const { preferences: p, ready, toggleFavorite, update } = usePreferences();
   const router = useRouter();
-  const saved = visuals.filter((v) => p.favoriteVisuals.includes(v.id));
+  const saved = availableVisuals(visuals, p.mode).filter((v) => p.favoriteVisuals.includes(v.id));
   return (
     <Shell>
       <main className="content-page">
@@ -30,7 +31,7 @@ export default function Favorites() {
                   className="saved-preview"
                   aria-label={`Start ${v.name}`}
                   onClick={() => {
-                    analytics.sceneSelected(v);
+                    analytics.sceneSelected(v, p.mode ?? "unwind");
                     update({
                       lastVisual: v.id,
                       hiddenVisuals: p.hiddenVisuals.filter(

@@ -1,0 +1,130 @@
+export const focusTrackFiles = [
+  "leberch-flowing-piano-606083.mp3", "leberch-peaceful-piano-576857.mp3",
+  "leberch-atmospheric-piano-603148.mp3", "leberch-piano-calm-525211.mp3",
+];
+export function focusTrackUrls(base: string) {
+  return base ? focusTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/${file}`) : [];
+}
+export function shuffleBag(size: number, seed = 719) {
+  let bag: number[] = [], last = -1;
+  return () => {
+    if (!bag.length) {
+      bag = Array.from({ length: size }, (_, i) => i);
+      for (let i = size - 1; i > 0; i--) {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        const j = seed % (i + 1);[bag[i], bag[j]] = [bag[j], bag[i]];
+      }
+      if (size > 1 && bag[0] === last) [bag[0], bag[1]] = [bag[1], bag[0]];
+    }
+    last = bag.shift() ?? -1;
+    return last;
+  };
+}
+export function pianoFade(progress: number): [number, number] {
+  const p = Math.max(0, Math.min(1, progress));
+  return [Math.cos(p * Math.PI / 2), Math.sin(Math.max(0, (p - 0.25) / 0.75) * Math.PI / 2)];
+}
+
+type Slot = { media: HTMLAudioElement; source: MediaElementAudioSourceNode; gain: GainNode; track: number; ready: boolean; starting: boolean; timeout?: ReturnType<typeof setTimeout> };
+/** Two reusable media elements; only current and next tracks retain buffers. */
+export class FocusPlaylist {
+  private slots: Slot[];
+  private current = 0;
+  private running = false;
+  private closed = false;
+  private failed = new Set<number>();
+  private next: () => number;
+  private crossStart: number | null = null;
+  private departure?: ReturnType<typeof setTimeout>;
+  private output: GainNode;
+  private context: AudioContext;
+  private urls: string[];
+  constructor(context: AudioContext, master: GainNode, urls: string[], makeAudio = () => new Audio()) {
+    this.context = context; this.urls = urls;
+    this.next = shuffleBag(urls.length);
+    this.output = context.createGain(); this.output.gain.value = 0; this.output.connect(master);
+    this.slots = Array.from({ length: 2 }, () => {
+      const media = makeAudio(); media.crossOrigin = "anonymous"; media.preload = "none"; media.loop = false;
+      const source = context.createMediaElementSource(media), gain = context.createGain();
+      gain.gain.value = 0; source.connect(gain); gain.connect(this.output);
+      const slot: Slot = { media, source, gain, track: -1, ready: false, starting: false };
+      media.oncanplay = () => { clearTimeout(slot.timeout); if (slot.track >= 0) slot.ready = true; this.tick(); };
+      media.ontimeupdate = () => this.tick();
+      media.onended = () => this.tick();
+      media.onerror = () => this.fail(slot);
+      return slot;
+    });
+  }
+  private load(slot: Slot) {
+    if (this.closed || !this.running || slot.track >= 0 || this.failed.size >= this.urls.length) return;
+    let track = this.next();
+    for (let i = 0; i < this.urls.length && this.failed.has(track); i++) track = this.next();
+    if (track < 0 || this.failed.has(track)) return;
+    slot.track = track; slot.ready = false;
+    slot.media.preload = "auto"; slot.media.src = this.urls[track];
+    slot.timeout = setTimeout(() => this.fail(slot), 30000);
+    slot.media.load();
+  }
+  private clear(slot: Slot) {
+    clearTimeout(slot.timeout); slot.media.pause(); slot.track = -1; slot.ready = false; slot.starting = false;
+    slot.gain.gain.cancelScheduledValues(this.context.currentTime); slot.gain.gain.value = 0;
+    slot.media.removeAttribute("src"); slot.media.load();
+  }
+  private fail(slot: Slot) {
+    if (this.closed || slot.track < 0) return;
+    this.failed.add(slot.track); this.clear(slot);
+    if (slot === this.slots[this.current] && this.slots[1 - this.current].ready) this.current = 1 - this.current;
+    this.crossStart = null;
+    // At most one attempt per track per engine lifetime, including CORS/decode failures.
+    if (this.running) this.tick();
+  }
+  private play(slot: Slot) {
+    if (!this.running || !slot.ready || slot.starting || !slot.media.paused) return;
+    slot.starting = true;
+    const track = slot.track;
+    void slot.media.play().then(() => {
+      slot.starting = false;
+      if (this.closed || !this.running || track !== slot.track) slot.media.pause();
+    }).catch(() => { slot.starting = false; if (this.running && track === slot.track) this.fail(slot); });
+  }
+  private tick() {
+    if (!this.running || this.closed) return;
+    const a = this.slots[this.current], b = this.slots[1 - this.current];
+    if (a.track < 0) this.load(a);
+    if (!a.ready) return;
+    if (!a.media.ended) this.play(a);
+    const remaining = a.media.duration - a.media.currentTime;
+    if (remaining <= 25 || a.media.ended) this.load(b);
+    if ((remaining <= 6 || a.media.ended) && b.ready) {
+      this.play(b);
+      if (!b.media.paused && this.crossStart === null) this.crossStart = b.media.currentTime;
+    }
+    if (this.crossStart !== null) {
+      // Media time stops on pause, preserving both playback position and fade progress.
+      const progress = (b.media.currentTime - this.crossStart) / 6;
+      const [outgoing, incoming] = pianoFade(progress);
+      a.gain.gain.setTargetAtTime(outgoing, this.context.currentTime, 0.12);
+      b.gain.gain.setTargetAtTime(incoming, this.context.currentTime, 0.12);
+      if (progress >= 1) {
+        this.clear(a); this.current = 1 - this.current; this.crossStart = null;
+      }
+    } else a.gain.gain.setTargetAtTime(1, this.context.currentTime, 0.5);
+  }
+  update(enabled: boolean, playing: boolean, volume: number, transition = 0.4) {
+    if (this.closed) return;
+    if (enabled) { clearTimeout(this.departure); this.departure = undefined; }
+    this.output.gain.setTargetAtTime(enabled ? volume : 0, this.context.currentTime, enabled ? transition : 0.2);
+    this.running = enabled && playing && volume > 0;
+    if (this.running) this.tick();
+    else if (enabled) this.slots.forEach(s => s.media.pause());
+    else if (!this.departure) this.departure = setTimeout(() => { this.departure = undefined; if (!this.running) { this.slots.forEach(s => this.clear(s)); this.crossStart = null; } }, 1200);
+  }
+  close() {
+    this.closed = true; this.running = false; clearTimeout(this.departure);
+    for (const s of this.slots) {
+      s.media.oncanplay = s.media.ontimeupdate = s.media.onended = s.media.onerror = null;
+      this.clear(s); s.source.disconnect(); s.gain.disconnect();
+    }
+    this.output.disconnect();
+  }
+}

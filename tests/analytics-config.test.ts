@@ -45,6 +45,6 @@ test("PostHog stays off without configuration and is restricted to the MVP event
     assert.equal(filter({ event: "$snapshot" }), null);
     assert.equal(filter({ event: "$autocapture" }), null);
     assert.deepEqual(filter({ event: "$pageview" }), { event: "$pageview" });
-    assert.deepEqual(globals.__slowbitAnalyticsTest.events, [{ name: "scene_selected", properties: { scene_id: "ocean", scene_name: "Open water" } }]);
+    assert.deepEqual(globals.__slowbitAnalyticsTest.events, [{ name: "scene_selected", properties: { scene_id: "ocean", scene_name: "Open water", mode: "unwind" } }]);
   } finally { delete globals.__slowbitAnalyticsTest; }
 });

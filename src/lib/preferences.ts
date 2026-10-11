@@ -2,6 +2,7 @@ import type { Preferences, Visual, VisualId, SoundId, SoundMix } from "./types";
 import { sceneMix } from "./sound-presets.ts";
 export const STORAGE_KEY = "relax_dev_preferences";
 export const visualIds: VisualId[] = [
+  "morningLattice",
   "rain",
   "aurora",
   "stars",
@@ -32,6 +33,7 @@ const soundIds: SoundId[] = [
   "night",
   "tones",
   "train",
+  "piano",
 ];
 export const defaults: Preferences = {
   favoriteVisuals: [],

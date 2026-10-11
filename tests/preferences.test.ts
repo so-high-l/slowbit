@@ -43,7 +43,7 @@ test("first visits use defaults and saved mixes are isolated by scene", () => {
     "rain",
     { brown: 0.42 },
   );
-  assert.deepEqual(getSceneSoundMix(defaults, rain), { rain: 0.4, wind: 0.2, tones: 0.1, fire: 0, forest: 0, brown: 0, night: 0, train: 0 });
+  assert.deepEqual(getSceneSoundMix(defaults, rain), { rain: 0.4, wind: 0.2, tones: 0.1, fire: 0, forest: 0, brown: 0, night: 0, train: 0, piano: 0 });
   assert.equal(getSceneSoundMix(saved, rain).rain, 0.75);
   assert.equal(getSceneSoundMix(saved, rain).brown, 0.42);
   assert.equal(getSceneSoundMix(saved, stars).night, 0.3);
@@ -52,7 +52,7 @@ test("saved scene mixes survive normalization, merge new defaults, and reset", (
   const saved = saveSceneSoundMix(defaults, "rain", { rain: 0.75 });
   const restored = normalize(JSON.parse(JSON.stringify(saved)));
   const updatedCatalog = { id: "rain" as const, defaultSounds: { rain: 0.4, wind: 0.2, brown: 0.18 } };
-  assert.deepEqual(getSceneSoundMix(restored, updatedCatalog), { rain: 0.75, wind: 0.2, brown: 0.18, fire: 0, forest: 0, night: 0, tones: 0, train: 0 });
+  assert.deepEqual(getSceneSoundMix(restored, updatedCatalog), { rain: 0.75, wind: 0.2, brown: 0.18, fire: 0, forest: 0, night: 0, tones: 0, train: 0, piano: 0 });
   assert.deepEqual(resetSceneSoundMix(restored, "rain").soundMixesByScene, {});
 });
 test("no timer and mute preferences survive normalization", () => {

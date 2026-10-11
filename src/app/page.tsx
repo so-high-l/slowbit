@@ -1,4 +1,5 @@
 "use client";
+import { availableVisuals } from "@/lib/scene-availability";
 import gsap from "gsap";
 import { analytics } from "@/lib/analytics";
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
@@ -43,9 +44,10 @@ export default function Home() {
   const sceneDialog = useRef<HTMLDialogElement>(null);
   const profile = checkIns[mood];
   const recommended = availableCheckInScene(mood, p.hiddenVisuals);
-  const scene = customScene && !p.hiddenVisuals.includes(customScene) ? customScene : recommended;
+  const modeScenes = availableVisuals(visuals, selectedMode ?? "unwind", p.hiddenVisuals);
+  const scene = customScene && modeScenes.some(v => v.id === customScene) ? customScene : selectedMode === "focus" ? modeScenes[0]?.id : recommended;
   const visual = visuals.find(v => v.id === scene);
-  const availableScenes = visuals.filter(v => !p.hiddenVisuals.includes(v.id));
+  const availableScenes = modeScenes;
   const prioritizedScenes = [...availableScenes].sort((a, b) => {
     const aRecommended = a.recommendedMoods.includes(mood) ? 1 : 0;
     const bRecommended = b.recommendedMoods.includes(mood) ? 1 : 0;
@@ -53,7 +55,7 @@ export default function Home() {
   });
   const useMoodMix = scene === profile.scene;
   const pace = useMoodMix ? profile.pace : 1;
-  const audio = useAudioMixer(p, entered, 0.18, scene ?? "rain", useMoodMix ? checkInMix(mood) : undefined);
+  const audio = useAudioMixer(p, entered, 0.18, scene ?? "rain", useMoodMix ? checkInMix(mood) : undefined, false, selectedMode ?? "unwind");
   const assetsReady = ready && assetProgress === 100;
   useEffect(() => {
     let loaded = 0;
@@ -255,9 +257,9 @@ export default function Home() {
       <dialog ref={sceneDialog} className="scene-picker" onCancel={() => setChoosingScene(false)} onClose={() => setChoosingScene(false)} onClick={e => { if (e.target === e.currentTarget) setChoosingScene(false); }}>
         <div><header><h2>Somewhere else?</h2><button autoFocus aria-label="Close scene selection" onClick={() => setChoosingScene(false)}><X size={20} /></button></header>
           <p>Your choice. You can change the sound later.</p>
-          <div className="scene-picker-options">{prioritizedScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { if (scene !== v.id) analytics.sceneSelected(v); setCustomScene(v.id); setChoosingScene(false); }}><span>{v.name}</span><small>{v.tags.join(" · ")}</small><ArrowRight size={17} /></button>)}</div>
+          <div className="scene-picker-options">{prioritizedScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { if (scene !== v.id) analytics.sceneSelected(v, selectedMode ?? "unwind"); setCustomScene(v.id); setChoosingScene(false); }}><span>{v.name}</span><small>{v.tags.join(" · ")}</small><ArrowRight size={17} /></button>)}</div>
           {!visual && <Link href="/settings/">Restore scenes in Settings</Link>}
-          <button className="scene-picker-reset" onClick={() => { const suggested = visuals.find(v => v.id === recommended); if (suggested && scene !== recommended) analytics.sceneSelected(suggested); setCustomScene(recommended ?? null); setChoosingScene(false); }}>Use a suggested scene for {profile.label.toLowerCase()}</button>
+          <button className="scene-picker-reset" onClick={() => { const suggested = visuals.find(v => v.id === recommended); if (suggested && scene !== recommended) analytics.sceneSelected(suggested, selectedMode ?? "unwind"); setCustomScene(recommended ?? null); setChoosingScene(false); }}>Use a suggested scene for {profile.label.toLowerCase()}</button>
         </div>
       </dialog>
     </main>

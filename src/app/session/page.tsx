@@ -31,6 +31,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { useFullscreen } from "@/hooks/useFullscreen";
 import { useSessionTimer } from "@/hooks/useSessionTimer";
+import { availableVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
 import { analytics, captureProductEvent } from "@/lib/analytics";
 import { createSessionAnalytics } from "@/lib/analytics-events";
@@ -49,9 +50,9 @@ function Session() {
     hideVisual,
   } = usePreferences();
   const [visualId, setVisualId] = useState<VisualId>(
-    p.lastVisual && !p.hiddenVisuals.includes(p.lastVisual)
+    p.lastVisual && availableVisuals(visuals, p.mode, p.hiddenVisuals).some(v => v.id === p.lastVisual)
       ? p.lastVisual
-      : (visuals.find((v) => !p.hiddenVisuals.includes(v.id))?.id ?? "rain"),
+      : (availableVisuals(visuals, p.mode, p.hiddenVisuals)[0]?.id ?? "rain"),
   );
   const audioSession = useAudioSession();
   const [arrival] = useState(audioSession.pendingSession);
@@ -65,7 +66,7 @@ function Session() {
   const visual = visuals.find((v) => v.id === visualId)!;
   useEffect(() => {
     if (phase === "running" && !p.hiddenVisuals.includes(visualId))
-      sessionAnalytics.start(p.defaultSessionDuration, p.lastMood ?? "fried", visual);
+      sessionAnalytics.start(p.defaultSessionDuration, p.mode === "focus" ? p.focusMood ?? "fresh" : p.lastMood ?? "fried", visual, p.mode ?? "unwind");
   }, [phase, sessionAnalytics, p.defaultSessionDuration, p.lastMood, p.hiddenVisuals, visualId]);
   const [opening, setOpening] = useState(!!arrival);
   const [motionScale, setMotionScale] = useState(arrival?.pace ?? 1);
@@ -116,7 +117,7 @@ function Session() {
     setPlaying(true);
     void audio.start();
   }, [arrival, audio.start, phase]);
-  const available = visuals.filter((v) => !p.hiddenVisuals.includes(v.id));
+  const available = availableVisuals(visuals, p.mode, p.hiddenVisuals);
   const reveal = useCallback(() => {
     setVisible(true);
     if (idle.current) clearTimeout(idle.current);
@@ -196,7 +197,7 @@ function Session() {
   function switchVisual(id: VisualId, trackSelection = true) {
     if (id === visualId) return;
     const nextVisual = visuals.find((v) => v.id === id)!;
-    if (trackSelection) analytics.sceneSelected(nextVisual);
+    if (trackSelection) analytics.sceneSelected(nextVisual, p.mode ?? "unwind");
     setVisualId(id);
     setOpening(false);
     setMotionScale(1);
@@ -222,7 +223,7 @@ function Session() {
   }
   function hide() {
     const remaining = available.filter((v) => v.id !== visualId);
-    if (!p.hiddenVisuals.includes(visualId)) analytics.sceneHidden(visual);
+    if (!p.hiddenVisuals.includes(visualId)) analytics.sceneHidden(visual, p.mode ?? "unwind");
     hideVisual(visualId);
     if (remaining.length) switchVisual(remaining[0].id, false);
     else {
@@ -346,12 +347,14 @@ function Session() {
             </div>
             <button
               className="text-button finish-button"
+              aria-label="Finish session"
+              title="Finish session"
               onClick={() => {
                 setPlaying(false);
                 setPhase("ended");
               }}
             >
-              Finish session <X size={15} />
+              <span>Finish session</span> <X size={18} aria-hidden="true" />
             </button>
           </header>
           <div className="scene-caption" inert={p.showBoard || opening}>
@@ -360,11 +363,15 @@ function Session() {
             <p>{visual.subtitle}</p>
             <button
               className={`explore-switch ${exploring ? "active" : ""}`}
+              type="button"
+              style={{ pointerEvents: visible ? "auto" : "none" }}
               aria-pressed={exploring}
               onClick={() => setExploring((v) => !v)}
             >
               <Orbit size={13} />
-              {visualId === "meadow"
+              {visualId === "morningLattice"
+                ? exploring ? "Open the curtain" : "Draw the curtain"
+                : visualId === "meadow"
                 ? exploring ? "Sit back up" : "Lie back in the grass"
                 : visualId === "lantern"
                 ? exploring ? "Back to the compartment" : "Closer to the window"
@@ -401,7 +408,7 @@ function Session() {
                   }
                   aria-pressed={p.favoriteVisuals.includes(visualId)}
                   onClick={(e) => {
-                    if (!p.favoriteVisuals.includes(visualId)) analytics.sceneFavorited(visual);
+                    if (!p.favoriteVisuals.includes(visualId)) analytics.sceneFavorited(visual, p.mode ?? "unwind");
                     toggleFavorite(visualId);
                     gsap.fromTo(
                       e.currentTarget,

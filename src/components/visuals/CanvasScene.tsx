@@ -25,7 +25,9 @@ import { paintRibbonTunnel } from "./InfiniteRibbonTunnel";
 import { paintMagneticField } from "./MagneticField";
 import { glow } from "./drawing";
 import { advanceDepth } from "./depth";
+import { paintMorningLattice } from "./MorningLattice";
 const painters = {
+  morningLattice: paintMorningLattice,
   rain: paintRain,
   aurora: paintAurora,
   stars: paintStars,
@@ -123,13 +125,13 @@ export default function CanvasScene({
         const previousTime = t;
         t += dt;
         if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
-        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "lantern" ? 0.65 : 1.4)));
+        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "lantern" ? 0.65 : 1.4)));
         if (kind === "stars" || kind === "drift")
           advanceDepth(particles, dt, focus, kind === "stars" ? 0.09 : 0.045);
         if (kind === "drift")
           for (const point of particles)
             point.y = (point.y - dt * point.s * 0.005 * (1 - focus) + 1) % 1;
-      } else if (reduced) {
+      } else if (reduced || kind === "morningLattice") {
         focus = active.current ? 1 : 0;
       }
       dirty.current = false;
@@ -145,7 +147,7 @@ export default function CanvasScene({
       painters[kind]({ ctx, w, h, t, particles, focus });
       ctx.restore();
       if (
-        kind !== "lantern" && kind !== "meadow" && kind !== "magneticField" &&
+        kind !== "morningLattice" && kind !== "lantern" && kind !== "meadow" && kind !== "magneticField" &&
         focus > 0.005 &&
         (reduced || (kind !== "stars" && kind !== "drift"))
       ) {

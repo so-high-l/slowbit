@@ -17,7 +17,7 @@ test("recordings follow scene context under the same mixer channels", () => {
 });
 
 const mix = (channel: keyof SoundMix): SoundMix => ({
-  rain: 0, wind: 0, fire: 0, forest: 0, night: 0, tones: 0, brown: 0, train: 0, [channel]: 0.3,
+  rain: 0, wind: 0, fire: 0, forest: 0, night: 0, tones: 0, brown: 0, train: 0, piano: 0, [channel]: 0.3,
 });
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
@@ -286,4 +286,25 @@ test("pond drops wait for ripples, never loop, and stop when muted", async t => 
   assert.ok(sources[2].stops.length);
   engine.playPondDrop();
   assert.equal(sources.length, 3);
+});
+
+
+test("curtain muffles late-loading rain and restores the mix without restarting it", async t => {
+  const { engine, filters, sources, respond } = setup(t);
+  await engine.start();
+  const volumes = { ...mix("rain"), brown: 0.2 };
+  const profile = recordingProfile("morningLattice", "rain");
+  engine.mix(volumes, 0.5, true, false, "morningLattice", 2, "focus", true);
+  respond(profile.file);
+  await tick();
+  const rainFilter = filters.find(f => f.type === "lowpass" && f.frequency.value === Math.min(profile.cutoff, 950));
+  assert.ok(rainFilter);
+  assert.equal(engine.tracks.get("rain")?.gain.value, 0.3 * 0.55);
+  assert.equal(engine.tracks.get("brown")?.gain.value, 0.2);
+  const count = sources.length;
+  engine.mix(volumes, 0.5, true, false, "morningLattice", 2, "focus", false);
+  assert.equal(rainFilter.frequency.value, profile.cutoff);
+  assert.equal(engine.tracks.get("rain")?.gain.value, 0.3);
+  assert.equal(sources.length, count);
+  assert.equal(volumes.rain, 0.3);
 });

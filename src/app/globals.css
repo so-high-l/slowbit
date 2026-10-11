@@ -1195,9 +1195,27 @@ input[type="range"] {
     width: 20px;
   }
 
-  .timer-chip {
-    top: 85px;
+  .session-header { gap: 10px; }
+
+  .session-header .timer-chip {
+    position: static;
+    transform: none;
+    margin-left: auto;
+    flex-shrink: 0;
+    padding: 6px 10px;
+    gap: 7px;
+    font-size: 12px;
+    white-space: nowrap;
   }
+
+  .session-header .finish-button {
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .session-header .finish-button span { display: none; }
 
   .finish-button {
     font-size: 11px;
@@ -2234,6 +2252,7 @@ input[type="range"] {
 }
 
 .explore-switch {
+  touch-action: manipulation;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -2245,6 +2264,11 @@ input[type="range"] {
   font-size: 12px;
   color: #a7c1b4;
   backdrop-filter: blur(8px);
+}
+
+@media (pointer: coarse) {
+  .explore-switch { min-height: 44px; padding: 10px 14px; }
+  .explore-switch kbd { display: none; }
 }
 
 .explore-switch.active {
@@ -3693,7 +3717,7 @@ input[type="range"] {
 .mode-switch button { display: inline-flex; align-items: center; gap: 7px; min-width: 104px; }
 .mode-selection-dot { width: 4px; height: 4px; flex: 0 0 4px; border-radius: 50%; background: currentColor; opacity: 0; transition: opacity 350ms ease; }
 .mode-switch button[aria-pressed="true"] .mode-selection-dot { opacity: 1; }
-.mode-option-name { display: inline-flex; align-items: center; gap: 12px; }
+.mode-option-name { display: inline-flex; align-items: center; gap: 12px; font-size: .86em; }
 .mode-mood-stack { display: grid; }
 .mode-mood-layer { grid-area: 1 / 1; align-self: start; opacity: 0; pointer-events: none; transition: opacity 450ms ease; }
 .mode-mood-layer[data-visible="true"] { opacity: 1; pointer-events: auto; }

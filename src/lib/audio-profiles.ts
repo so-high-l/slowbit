@@ -1,5 +1,5 @@
 import type { SoundId, VisualId } from "./types";
-export type RecordedChannel = Exclude<SoundId, "tones">;
+export type RecordedChannel = Exclude<SoundId, "tones" | "piano">;
 export type RecordingProfile = { file: string; level: number; cutoff: number; highpass?: number };
 const files = {
   rain: "mixkit-light-rain-looping-1249.wav",

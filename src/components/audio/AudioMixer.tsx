@@ -22,6 +22,7 @@ const icons = {
   brown: AudioLines,
   night: Moon,
   tones: Music2,
+  piano: Music2,
   train: TrainFront,
 };
 export default function AudioMixer({ visual }: { visual: Visual }) {
@@ -48,7 +49,7 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
           Reset
         </button>
       </div>
-      {sounds.filter((s) => s.id !== "train" || visual.id === "lantern").map((s) => {
+      {sounds.filter((s) => (s.id !== "train" || visual.id === "lantern") && (s.id !== "piano" || (p.mode === "focus" && visual.modes?.includes("focus")))).map((s) => {
         const Icon = icons[s.id];
         return (
           <div className="sound-track" key={s.id}>

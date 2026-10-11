@@ -90,3 +90,12 @@
 - **Source:** Picshore, Sleeper Carriage Serenity; selected and uploaded by the project owner.
 - **License:** Exact source-page license not independently verified; not covered by Slowbit’s MIT source-code license.
 - **Usage:** Sleeper Train carriage channel, softly attenuated with low-pass and sub-bass filtering.
+
+## Sunlit wall piano playlist
+
+External media by **leberch**, from **Pixabay**, under the **Pixabay Content License**. These recordings are not covered by Slowbit’s MIT source-code license. MP3 files are not included in Git; the project owner uploads them to R2. Retain download license records, including Content ID information. Source pages were checked during implementation; Flowing (Piano) is also marked AI generated.
+
+- **Flowing (Piano) — leberch**: https://pixabay.com/music/ambient-flowing-piano-606083/ — R2: `audio/focus/leberch-flowing-piano-606083.mp3` — Pixabay Content License.
+- **Peaceful Piano — leberch**: https://pixabay.com/music/ambient-peaceful-piano-576857/ — R2: `audio/focus/leberch-peaceful-piano-576857.mp3` — Pixabay Content License.
+- **Atmospheric Piano — leberch**: https://pixabay.com/music/ambient-atmospheric-piano-603148/ — R2: `audio/focus/leberch-atmospheric-piano-603148.mp3` — Pixabay Content License.
+- **Piano Calm — leberch**: https://pixabay.com/music/modern-classical-piano-calm-525211/ — R2: `audio/focus/leberch-piano-calm-525211.mp3` — Pixabay Content License.

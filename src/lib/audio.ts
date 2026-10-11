@@ -1,4 +1,5 @@
-import type { SoundId, VisualId } from "./types";
+import { FocusPlaylist, focusTrackUrls } from "./focus-music.ts";
+import type { SoundId, VisualId, SessionMode } from "./types";
 import { recordingProfile, type RecordedChannel, type RecordingProfile } from "./audio-profiles.ts";
 
 const ASSET_URL = (process.env.NEXT_PUBLIC_ASSET_URL ?? "").replace(/\/$/, "");
@@ -16,6 +17,8 @@ export class AmbientEngine {
   private liveVoices = new Set<Voice>();
   private loads = new Set<AbortController>();
   private closed = false;
+  private piano?: FocusPlaylist;
+  private curtain = false;
   private pondEnabled = false;
   private pondBuffer?: AudioBuffer;
   private pondLoading = false;
@@ -196,7 +199,7 @@ export class AmbientEngine {
       source.loop = true;
       const filter = this.context.createBiquadFilter();
       filter.type = "lowpass";
-      filter.frequency.value = profile.cutoff;
+      filter.frequency.value = id === "rain" && this.curtain ? Math.min(profile.cutoff, 950) : profile.cutoff;
       filter.Q.value = 0.5;
       const highpass = this.context.createBiquadFilter();
       highpass.type = "highpass";
@@ -235,21 +238,36 @@ export class AmbientEngine {
 
   stop() {
     if (this.closed) return;
+    this.piano?.update(false, false, 0);
     this.pondEnabled = false;
     this.stopDrops();
     for (const id of this.requests.keys()) this.cancelRequest(id);
     this.master.gain.setTargetAtTime(0, this.context.currentTime, 0.45);
   }
 
-  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain", transition = 0.3) {
+  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain", transition = 0.3, mode: SessionMode = "unwind", curtain = false) {
     if (this.closed) return;
+    this.curtain = curtain && mode === "focus" && scene === "morningLattice";
+    const pianoEnabled = mode === "focus" && scene === "morningLattice";
+    if (pianoEnabled && playing && !muted && global > 0 && volumes.piano > 0 && !this.piano && this.context.state === "running") {
+      const urls = focusTrackUrls(ASSET_URL);
+      if (urls.length) {
+        try { this.piano = new FocusPlaylist(this.context, this.master, urls); } catch { /* Ambient playback remains available if media nodes are unsupported. */ }
+      }
+    }
+    this.piano?.update(pianoEnabled, playing && !muted && global > 0, (volumes.piano ?? 0) * (this.curtain ? 0.5 : 1), transition);
     this.pondEnabled = scene === "pond" && playing && !muted && global > 0 && volumes.wind > 0;
     if (!this.pondEnabled) this.stopDrops();
     else void this.preparePondDrop();
     const now = this.context.currentTime;
     for (const [id, gain] of this.tracks) {
-      gain.gain.setTargetAtTime(volumes[id] ?? 0, now, transition);
-      if (id === "tones") continue;
+      gain.gain.setTargetAtTime((volumes[id] ?? 0) * (id === "rain" && this.curtain ? 0.55 : 1), now, transition);
+      if (id === "tones" || id === "piano") continue;
+      const voice = this.voices.get(id);
+      if (voice) {
+        const profile = recordingProfile(scene, id);
+        voice.filter.frequency.setTargetAtTime(id === "rain" && this.curtain ? Math.min(profile.cutoff, 950) : profile.cutoff, now, transition);
+      }
       if (playing && !muted && global > 0 && volumes[id] > 0)
         this.selectRecording(id, scene);
       else this.cancelRequest(id);
@@ -260,6 +278,7 @@ export class AmbientEngine {
   async close() {
     if (this.closed) return;
     this.closed = true;
+    this.piano?.close();
     this.pondEnabled = false;
     this.stopDrops();
     for (const id of this.requests.keys()) this.cancelRequest(id);
