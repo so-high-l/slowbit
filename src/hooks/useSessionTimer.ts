@@ -9,6 +9,9 @@ export function useSessionTimer(
     duration === null ? null : duration * 60,
   );
   const left = useRef(remaining);
+  const elapsed = useRef(0);
+  const darkAfter = useRef((duration ?? 15) * 60);
+  const [nightProgress, setNightProgress] = useState(0);
   const last = useRef(0);
   const done = useRef(false);
   const callback = useRef(onEnd);
@@ -16,14 +19,17 @@ export function useSessionTimer(
     callback.current = onEnd;
   }, [onEnd]);
   useEffect(() => {
-    if (!running || left.current === null) return;
+    if (!running) return;
     last.current = performance.now();
     const tick = setInterval(() => {
       const now = performance.now();
-      left.current = Math.max(0, left.current! - (now - last.current) / 1000);
+      const delta = (now - last.current) / 1000;
+      elapsed.current += delta;
+      setNightProgress(Math.min(1, elapsed.current / Math.max(1, darkAfter.current)));
+      if (left.current !== null) left.current = Math.max(0, left.current - delta);
       last.current = now;
-      setRemaining(Math.ceil(left.current));
-      if (left.current <= 0 && !done.current) {
+      setRemaining(left.current === null ? null : Math.ceil(left.current));
+      if (left.current !== null && left.current <= 0 && !done.current) {
         done.current = true;
         callback.current();
       }
@@ -32,6 +38,9 @@ export function useSessionTimer(
   }, [running]);
   const reset = (minutes: number | null) => {
     done.current = false;
+    elapsed.current = 0;
+    darkAfter.current = (minutes ?? 15) * 60;
+    setNightProgress(0);
     left.current = minutes === null ? null : minutes * 60;
     last.current = performance.now();
     setRemaining(left.current);
@@ -43,5 +52,5 @@ export function useSessionTimer(
     last.current = performance.now();
     setRemaining(left.current);
   };
-  return { remaining, reset, resumeOrExtend };
+  return { remaining, reset, resumeOrExtend, nightProgress };
 }

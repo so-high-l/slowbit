@@ -12,8 +12,9 @@ const files = {
 const woodland: VisualId[] = ["meadow", "pond", "drift", "embers", "nightSky"];
 const water: VisualId[] = ["ocean", "pond", "mist", "jelly"];
 
-// Variants live beneath the existing sliders; scene changes never add controls.
+// Recording variants and per-track playback levels.
 export function recordingProfile(scene: VisualId, channel: RecordedChannel): RecordingProfile {
+  if (channel === "train") return { file: "picshore-sleeper-carriage-serenity-3.wav", level: 0.3, cutoff: 3200, highpass: 80 };
   if (channel === "brown") return { file: "soft-brown-noise.flac", level: 0.12, cutoff: 1800, highpass: 60 };
   if (channel === "night") return { file: "night-crickets.wav", level: 1, cutoff: 12000 };
   if (channel === "fire") return { file: "mixkit-campfire-crackles-1330.wav", level: 1, cutoff: 12000 };

@@ -83,3 +83,10 @@
 - **Original recording:** https://assets.mixkit.co/active_storage/sfx/1317/1317.wav
 - **License:** Mixkit Sound Effects Free License; not covered by the source-code MIT license.
 - **Usage:** Quiet single-shot sounds synchronized to Still Pond ripples.
+
+### Sleeper train carriage
+
+- **R2 object:** `audio/picshore-sleeper-carriage-serenity-3.wav`
+- **Source:** Picshore, Sleeper Carriage Serenity; selected and uploaded by the project owner.
+- **License:** Exact source-page license not independently verified; not covered by Slowbit’s MIT source-code license.
+- **Usage:** Sleeper Train carriage channel, softly attenuated with low-pass and sub-bass filtering.

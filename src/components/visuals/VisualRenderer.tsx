@@ -8,11 +8,13 @@ export default function VisualRenderer({
   paused = false,
   exploring = false,
   motionScale = 1,
+  nightProgress = 0,
 }: {
   visualId: VisualId;
   paused?: boolean;
   exploring?: boolean;
   motionScale?: number;
+  nightProgress?: number;
 }) {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -34,6 +36,12 @@ export default function VisualRenderer({
   return (
     <div className="visual-layer" ref={root}>
       <CanvasScene kind={visualId} paused={paused} exploring={exploring} motionScale={motionScale} />
+      {visualId === "lantern" && <div aria-hidden="true" style={{
+        position: "absolute", inset: 0, pointerEvents: "none",
+        background: "#020611",
+        opacity: 0.68 * Math.min(1, Math.max(0, nightProgress)),
+        transition: "opacity 200ms linear",
+      }} />}
       <div className="scene-vignette" />
     </div>
   );

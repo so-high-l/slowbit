@@ -17,7 +17,7 @@ test("recordings follow scene context under the same mixer channels", () => {
 });
 
 const mix = (channel: keyof SoundMix): SoundMix => ({
-  rain: 0, wind: 0, fire: 0, forest: 0, night: 0, tones: 0, brown: 0, [channel]: 0.3,
+  rain: 0, wind: 0, fire: 0, forest: 0, night: 0, tones: 0, brown: 0, train: 0, [channel]: 0.3,
 });
 const tick = () => new Promise(resolve => setImmediate(resolve));
 

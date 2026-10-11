@@ -31,6 +31,7 @@ const soundIds: SoundId[] = [
   "brown",
   "night",
   "tones",
+  "train",
 ];
 export const defaults: Preferences = {
   favoriteVisuals: [],

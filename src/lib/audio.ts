@@ -76,6 +76,7 @@ export class AmbientEngine {
       "brown",
       "night",
       "tones",
+      "train",
     ] as SoundId[]) {
       const c = this.context;
       const gain = c.createGain();

@@ -21,7 +21,7 @@ export type VisualId =
   | "ribbonTunnel"
   | "magneticField";
 export type SoundId =
-  "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones";
+  "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones" | "train";
 export type SoundMix = Record<SoundId, number>;
 export type SoundMixesByScene = Partial<Record<VisualId, Partial<SoundMix>>>;
 export interface Preferences {

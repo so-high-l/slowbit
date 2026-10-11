@@ -145,11 +145,11 @@ export const visuals: Visual[] = [
   },
   {
     id: "lantern",
-    name: "Paper lantern",
-    subtitle: "A little light is enough.",
-    tags: ["Warm", "Minimal", "Dark"],
+    name: "Sleeper train",
+    subtitle: "Somewhere between here and morning.",
+    tags: ["Journey", "Night", "Sheltered"],
     recommendedMoods: ["overstimulated", "restless"],
-    defaultSounds: { tones: 0.1, night: 0.06 },
+    defaultSounds: { train: 0.18, rain: 0.06 },
   },
   {
     id: "ink",
@@ -201,6 +201,7 @@ export const visuals: Visual[] = [
   },
 ];
 export const sounds: { id: SoundId; name: string; note: string }[] = [
+  { id: "train", name: "Train carriage", note: "A quiet overnight journey" },
   { id: "rain", name: "Rain", note: "Soft, steady rainfall" },
   { id: "fire", name: "Fire", note: "Warm crackle" },
   { id: "wind", name: "Wind", note: "A slow passing breeze" },

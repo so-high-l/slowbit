@@ -123,7 +123,7 @@ export default function CanvasScene({
         const previousTime = t;
         t += dt;
         if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
-        focus += ((active.current ? 1 : 0) - focus) * Math.min(1, dt * 1.4);
+        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "lantern" ? 0.65 : 1.4)));
         if (kind === "stars" || kind === "drift")
           advanceDepth(particles, dt, focus, kind === "stars" ? 0.09 : 0.045);
         if (kind === "drift")
@@ -133,8 +133,19 @@ export default function CanvasScene({
         focus = active.current ? 1 : 0;
       }
       dirty.current = false;
+      ctx.save();
+      if (kind === "lantern") {
+        // Move into the window, centered at 43% of the carriage height.
+        // Overscan keeps its rounded corners and frame outside the viewport.
+        const scale = 1 + focus * 0.78;
+        ctx.translate(w * 0.5, h * (0.43 + focus * 0.07));
+        ctx.scale(scale, scale);
+        ctx.translate(-w * 0.5, -h * 0.43);
+      }
       painters[kind]({ ctx, w, h, t, particles });
+      ctx.restore();
       if (
+        kind !== "lantern" &&
         focus > 0.005 &&
         (reduced || (kind !== "stars" && kind !== "drift"))
       ) {

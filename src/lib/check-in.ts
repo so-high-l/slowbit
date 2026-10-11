@@ -58,7 +58,7 @@ export const checkIns: Record<Mood, CheckInProfile> = {
 
 export const stationOrder: Mood[] = ["fried", "restless", "stuck", "overstimulated", "chill", 'burned_out'];
 export function checkInMix(mood: Mood): Record<SoundId, number> {
-  return { rain: 0, fire: 0, wind: 0, forest: 0, brown: 0, night: 0, tones: 0, ...checkIns[mood].mix };
+  return { rain: 0, fire: 0, wind: 0, forest: 0, brown: 0, night: 0, tones: 0, train: 0, ...checkIns[mood].mix };
 }
 export function availableCheckInScene(mood: Mood, hidden: VisualId[]): VisualId | undefined {
   const preferred = checkIns[mood].scene;

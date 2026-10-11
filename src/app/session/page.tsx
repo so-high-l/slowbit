@@ -252,7 +252,7 @@ function Session() {
         else void fullscreen.toggle();
       }
       if (phase !== "running") return;
-      if (k === "z") setExploring((v) => !v);
+      if (k === "z" && !e.repeat) setExploring((v) => !v);
       if (k === "m") update({ muted: !p.muted });
       if (k === " ") togglePlay();
       if (k === "arrowright") next(1);
@@ -299,6 +299,7 @@ function Session() {
         paused={!playing}
         exploring={exploring}
         motionScale={motionScale}
+        nightProgress={timer.nightProgress}
       />
       {phase === "running" && opening && arrival && <SessionOpening lines={arrival.opening} playing={playing} onComplete={finishOpening} />}
       {phase === "ready" && (
@@ -362,7 +363,9 @@ function Session() {
               onClick={() => setExploring((v) => !v)}
             >
               <Orbit size={13} />
-              {reducedMotion
+              {visualId === "lantern"
+                ? exploring ? "Back to the compartment" : "Closer to the window"
+                : reducedMotion
                 ? exploring
                   ? "A still point"
                   : "Find a still point"

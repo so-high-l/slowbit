@@ -9,6 +9,7 @@ import {
   AudioLines,
   Moon,
   Music2,
+  TrainFront,
 } from "lucide-react";
 import type { Visual } from "@/lib/types";
 import { sounds } from "@/data/catalog";
@@ -21,6 +22,7 @@ const icons = {
   brown: AudioLines,
   night: Moon,
   tones: Music2,
+  train: TrainFront,
 };
 export default function AudioMixer({ visual }: { visual: Visual }) {
   const { preferences: p, getSceneSoundMix, setVolume, resetSceneSoundMix, update } = usePreferences();
@@ -46,7 +48,7 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
           Reset
         </button>
       </div>
-      {sounds.map((s) => {
+      {sounds.filter((s) => s.id !== "train" || visual.id === "lantern").map((s) => {
         const Icon = icons[s.id];
         return (
           <div className="sound-track" key={s.id}>
