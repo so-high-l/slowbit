@@ -1,16 +1,18 @@
 "use client";
+import gsap from "gsap";
 import { analytics } from "@/lib/analytics";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Github, Heart, Settings2, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowRight, Moon, Crosshair, Github, Heart, Settings2, Volume2, VolumeX, X } from "lucide-react";
 import MoodAtmosphere from "@/components/checkin/MoodAtmosphere";
-import { durations, visuals } from "@/data/catalog";
+import { visuals } from "@/data/catalog";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { useFullscreen } from "@/hooks/useFullscreen";
 import { checkIns, checkInMix, availableCheckInScene, stationOrder } from "@/lib/check-in";
-import type { Mood, VisualId } from "@/lib/types";
+import { durationForMode, modeDurations, focusMoods } from "@/lib/session-mode";
+import type { SessionMode, FocusMood, Mood, VisualId } from "@/lib/types";
 
 const landingAssets = [
   "/images/checkin-rain.png",
@@ -22,7 +24,15 @@ const landingAssets = [
 export default function Home() {
   const router = useRouter();
   const { preferences: p, ready, update } = usePreferences();
+  const [selectedMode, setSelectedMode] = useState<SessionMode | null>(null);
+  const transitionRoot = useRef<HTMLElement>(null);
+  const modePositions = useRef<DOMRect[]>([]);
+  const transitionTimeline = useRef<gsap.core.Timeline | null>(null);
+  const hasMode = selectedMode !== null;
+  const questionRef = useRef<HTMLHeadingElement>(null);
   const [entered, setEntered] = useState(false);
+  const [focusMood, setFocusMood] = useState<FocusMood>("fresh");
+  const focusRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [mood, setMood] = useState<Mood>("fried");
   const [duration, setDuration] = useState<number | null>(10);
   const [assetProgress, setAssetProgress] = useState(0);
@@ -76,6 +86,7 @@ export default function Home() {
     if (!ready) return;
     const initialMood = p.lastMood ?? "fried";
     setMood(initialMood);
+    setFocusMood(p.focusMood ?? "fresh");
     setCustomScene(p.lastVisual ?? availableCheckInScene(initialMood, p.hiddenVisuals) ?? null);
     setDuration(p.defaultSessionDuration);
     if (document.fullscreenElement) setEntered(true);
@@ -104,17 +115,51 @@ export default function Home() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [entered, ready, enter]);
+  useLayoutEffect(() => {
+    if (!hasMode || !transitionRoot.current) return;
+    const root = transitionRoot.current;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const context = gsap.context(() => {
+      const timeline = gsap.timeline({ onComplete: () => questionRef.current?.focus({ preventScroll: true }) });
+      transitionTimeline.current = timeline;
+      timeline.to(".mode-step", { opacity: 0, duration: reduced ? 0 : 0.35, ease: "power2.out" }, 0);
+      const switches = root.querySelectorAll<HTMLElement>(".mode-switch button");
+      switches.forEach((button, index) => {
+        const from = modePositions.current[index];
+        const to = button.getBoundingClientRect();
+        timeline.fromTo(button, {
+          opacity: 0, x: reduced || !from ? 0 : from.left - to.left,
+          y: reduced || !from ? 0 : from.top - to.top,
+          scale: reduced ? 1 : 1.35,
+        }, { opacity: 1, x: 0, y: 0, scale: 1, duration: reduced ? 0 : 0.95, ease: "power3.inOut", clearProps: "transform,opacity" }, reduced ? 0 : 0.15);
+      });
+      timeline.fromTo(".mode-question, .mode-mood-layer .mood-choice, .checkin-duration, .checkin-begin, .checkin-empty", {
+        opacity: 0, y: reduced ? 0 : 12,
+      }, {
+        opacity: 1, y: 0, duration: reduced ? 0 : 0.85,
+        stagger: reduced ? 0 : 0.045, ease: "power2.out", clearProps: "transform,opacity",
+      }, reduced ? 0 : 0.6);
+    }, root);
+    return () => { context.revert(); transitionTimeline.current = null; };
+  }, [hasMode]);
+  function selectMode(mode: SessionMode) {
+    if (!selectedMode) {
+      modePositions.current = Array.from(transitionRoot.current?.querySelectorAll(".mode-choice") ?? []).map(el => el.getBoundingClientRect());
+    }
+    setSelectedMode(mode);
+    setDuration(current => durationForMode(mode, current));
+  }
   function tune(next: Mood) {
     setMood(next);
   }
   function begin() {
-    if (!visual) return;
-    update({ lastMood: mood, lastVisual: visual.id, defaultSessionDuration: duration });
-    audio.prepareSession({ pace, opening: useMoodMix ? [...profile.opening] : [profile.opening[0], "You chose " + visual.name.toLowerCase() + ".", "We’ll start there. You can change anything as you go."] });
+    if (!visual || !selectedMode) return;
+    update({ focusMood, mode: selectedMode, lastMood: mood, lastVisual: visual.id, defaultSessionDuration: duration });
+    audio.prepareSession({ mode: selectedMode, mood: selectedMode === "focus" ? focusMood : mood, duration, pace, opening: selectedMode === "focus" ? ["You’re here to focus.", "You chose " + visual.name.toLowerCase() + ".", "Settle in. Change anything as you go."] : useMoodMix ? [...profile.opening] : [profile.opening[0], "You chose " + visual.name.toLowerCase() + ".", "We’ll start there. You can change anything as you go."] });
     router.push("/session/");
   }
   return (
-    <main className={`checkin-room ${entered ? "has-entered" : "at-door"}`} data-mood={mood}>
+    <main className={`checkin-room ${entered ? "has-entered" : "at-door"}`} data-mood={mood} data-mode={selectedMode ?? "unwind"}>
       <MoodAtmosphere mood={mood} />
       {!entered ? (
         <div className="entry-gate">
@@ -140,9 +185,22 @@ export default function Home() {
               <a href="https://github.com/so-high-l/slowbit" target="_blank" rel="noopener noreferrer" aria-label="Slowbit on GitHub (opens in a new tab)" title="View on GitHub"><Github size={22} strokeWidth={1.4} aria-hidden="true" /></a>
             </nav>
           </header>
-          <section className="checkin-main" aria-labelledby="checkin-question">
-            <h1 id="checkin-question">how are you arriving?</h1>
-            <div className="mood-list" role="radiogroup" aria-label="How are you feeling?">
+          <section ref={transitionRoot} className={`checkin-main mode-flow ${hasMode ? "has-mode" : ""}`} aria-labelledby={hasMode ? "checkin-question" : "mode-question"}>
+            <div className="mode-step" inert={hasMode} aria-hidden={hasMode}>
+              <h1 id="mode-question">what do you need right now?</h1>
+              <div className="mood-list" aria-label="Session mode">
+                {(["unwind", "focus"] as const).map(mode => <button key={mode} className="mood-choice mode-choice" onClick={() => selectMode(mode)}>
+                  <span className="mood-marker" aria-hidden="true" />
+                  <span className="mode-option-name">{mode === "unwind" ? <Moon size={20} aria-hidden="true" /> : <Crosshair size={20} aria-hidden="true" />}{mode === "unwind" ? "Unwind" : "Focus"}{mode === "focus" && <span className="mode-new-label">new</span>}</span>
+                </button>)}
+              </div>
+            </div><div className="mode-configuration" inert={!hasMode} aria-hidden={!hasMode}>
+            <div className="mode-switch" role="group" aria-label="Session mode">
+              {(["unwind", "focus"] as const).map(mode => <button key={mode} aria-pressed={selectedMode === mode} onClick={() => selectMode(mode)}><span className="mode-selection-dot" aria-hidden="true" />{mode === "unwind" ? <Moon size={14} aria-hidden="true" /> : <Crosshair size={14} aria-hidden="true" />}<span>{mode}</span>{mode === "focus" && <span className="mode-new-label">new</span>}</button>)}
+            </div>
+            <h1 className="mode-question" id="checkin-question" ref={questionRef} tabIndex={-1}>how are you arriving?</h1>
+            <div className="mode-mood-stack">
+            <div className="mood-list mode-mood-layer" data-visible={selectedMode === "unwind"} inert={selectedMode !== "unwind"} aria-hidden={selectedMode !== "unwind"} role="radiogroup" aria-label="Unwind mood">
               {stationOrder.map((id, index) => <button
                 key={id} ref={el => { stationRefs.current[index] = el; }}
                 className={`mood-choice ${mood === id ? "is-selected" : ""}`}
@@ -161,14 +219,32 @@ export default function Home() {
                 <span>{checkIns[id].label}</span>
               </button>)}
             </div>
+            <div className="mood-list mode-mood-layer" data-visible={selectedMode === "focus"} inert={selectedMode !== "focus"} aria-hidden={selectedMode !== "focus"} role="radiogroup" aria-label="Focus mood">
+              {focusMoods.map((item, index) => <button
+                key={item.id} ref={el => { focusRefs.current[index] = el; }}
+                className={`mood-choice ${focusMood === item.id ? "is-selected" : ""}`}
+                role="radio" aria-checked={focusMood === item.id} tabIndex={focusMood === item.id ? 0 : -1}
+                onClick={() => setFocusMood(item.id)}
+                onKeyDown={e => {
+                  let target = index;
+                  if (e.key === "ArrowRight" || e.key === "ArrowDown") target = (index + 1) % focusMoods.length;
+                  else if (e.key === "ArrowLeft" || e.key === "ArrowUp") target = (index + focusMoods.length - 1) % focusMoods.length;
+                  else if (e.key === "Home") target = 0;
+                  else if (e.key === "End") target = focusMoods.length - 1;
+                  else return;
+                  e.preventDefault(); setFocusMood(focusMoods[target].id); focusRefs.current[target]?.focus();
+                }}><span className="mood-marker" aria-hidden="true" /><span>{item.label}</span></button>)}
+            </div>
+            </div>
             <fieldset className="checkin-duration">
               <legend className="sr-only">Session length</legend>
-              {durations.map(d => <button key={String(d)} type="button" aria-pressed={duration === d} onClick={() => setDuration(d)}>{d === null ? "no timer" : `${d} min`}</button>)}
+              {modeDurations[selectedMode ?? "unwind"].map(d => <button key={String(d)} type="button" aria-pressed={duration === d} onClick={() => setDuration(d)}>{d === null ? "no timer" : `${d} min`}</button>)}
             </fieldset>
             <button className="checkin-begin" disabled={!visual} onClick={begin}>begin <ArrowRight size={21} strokeWidth={1.3} /></button>
             {!visual && <p className="checkin-empty" role="status">All scenes are hidden. <Link href="/settings/">Restore a scene in Settings.</Link></p>}
+            </div>
           </section>
-          <footer className="checkin-footer">
+          <footer className="checkin-footer" style={{ visibility: selectedMode ? "visible" : "hidden" }}>
             <button className="checkin-scene" onClick={() => setChoosingScene(true)} aria-label={`Choose a scene. Current scene: ${visual?.name ?? "none"}`}>
               <span>scene:</span> {visual?.name ?? "choose one"} <ArrowRight size={16} strokeWidth={1.4} />
             </button>

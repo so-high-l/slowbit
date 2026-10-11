@@ -2,7 +2,8 @@
 import Link from "next/link";
 import Shell from "@/components/Shell";
 import { usePreferences } from "@/hooks/usePreferences";
-import { durations, visuals } from "@/data/catalog";
+import { visuals } from "@/data/catalog";
+import { modeDurations } from "@/lib/session-mode";
 export default function Settings() {
   const {
     preferences: p,
@@ -40,7 +41,7 @@ export default function Settings() {
                 it.
               </p>
               <div className="duration-options">
-                {durations.map((d) => (
+                {modeDurations[p.mode ?? "unwind"].map((d) => (
                   <button
                     key={String(d)}
                     aria-pressed={p.defaultSessionDuration === d}

@@ -83,12 +83,14 @@ export function normalize(raw: unknown): Preferences {
     defaultSessionDuration:
       p.defaultSessionDuration === null
         ? null
-        : [5, 10, 15].includes(p.defaultSessionDuration as number)
+        : [5, 10, 15, 25, 45, 60].includes(p.defaultSessionDuration as number)
           ? p.defaultSessionDuration!
           : 10,
     globalVolume: volume(p.globalVolume, 0.6),
     muted: p.muted === true,
     showBoard: p.showBoard === true,
+    focusMood: ["fresh", "low_energy", "sleepy", "distracted", "focused"].includes(p.focusMood!) ? p.focusMood : "fresh",
+    mode: p.mode === "focus" ? "focus" : "unwind",
     lastVisual: visualIds.includes(p.lastVisual!) ? p.lastVisual : undefined,
     lastMood: [
       "fried",

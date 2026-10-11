@@ -1,3 +1,5 @@
+export type FocusMood = "fresh" | "low_energy" | "sleepy" | "distracted" | "focused";
+export type SessionMode = "focus" | "unwind";
 export type Mood = "fried" | "restless" | "stuck" | "overstimulated" | "burned_out" | "chill";
 export type VisualId =
   | "rain"
@@ -32,6 +34,8 @@ export interface Preferences {
   defaultSessionDuration: number | null;
   lastVisual?: VisualId;
   lastMood?: Mood;
+  mode?: SessionMode;
+  focusMood?: FocusMood;
   globalVolume: number;
   muted: boolean;
   showBoard: boolean;

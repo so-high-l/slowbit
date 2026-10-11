@@ -2,7 +2,9 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { AmbientEngine } from "@/lib/audio";
 
-export interface SessionArrival { opening: string[]; pace: number }
+import type { SessionMode, Mood, FocusMood } from "@/lib/types";
+
+export interface SessionArrival { mode?: SessionMode; mood?: Mood | FocusMood; duration?: number | null; opening: string[]; pace: number }
 function useEngine() {
   const engine = useRef<AmbientEngine | null>(null);
   const [active, setActive] = useState(false);

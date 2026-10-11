@@ -289,6 +289,7 @@ function Session() {
     );
   return (
     <main
+      data-mode={p.mode ?? "unwind"}
       className={`session ${opening ? "opening-active" : ""} ${p.showBoard ? "board-open" : ""} ${phase === "running" && !visible && !tourActive ? "controls-hidden" : ""}`}
       onPointerMove={reveal}
       onPointerDown={reveal}

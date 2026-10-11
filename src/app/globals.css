@@ -3660,3 +3660,66 @@ input[type="range"] {
     margin-bottom: 6px;
   }
 }
+
+/* Mode is a small change of atmosphere, not a separate destination. */
+.mode-step, .mode-configuration { animation: mode-arrive 650ms ease both; }
+@keyframes mode-arrive {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mode-switch { display: flex; gap: 18px; margin-bottom: 22px; }
+.mode-switch button {
+  padding: 5px 0;
+  background: transparent;
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: #9faaa8;
+}
+.mode-switch button[aria-pressed="true"] { color: #e7d5c5; }
+.mode-choice:hover .mood-marker, .mode-choice:focus-visible .mood-marker { opacity: 1; }
+.mode-choice:hover, .mode-choice:focus-visible { color: #f2e4d8; }
+.checkin-room .mood-atmosphere { transition: filter 1200ms ease, opacity 1200ms ease; }
+.checkin-room[data-mode="focus"] .mood-atmosphere { filter: grayscale(1) sepia(.35) hue-rotate(155deg) saturate(.85); opacity: .65; }
+.checkin-room[data-mode="focus"] .atmosphere-layer img { animation-duration: 90s; }
+.checkin-room[data-mode="focus"] { --station-accent: #a9cbd4; }
+.checkin-room[data-mode="focus"] .mode-switch button[aria-pressed="true"],
+.checkin-room[data-mode="focus"] .mood-choice.is-selected { color: #d4e6ec; }
+.checkin-room[data-mode="focus"] .mood-marker { background: #a9cbd4; box-shadow: 0 0 10px #a9cbd426; }
+@media (prefers-reduced-motion: reduce) {
+  .mode-step, .mode-configuration { animation: none; }
+  .checkin-room .mood-atmosphere { transition: none; }
+}
+
+.mode-switch button { display: inline-flex; align-items: center; gap: 7px; min-width: 104px; }
+.mode-selection-dot { width: 4px; height: 4px; flex: 0 0 4px; border-radius: 50%; background: currentColor; opacity: 0; transition: opacity 350ms ease; }
+.mode-switch button[aria-pressed="true"] .mode-selection-dot { opacity: 1; }
+.mode-option-name { display: inline-flex; align-items: center; gap: 12px; }
+.mode-mood-stack { display: grid; }
+.mode-mood-layer { grid-area: 1 / 1; align-self: start; opacity: 0; pointer-events: none; transition: opacity 450ms ease; }
+.mode-mood-layer[data-visible="true"] { opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .mode-selection-dot, .mode-mood-layer { transition: none; }
+}
+
+/* Both steps share a stable footprint; GSAP handles the handoff. */
+.checkin-main.mode-flow { display: grid; }
+.mode-flow > .mode-step, .mode-flow > .mode-configuration { grid-area: 1 / 1; animation: none; }
+.mode-flow > .mode-step { align-self: center; }
+.mode-flow:not(.has-mode) > .mode-configuration { visibility: hidden; pointer-events: none; }
+.mode-flow.has-mode > .mode-step { pointer-events: none; }
+.mode-flow .mode-switch button { transform-origin: left center; }
+
+.mode-switch button { position: relative; }
+.mode-new-label {
+  position: static;
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #a0aaa8;
+  pointer-events: none;
+}
+.mode-switch .mode-new-label { font-size: 7px; }
