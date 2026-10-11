@@ -99,7 +99,7 @@ function Session() {
   const endRef = useRef<HTMLDivElement>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fullscreen = useFullscreen();
-  const audio = useAudioMixer(p, playing, 1, visualId);
+  const audio = useAudioMixer(p, playing, 1, visualId, undefined, exploring);
   const timer = useSessionTimer(
     p.defaultSessionDuration,
     phase === "running" && playing,
@@ -363,7 +363,9 @@ function Session() {
               onClick={() => setExploring((v) => !v)}
             >
               <Orbit size={13} />
-              {visualId === "lantern"
+              {visualId === "meadow"
+                ? exploring ? "Sit back up" : "Lie back in the grass"
+                : visualId === "lantern"
                 ? exploring ? "Back to the compartment" : "Closer to the window"
                 : reducedMotion
                 ? exploring

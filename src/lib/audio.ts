@@ -241,14 +241,14 @@ export class AmbientEngine {
     this.master.gain.setTargetAtTime(0, this.context.currentTime, 0.45);
   }
 
-  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain") {
+  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain", transition = 0.3) {
     if (this.closed) return;
     this.pondEnabled = scene === "pond" && playing && !muted && global > 0 && volumes.wind > 0;
     if (!this.pondEnabled) this.stopDrops();
     else void this.preparePondDrop();
     const now = this.context.currentTime;
     for (const [id, gain] of this.tracks) {
-      gain.gain.setTargetAtTime(volumes[id] ?? 0, now, 0.3);
+      gain.gain.setTargetAtTime(volumes[id] ?? 0, now, transition);
       if (id === "tones") continue;
       if (playing && !muted && global > 0 && volumes[id] > 0)
         this.selectRecording(id, scene);

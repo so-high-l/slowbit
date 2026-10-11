@@ -114,7 +114,7 @@ export default function CanvasScene({
     );
     const draw = (now: number) => {
       frame = requestAnimationFrame(draw);
-      if (now - last < 33) return;
+      if (kind !== "meadow" && now - last < 33) return;
       const dt = Math.min((now - last) / 1000, 0.05) * pace.current;
       last = now;
       if (document.hidden) return;
@@ -123,7 +123,7 @@ export default function CanvasScene({
         const previousTime = t;
         t += dt;
         if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
-        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "lantern" ? 0.65 : 1.4)));
+        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "meadow" ? 0.28 : kind === "lantern" ? 0.65 : 1.4)));
         if (kind === "stars" || kind === "drift")
           advanceDepth(particles, dt, focus, kind === "stars" ? 0.09 : 0.045);
         if (kind === "drift")
@@ -142,10 +142,10 @@ export default function CanvasScene({
         ctx.scale(scale, scale);
         ctx.translate(-w * 0.5, -h * 0.43);
       }
-      painters[kind]({ ctx, w, h, t, particles });
+      painters[kind]({ ctx, w, h, t, particles, focus });
       ctx.restore();
       if (
-        kind !== "lantern" &&
+        kind !== "lantern" && kind !== "meadow" &&
         focus > 0.005 &&
         (reduced || (kind !== "stars" && kind !== "drift"))
       ) {

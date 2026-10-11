@@ -10,6 +10,7 @@ export interface SceneFrame {
   w: number;
   h: number;
   t: number;
+  focus?: number;
   particles: Particle[];
 }
 export type ScenePainter = (frame: SceneFrame) => void;

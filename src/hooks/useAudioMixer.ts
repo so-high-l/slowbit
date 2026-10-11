@@ -11,6 +11,7 @@ export function useAudioMixer(
   masterScale = 1,
   scene: VisualId = prefs.lastVisual ?? "rain",
   mixOverride?: SoundMix,
+  exploring = false,
 ) {
   const audio = useAudioSession();
   const { engine, active } = audio;
@@ -18,11 +19,14 @@ export function useAudioMixer(
   useEffect(() => {
     const volumes = mixOverride ?? (visual ? getSceneSoundMix(prefs, visual) : silentMix);
     engine.current?.mix(
-      volumes,
+      scene === "meadow" && exploring
+        ? { ...volumes, forest: volumes.forest * 0.3, wind: volumes.wind * 0.65 }
+        : volumes,
       prefs.globalVolume * masterScale,
       playing,
       prefs.muted,
       scene,
+      scene === "meadow" ? 1.5 : 0.3,
     );
   }, [
     engine,
@@ -34,6 +38,8 @@ export function useAudioMixer(
     mixOverride?.brown,
     mixOverride?.night,
     mixOverride?.tones,
+    mixOverride?.train,
+    exploring,
     prefs.soundMixesByScene,
     prefs.globalVolume,
     playing,
