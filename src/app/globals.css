@@ -3560,3 +3560,103 @@ input[type="range"] {
     transition-duration: .01ms;
   }
 }
+
+/* An editorial caption at the edge of the landscape. */
+.session .scene-caption {
+  position: absolute;
+  top: clamp(110px, 18vh, 180px);
+  left: clamp(40px, 4.5vw, 86px);
+  right: 24px;
+  margin: 0;
+  padding: 0 0 0 clamp(20px, 2vw, 38px);
+  border-left: 2px solid #dce5e2a6;
+  text-align: left;
+  pointer-events: none;
+  text-shadow: 0 2px 18px #0006;
+}
+
+.session .scene-caption .eyebrow {
+  display: block;
+  margin: 0 0 18px;
+  font-size: 10px;
+  line-height: 1.9;
+  font-weight: 500;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: #b3c0c9;
+}
+
+.session .scene-caption h1 {
+  margin: 0 0 14px;
+  font-family: var(--serif);
+  font-size: clamp(32px, 3vw, 52px);
+  line-height: 1.12;
+  font-weight: 400;
+  letter-spacing: -.035em;
+  color: #f0f1ed;
+}
+
+.session .scene-caption p {
+  margin: 0;
+  max-width: 460px;
+  font-size: clamp(13px, 1.25vw, 19px);
+  line-height: 1.6;
+  color: #bdc9d0;
+}
+
+.session-bottom {
+  margin-top: auto;
+}
+
+.control-dock .explore-dock {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.control-dock .explore-dock.active {
+  background: #d3e5db18;
+  color: #e1eee6;
+}
+
+.control-dock .explore-dock:focus-visible {
+  outline: 2px solid #d3e5db;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .session .scene-caption {
+    top: 105px;
+    left: 30px;
+    right: 22px;
+    padding-left: 24px;
+  }
+
+  .session .scene-caption .eyebrow {
+    font-size: 9px;
+    margin-bottom: 12px;
+  }
+
+  .session .scene-caption h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  .session .scene-caption p {
+    max-width: 270px;
+  }
+}
+
+@media (max-height: 550px) {
+  .session .scene-caption {
+    top: 85px;
+  }
+
+  .session .scene-caption .eyebrow {
+    margin-bottom: 8px;
+  }
+
+  .session .scene-caption h1 {
+    font-size: 30px;
+    margin-bottom: 6px;
+  }
+}

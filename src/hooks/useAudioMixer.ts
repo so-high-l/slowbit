@@ -21,12 +21,12 @@ export function useAudioMixer(
     engine.current?.mix(
       scene === "meadow" && exploring
         ? { ...volumes, forest: volumes.forest * 0.3, wind: volumes.wind * 0.65 }
-        : volumes,
+        : scene === "magneticField" && exploring ? { ...volumes, tones: volumes.tones * 0.6 } : volumes,
       prefs.globalVolume * masterScale,
       playing,
       prefs.muted,
       scene,
-      scene === "meadow" ? 1.5 : 0.3,
+      scene === "meadow" || scene === "magneticField" ? 1.5 : 0.3,
     );
   }, [
     engine,

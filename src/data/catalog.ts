@@ -197,7 +197,7 @@ export const visuals: Visual[] = [
     subtitle: "Let everything find its path.",
     tags: ["Abstract", "Field", "Generative"],
     recommendedMoods: ["stuck", "restless", "fried"],
-    defaultSounds: { tones: 0.15, night: 0.05 },
+    defaultSounds: { tones: 0.09 },
   },
 ];
 export const sounds: { id: SoundId; name: string; note: string }[] = [
