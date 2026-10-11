@@ -2,6 +2,7 @@
 import { useAudioSession } from "@/components/audio/AudioProvider";
 import { pondDropStarted } from "@/lib/pond-timing";
 import { useRef, useEffect } from "react";
+import gsap from "gsap";
 import type { VisualId } from "@/lib/types";
 import { paintRain } from "./RainWindow";
 import { paintAurora } from "./GradientFlow";
@@ -26,7 +27,10 @@ import { paintMagneticField } from "./MagneticField";
 import { glow } from "./drawing";
 import { advanceDepth } from "./depth";
 import { paintMorningLattice } from "./MorningLattice";
+import { orbitImages, paintOrbitStudy } from "./OrbitStudy";
+import { advanceOrbitMotion, createOrbitMotion } from "./orbit-motion";
 const painters = {
+  orbitStudy: paintOrbitStudy,
   morningLattice: paintMorningLattice,
   rain: paintRain,
   aurora: paintAurora,
@@ -66,6 +70,7 @@ export default function CanvasScene({
   const active = useRef(exploring);
   const dirty = useRef(true);
   const pace = useRef(motionScale);
+  const toggleOrbit = useRef<(() => void) | null>(null);
   useEffect(() => { pace.current = motionScale; }, [motionScale]);
   useEffect(() => {
     isPaused.current = paused;
@@ -74,6 +79,7 @@ export default function CanvasScene({
   useEffect(() => {
     active.current = exploring;
     dirty.current = true;
+    toggleOrbit.current?.();
   }, [exploring]);
   useEffect(() => {
     const el = canvas.current!;
@@ -87,9 +93,37 @@ export default function CanvasScene({
       focus = 0;
     const media = matchMedia("(prefers-reduced-motion: reduce)");
     let reduced = media.matches;
+    const orbit = createOrbitMotion();
+    let orbitTween: gsap.core.Tween | undefined;
+    const updateOrbit = () => {
+      orbitTween?.kill();
+      if (reduced) {
+        Object.assign(orbit, createOrbitMotion(), { strength: active.current ? 1 : 0 });
+        dirty.current = true;
+        return;
+      }
+      orbitTween = gsap.to(orbit, {
+        strength: active.current ? 1 : 0,
+        duration: 14,
+        ease: "sine.inOut",
+        onUpdate: () => { dirty.current = true; },
+        onComplete: () => {
+          dirty.current = true;
+        },
+      });
+    };
+    if (kind === "orbitStudy") {
+      toggleOrbit.current = updateOrbit;
+      if (active.current) updateOrbit();
+    }
     const sync = () => {
+      const wasReduced = reduced;
       reduced = media.matches;
       dirty.current = true;
+      if (kind === "orbitStudy") {
+        if (wasReduced && !reduced) orbit.strength = 0;
+        updateOrbit();
+      }
     };
     media.addEventListener("change", sync);
     const resize = () => {
@@ -104,6 +138,9 @@ export default function CanvasScene({
     const observer = new ResizeObserver(resize);
     observer.observe(el);
     resize();
+    const unsubscribeImages = kind === "orbitStudy"
+      ? orbitImages.preload(() => { dirty.current = true; })
+      : undefined;
     const particles = Array.from(
       { length: kind === "stars" ? 260 : 140 },
       () => ({
@@ -124,6 +161,8 @@ export default function CanvasScene({
       if (!isPaused.current && !reduced) {
         const previousTime = t;
         t += dt;
+        // Normal mode drifts quietly; immersion smoothly raises orbital speed.
+        if (kind === "orbitStudy") advanceOrbitMotion(orbit, dt);
         if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
         focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "lantern" ? 0.65 : 1.4)));
         if (kind === "stars" || kind === "drift")
@@ -144,10 +183,11 @@ export default function CanvasScene({
         ctx.scale(scale, scale);
         ctx.translate(-w * 0.5, -h * 0.43);
       }
-      painters[kind]({ ctx, w, h, t, particles, focus });
+      if (kind === "orbitStudy") paintOrbitStudy({ ctx, w, h, t, particles, orbit, reducedMotion: reduced });
+      else painters[kind]({ ctx, w, h, t, particles, focus });
       ctx.restore();
       if (
-        kind !== "morningLattice" && kind !== "lantern" && kind !== "meadow" && kind !== "magneticField" &&
+        kind !== "orbitStudy" && kind !== "morningLattice" && kind !== "lantern" && kind !== "meadow" && kind !== "magneticField" &&
         focus > 0.005 &&
         (reduced || (kind !== "stars" && kind !== "drift"))
       ) {
@@ -170,6 +210,9 @@ export default function CanvasScene({
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      unsubscribeImages?.();
+      orbitTween?.kill();
+      toggleOrbit.current = null;
       media.removeEventListener("change", sync);
     };
   }, [kind, engine]);

@@ -23,6 +23,7 @@ const icons = {
   night: Moon,
   tones: Music2,
   piano: Music2,
+  orbitalPad: AudioLines,
   train: TrainFront,
 };
 export default function AudioMixer({ visual }: { visual: Visual }) {
@@ -49,12 +50,13 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
           Reset
         </button>
       </div>
-      {sounds.filter((s) => (s.id !== "train" || visual.id === "lantern") && (s.id !== "piano" || (p.mode === "focus" && visual.modes?.includes("focus")))).map((s) => {
+      {sounds.filter((s) => (s.id !== "train" || visual.id === "lantern") && (s.id !== "piano" || (p.mode === "focus" && visual.id === "morningLattice")) && (s.id !== "orbitalPad" || ((p.mode ?? "unwind") === "unwind" && visual.id === "orbitStudy"))).map((s) => {
         const Icon = icons[s.id];
+        const name = visual.id === "orbitStudy" && s.id === "wind" ? "Soft water" : s.name;
         return (
           <div className="sound-track" key={s.id}>
             <Icon size={19} />
-            <label htmlFor={`volume-${s.id}`}>{s.name}</label>
+            <label htmlFor={`volume-${s.id}`}>{name}</label>
             <output>{Math.round(mix[s.id] * 100)}%</output>
             <input
               id={`volume-${s.id}`}
@@ -64,7 +66,7 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
               step=".01"
               value={mix[s.id]}
               onChange={(e) => setVolume(visual.id, s.id, Number(e.target.value))}
-              aria-label={`${s.name} volume`}
+              aria-label={`${name} volume`}
             />
           </div>
         );

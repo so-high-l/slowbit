@@ -99,3 +99,8 @@ External media by **leberch**, from **Pixabay**, under the **Pixabay Content Lic
 - **Peaceful Piano — leberch**: https://pixabay.com/music/ambient-peaceful-piano-576857/ — R2: `audio/focus/leberch-peaceful-piano-576857.mp3` — Pixabay Content License.
 - **Atmospheric Piano — leberch**: https://pixabay.com/music/ambient-atmospheric-piano-603148/ — R2: `audio/focus/leberch-atmospheric-piano-603148.mp3` — Pixabay Content License.
 - **Piano Calm — leberch**: https://pixabay.com/music/modern-classical-piano-calm-525211/ — R2: `audio/focus/leberch-piano-calm-525211.mp3` — Pixabay Content License.
+
+## Orbit Study
+
+- **Orbital pad**: `public/audio/orbital-pad-loop.mp3` is original, procedurally composed Slowbit audio, with no third-party samples. Included under the project's MIT license. Reproduce it with `node scripts/generate-orbital-pad.mjs` (requires ffmpeg). A 48-second stereo open-fifth pad with gentle detuning, no percussion, melody, or vocals. Source oscillators complete integer cycles across the loop; the audio engine additionally blends the loop seam and fades playback in.
+- **Planet PNGs**: supplied by the project owner and installed locally; filenames and placement are documented in `public/images/orbit-study/README.md`. No source license was provided for these images; they are not covered by the source-code MIT license. The scene uses markers while images load or if an image becomes unavailable.

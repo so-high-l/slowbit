@@ -1,5 +1,6 @@
 import type { SoundId, Visual } from "./types";
 export const silentMix: Record<SoundId, number> = {
+  orbitalPad: 0,
   rain: 0,
   fire: 0,
   wind: 0,

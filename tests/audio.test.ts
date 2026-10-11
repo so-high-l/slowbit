@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { recordingProfile } from "../src/lib/audio-profiles.ts";
 import { AmbientEngine } from "../src/lib/audio.ts";
 import type { SoundMix } from "../src/lib/types.ts";
+import { visuals } from "../src/data/catalog.ts";
+import { sceneMix } from "../src/lib/sound-presets.ts";
 
 test("recordings follow scene context under the same mixer channels", () => {
   assert.notEqual(recordingProfile("rain", "rain").file, recordingProfile("meadow", "rain").file);
@@ -17,7 +19,7 @@ test("recordings follow scene context under the same mixer channels", () => {
 });
 
 const mix = (channel: keyof SoundMix): SoundMix => ({
-  rain: 0, wind: 0, fire: 0, forest: 0, night: 0, tones: 0, brown: 0, train: 0, piano: 0, [channel]: 0.3,
+  rain: 0, wind: 0, fire: 0, forest: 0, night: 0, tones: 0, brown: 0, train: 0, piano: 0, orbitalPad: 0, [channel]: 0.3,
 });
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
@@ -26,8 +28,9 @@ function setup(t: TestContext) {
   class Param {
     value = 0;
     ramps: { value: number; time: number }[] = [];
+    targets: { value: number; constant: number }[] = [];
     setValueAtTime(value: number) { this.value = value; }
-    setTargetAtTime(value: number) { this.value = value; }
+    setTargetAtTime(value: number, _time: number, constant: number) { this.value = value; this.targets.push({ value, constant }); }
     linearRampToValueAtTime(value: number, time: number) {
       this.value = value;
       this.ramps.push({ value, time });
@@ -307,4 +310,74 @@ test("curtain muffles late-loading rain and restores the mix without restarting 
   assert.equal(engine.tracks.get("rain")?.gain.value, 0.3);
   assert.equal(sources.length, count);
   assert.equal(volumes.rain, 0.3);
+});
+
+test("orbital pad is local, Unwind-only, and cancels late playback after leaving its scene", async t => {
+  const { engine, calls, sources, respond } = setup(t);
+  await engine.start();
+  const volumes = mix("orbitalPad");
+  engine.mix(volumes, 0.5, true, false, "orbitStudy", 0.3, "focus");
+  assert.equal(calls.length, 0);
+  engine.mix(volumes, 0.5, true, false, "orbitStudy", 0.3, "unwind");
+  assert.equal(calls[0].url, "/audio/orbital-pad-loop.mp3");
+  engine.mix(volumes, 0.5, true, false, "rain", 0.3, "unwind");
+  respond("orbital-pad-loop.mp3");
+  await tick();
+  assert.equal(sources.length, 1);
+  assert.equal(engine.tracks.get("orbitalPad")!.gain.value, 0);
+  engine.mix(volumes, 0.5, true, false, "orbitStudy", 0.3, "unwind");
+  await tick();
+  assert.equal(calls.length, 1, "returning reuses the decoded loop");
+  assert.equal(sources.length, 2);
+  assert.equal(sources[1].loop, true);
+  assert.equal(engine.tracks.get("orbitalPad")!.gain.value, 0.3);
+  engine.mix(volumes, 0.5, true, true, "orbitStudy", 0.3, "unwind");
+  assert.equal(engine.master.gain.value, 0);
+});
+
+test("Orbit immersion gently boosts only the pad and reverses without restarting audio", async t => {
+  const { engine, calls, sources, respond } = setup(t);
+  await engine.start();
+  const volumes = { ...mix("orbitalPad"), brown: 0.1 };
+  engine.mix(volumes, 0.5, true, false, "orbitStudy", 0.45, "unwind", false, true);
+  assert.equal(engine.tracks.get("orbitalPad")!.gain.value, 0.33);
+  assert.equal(engine.tracks.get("brown")!.gain.value, 0.1);
+  const pad = engine.tracks.get("orbitalPad")!.gain as unknown as { targets: { value: number; constant: number }[] };
+  assert.equal(pad.targets.at(-1)?.constant, 0.45);
+  respond("orbital-pad-loop.mp3");
+  respond("soft-brown-noise.flac");
+  await tick();
+  const count = sources.length;
+  engine.mix(volumes, 0.5, true, false, "orbitStudy", 0.45, "unwind", false, false);
+  assert.equal(engine.tracks.get("orbitalPad")!.gain.value, 0.3);
+  assert.equal(engine.tracks.get("brown")!.gain.value, 0.1);
+  assert.equal(pad.targets.at(-1)?.constant, 0.45);
+  assert.equal(sources.length, count);
+  assert.equal(calls.length, 2);
+  assert.equal(volumes.orbitalPad, 0.3, "the saved mix is never modified");
+  engine.mix({ ...volumes, orbitalPad: 1 }, 0.5, true, false, "orbitStudy", 0.45, "unwind", false, true);
+  assert.equal(engine.tracks.get("orbitalPad")!.gain.value, 1, "boost stays in the mixer range");
+});
+
+test("Orbit Study's relaxation preset reuses water, rain and brown noise without loading the pad", async t => {
+  const { engine, calls, sources, respond, filters } = setup(t);
+  await engine.start();
+  const volumes = sceneMix(visuals.find(v => v.id === "orbitStudy")!);
+  engine.mix(volumes, 0.5, true, false, "orbitStudy", 0.45, "unwind");
+  const water = recordingProfile("orbitStudy", "wind");
+  assert.equal(water.file, recordingProfile("ocean", "wind").file);
+  assert.ok(water.cutoff < recordingProfile("ocean", "wind").cutoff);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every(call => !call.url.includes("orbital-pad")));
+  for (const id of ["wind", "rain", "brown"] as const) respond(recordingProfile("orbitStudy", id).file);
+  await tick();
+  assert.ok(filters.some(filter => filter.type === "lowpass" && filter.frequency.value === 1800));
+  const count = sources.length;
+  engine.mix(volumes, 0.5, true, false, "orbitStudy", 0.45, "unwind", false, true);
+  assert.equal(sources.length, count);
+  assert.equal(calls.length, 3);
+  assert.equal(engine.tracks.get("wind")!.gain.value, 0.28);
+  assert.equal(engine.tracks.get("rain")!.gain.value, 0.08);
+  assert.equal(engine.tracks.get("brown")!.gain.value, 0.10);
+  assert.equal(engine.tracks.get("orbitalPad")!.gain.value, 0);
 });

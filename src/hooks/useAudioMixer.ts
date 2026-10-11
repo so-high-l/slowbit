@@ -27,9 +27,10 @@ export function useAudioMixer(
       playing,
       prefs.muted,
       scene,
-      scene === "morningLattice" ? 2 : scene === "meadow" || scene === "magneticField" ? 1.5 : 0.3,
+      scene === "morningLattice" ? 2 : scene === "orbitStudy" ? 0.45 : scene === "meadow" || scene === "magneticField" ? 1.5 : 0.3,
       mode,
       scene === "morningLattice" && exploring,
+      scene === "orbitStudy" && exploring,
     );
   }, [
     engine,
@@ -43,6 +44,7 @@ export function useAudioMixer(
     mixOverride?.tones,
     mixOverride?.train,
     mixOverride?.piano,
+    mixOverride?.orbitalPad,
     exploring,
     mode,
     prefs.soundMixesByScene,

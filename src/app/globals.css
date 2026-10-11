@@ -3628,6 +3628,20 @@ input[type="range"] {
   color: #bdc9d0;
 }
 
+.session .scene-caption[data-orbit-immersive] {
+  transition: opacity 1.4s ease-in-out;
+}
+
+.session .scene-caption[data-orbit-immersive="true"] {
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session .scene-caption[data-orbit-immersive] {
+    transition: none;
+  }
+}
+
 .session-bottom {
   margin-top: auto;
 }

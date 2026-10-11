@@ -37,6 +37,7 @@ export const moods: {
     },
   ];
 export const visuals: Visual[] = [
+  { id: "orbitStudy", name: "Orbit Study", subtitle: "Find your center. Let the rest move quietly.", tags: ["Unwind", "Space", "Structured", "Calm"], modes: ["unwind"], recommendedMoods: [], defaultSounds: { wind: 0.28, rain: 0.08, brown: 0.10 } },
   { id: "morningLattice", name: "Sunlit wall", subtitle: "A little daylight. Room to think.", tags: ["Focus", "Daylight", "Quiet"], modes: ["focus"], recommendedMoods: [], defaultSounds: { piano: 0.3, brown: 0.3, rain: 0.3 } },
   {
     id: "rain",
@@ -202,6 +203,7 @@ export const visuals: Visual[] = [
   },
 ];
 export const sounds: { id: SoundId; name: string; note: string }[] = [
+  { id: "orbitalPad", name: "Orbital pad", note: "A quiet, spacious synth bed" },
   { id: "piano", name: "Piano", note: "Quiet pieces for focus" },
   { id: "train", name: "Train carriage", note: "A quiet overnight journey" },
   { id: "rain", name: "Rain", note: "Soft, steady rainfall" },

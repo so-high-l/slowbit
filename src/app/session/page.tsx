@@ -84,6 +84,10 @@ function Session() {
     void audioSession.start();
   }, [arrival, audioSession.start, phase, replayTour]);
   const [exploring, setExploring] = useState(false);
+  const orbitImmersive = visualId === "orbitStudy" && exploring && phase === "running";
+  useEffect(() => {
+    if (visualId === "orbitStudy" && phase !== "running") setExploring(false);
+  }, [visualId, phase]);
   const [reducedMotion, setReducedMotion] = useState(false);
   useEffect(() => {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -100,7 +104,7 @@ function Session() {
   const endRef = useRef<HTMLDivElement>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fullscreen = useFullscreen();
-  const audio = useAudioMixer(p, playing, 1, visualId, undefined, exploring);
+  const audio = useAudioMixer(p, playing, 1, visualId, undefined, visualId === "orbitStudy" ? orbitImmersive : exploring);
   const timer = useSessionTimer(
     p.defaultSessionDuration,
     phase === "running" && playing,
@@ -199,6 +203,7 @@ function Session() {
     const nextVisual = visuals.find((v) => v.id === id)!;
     if (trackSelection) analytics.sceneSelected(nextVisual, p.mode ?? "unwind");
     setVisualId(id);
+    if (visualId === "orbitStudy" || id === "orbitStudy") setExploring(false);
     setOpening(false);
     setMotionScale(1);
     update({ lastVisual: id });
@@ -253,7 +258,7 @@ function Session() {
         else void fullscreen.toggle();
       }
       if (phase !== "running") return;
-      if (k === "z" && !e.repeat) setExploring((v) => !v);
+      if (k === "z") setExploring((v) => !v);
       if (k === "m") update({ muted: !p.muted });
       if (k === " ") togglePlay();
       if (k === "arrowright") next(1);
@@ -299,7 +304,7 @@ function Session() {
       <VisualRenderer
         visualId={visualId}
         paused={!playing}
-        exploring={exploring}
+        exploring={visualId === "orbitStudy" ? orbitImmersive : exploring}
         motionScale={motionScale}
         nightProgress={timer.nightProgress}
       />
@@ -357,7 +362,7 @@ function Session() {
               <span>Finish session</span> <X size={18} aria-hidden="true" />
             </button>
           </header>
-          <div className="scene-caption" inert={p.showBoard || opening}>
+          <div className="scene-caption" data-orbit-immersive={visualId === "orbitStudy" ? orbitImmersive : undefined} inert={p.showBoard || opening}>
             <span className="eyebrow">YOU ARE HERE. THAT’S ENOUGH.</span>
             <h1>{visual.name}</h1>
             <p>{visual.subtitle}</p>
@@ -366,10 +371,13 @@ function Session() {
               type="button"
               style={{ pointerEvents: visible ? "auto" : "none" }}
               aria-pressed={exploring}
+              aria-keyshortcuts="Z"
               onClick={() => setExploring((v) => !v)}
             >
               <Orbit size={13} />
-              {visualId === "morningLattice"
+              {visualId === "orbitStudy"
+                ? exploring ? "Return to the orbit map" : "Enter the orbital system"
+                : visualId === "morningLattice"
                 ? exploring ? "Open the curtain" : "Draw the curtain"
                 : visualId === "meadow"
                 ? exploring ? "Sit back up" : "Lie back in the grass"

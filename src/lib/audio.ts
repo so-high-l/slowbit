@@ -80,6 +80,7 @@ export class AmbientEngine {
       "night",
       "tones",
       "train",
+      "orbitalPad",
     ] as SoundId[]) {
       const c = this.context;
       const gain = c.createGain();
@@ -118,15 +119,16 @@ export class AmbientEngine {
   }
 
 
-  private async buffer(file: string, looping = true) {
-    let pending = this.buffers.get(file);
+  private async buffer(file: string, looping = true, local = false) {
+    const url = `${local ? "" : ASSET_URL}/audio/${file}`;
+    let pending = this.buffers.get(url);
     if (!pending) {
       pending = (async () => {
         const controller = new AbortController();
         this.loads.add(controller);
         const timeout = setTimeout(() => controller.abort(), 30000);
         try {
-          const response = await fetch(`${ASSET_URL}/audio/${file}`, { signal: controller.signal });
+          const response = await fetch(url, { signal: controller.signal });
           if (!response.ok) throw new Error(`Audio HTTP ${response.status}`);
           const bytes = await response.arrayBuffer();
           if (this.closed) throw new Error("Audio engine closed");
@@ -152,8 +154,8 @@ export class AmbientEngine {
           this.loads.delete(controller);
         }
       })();
-      this.buffers.set(file, pending);
-      void pending.catch(() => this.buffers.delete(file));
+      this.buffers.set(url, pending);
+      void pending.catch(() => this.buffers.delete(url));
     }
     return pending;
   }
@@ -190,7 +192,7 @@ export class AmbientEngine {
 
   private async loadRecording(id: RecordedChannel, request: RecordingRequest, profile: RecordingProfile) {
     try {
-      const buffer = await this.buffer(profile.file);
+      const buffer = await this.buffer(profile.file, true, profile.local);
       if (this.closed || this.requests.get(id) !== request) return;
       const track = this.tracks.get(id);
       if (!track) return;
@@ -245,7 +247,7 @@ export class AmbientEngine {
     this.master.gain.setTargetAtTime(0, this.context.currentTime, 0.45);
   }
 
-  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain", transition = 0.3, mode: SessionMode = "unwind", curtain = false) {
+  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain", transition = 0.3, mode: SessionMode = "unwind", curtain = false, orbitImmersive = false) {
     if (this.closed) return;
     this.curtain = curtain && mode === "focus" && scene === "morningLattice";
     const pianoEnabled = mode === "focus" && scene === "morningLattice";
@@ -261,14 +263,17 @@ export class AmbientEngine {
     else void this.preparePondDrop();
     const now = this.context.currentTime;
     for (const [id, gain] of this.tracks) {
-      gain.gain.setTargetAtTime((volumes[id] ?? 0) * (id === "rain" && this.curtain ? 0.55 : 1), now, transition);
+      const channelVolume = id === "orbitalPad"
+        ? scene !== "orbitStudy" || mode !== "unwind" ? 0 : Math.min(1, (volumes[id] ?? 0) * (orbitImmersive ? 1.1 : 1))
+        : (volumes[id] ?? 0);
+      gain.gain.setTargetAtTime(channelVolume * (id === "rain" && this.curtain ? 0.55 : 1), now, transition);
       if (id === "tones" || id === "piano") continue;
       const voice = this.voices.get(id);
       if (voice) {
         const profile = recordingProfile(scene, id);
         voice.filter.frequency.setTargetAtTime(id === "rain" && this.curtain ? Math.min(profile.cutoff, 950) : profile.cutoff, now, transition);
       }
-      if (playing && !muted && global > 0 && volumes[id] > 0)
+      if (playing && !muted && global > 0 && channelVolume > 0)
         this.selectRecording(id, scene);
       else this.cancelRequest(id);
     }

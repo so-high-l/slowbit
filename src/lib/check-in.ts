@@ -1,4 +1,5 @@
 import type { Mood, SoundId, VisualId } from "./types";
+import { silentMix } from "./sound-presets.ts";
 
 export interface CheckInProfile {
   label: string;
@@ -58,7 +59,7 @@ export const checkIns: Record<Mood, CheckInProfile> = {
 
 export const stationOrder: Mood[] = ["fried", "restless", "stuck", "overstimulated", "chill", 'burned_out'];
 export function checkInMix(mood: Mood): Record<SoundId, number> {
-  return { rain: 0, fire: 0, wind: 0, forest: 0, brown: 0, night: 0, tones: 0, train: 0, piano: 0, ...checkIns[mood].mix };
+  return { ...silentMix, ...checkIns[mood].mix };
 }
 export function availableCheckInScene(mood: Mood, hidden: VisualId[]): VisualId | undefined {
   const preferred = checkIns[mood].scene;
@@ -66,6 +67,6 @@ export function availableCheckInScene(mood: Mood, hidden: VisualId[]): VisualId 
     "rain", "drift", "aurora", "stars", "embers", "ocean",
     "pond", "mist", "snow", "dunes", "clouds", "jelly",
     "meadow", "lantern", "ink", "vinyl", "nightSky",
-    "thread", "ribbonTunnel", "magneticField",
+    "thread", "ribbonTunnel", "magneticField", "orbitStudy",
   ] as VisualId[]).find(id => !hidden.includes(id));
 }

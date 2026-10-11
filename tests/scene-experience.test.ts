@@ -6,7 +6,7 @@ import { advanceDepth } from "../src/components/visuals/depth.ts";
 test("scene presets replace old tracks, remain editable, and never mutate their defaults", () => {
   const rain = sceneMix(visuals.find((v) => v.id === "rain")!);
   const stars = sceneMix(visuals.find((v) => v.id === "stars")!);
-  assert.deepEqual(rain, { rain: 0.35, wind: 0.08, brown: 0, fire: 0, forest: 0, night: 0, tones: 0, train: 0, piano: 0 });
+  assert.deepEqual(rain, { rain: 0.35, wind: 0.08, brown: 0, fire: 0, forest: 0, night: 0, tones: 0, train: 0, piano: 0, orbitalPad: 0 });
   assert.equal(stars.rain, 0);
   for (const id of ["ocean", "jelly"]) {
     const water = sceneMix(visuals.find((visual) => visual.id === id)!);
@@ -18,8 +18,9 @@ test("scene presets replace old tracks, remain editable, and never mutate their 
   assert.equal(sceneMix(visuals.find((v) => v.id === "stars")!).tones, 0.16);
   for (const visual of visuals) {
     const mix = sceneMix(visual);
-    if (!visual.modes?.includes("focus")) assert.equal(mix.brown, 0, "brown noise stays opt-in for Unwind scenes");
-    assert.equal(Object.keys(mix).length, 9);
+    if (visual.id === "orbitStudy") assert.equal(mix.brown, 0.1, "Orbit Study retains its quiet brown-noise bed");
+    else if (!visual.modes?.includes("focus")) assert.equal(mix.brown, 0, "brown noise stays opt-in for Unwind scenes");
+    assert.equal(Object.keys(mix).length, 10);
     assert.ok(Object.values(mix).every((n) => n >= 0 && n <= 1));
   }
 });
