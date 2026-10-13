@@ -38,7 +38,7 @@ export const sceneSoundscapes: Partial<Record<VisualId, SceneSoundscape>> = {
   clouds: { beatHz: 9, carrierHz: 262, texture: { kind: "air", name: "Cloud air" }, mix: { texture: 0.15, textureTone: 0.1, brown: 0.2, binaural: 0 } },
   ink: { beatHz: 10, carrierHz: 285, ambience: { asset: "brush", name: "Gentle water", cutoff: 3000, level: 0.55 }, texture: { kind: "round", name: "Rounded tones" }, mix: { ambience: 0.24, texture: 0.09, binaural: 0 } },
   vinyl: { beatHz: 5.5, carrierHz: 165, ambience: { asset: "vinyl", name: "Vinyl surface", cutoff: 2400, level: 0.10 }, mix: { ambience: 0.24, rain: 0.10, tones: 0.06, brown: 0.06, vinylMusic: 0.16, binaural: 0 } },
-  nightSky: { beatHz: 4, carrierHz: 185, ambience: { asset: "rural", name: "Rural night", cutoff: 6000, level: 0.6 }, mix: { ambience: 0.28, forest: 0.03, binaural: 0 } },
+  nightSky: { beatHz: 4, carrierHz: 185, ambience: { asset: "rural", name: "Rural night", cutoff: 6000, level: 0.6 }, mix: { ambience: 0.05, forest: 0.03, binaural: 0 } },
   thread: { beatHz: 11, carrierHz: 247, texture: { kind: "bow", name: "Bowed harmonics" }, mix: { texture: 0.32, brown: 0.04, binaural: 0 } },
   ribbonTunnel: { beatHz: 7.5, carrierHz: 233, texture: { kind: "ribbon", name: "Moving air" }, mix: { texture: 0.32, textureTone: 0.32, brown: 0.05, binaural: 0 } },
   magneticField: { beatHz: 12, carrierHz: 294, texture: { kind: "glass", name: "Glass resonance" }, mix: { texture: 0.16, brown: 0.16, binaural: 0 } },
