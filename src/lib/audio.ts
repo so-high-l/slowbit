@@ -1,6 +1,10 @@
 import { FocusPlaylist, focusTrackUrls } from "./focus-music.ts";
 import type { SoundId, VisualId, SessionMode } from "./types";
 import { recordingProfile, type RecordedChannel, type RecordingProfile } from "./audio-profiles.ts";
+import { sceneSoundscapes } from "./scene-soundscapes.ts";
+import { SceneSynthesis } from "./scene-synthesis.ts";
+
+import { duplicateSound, hasAirTones } from "./sound-controls.ts";
 
 const ASSET_URL = (process.env.NEXT_PUBLIC_ASSET_URL ?? "").replace(/\/$/, "");
 type Voice = { key: string; source: AudioBufferSourceNode; gain: GainNode; filter: BiquadFilterNode; highpass: BiquadFilterNode };
@@ -18,6 +22,7 @@ export class AmbientEngine {
   private loads = new Set<AbortController>();
   private closed = false;
   private piano?: FocusPlaylist;
+  private synthesis?: SceneSynthesis;
   private curtain = false;
   private pondEnabled = false;
   private pondBuffer?: AudioBuffer;
@@ -40,7 +45,7 @@ export class AmbientEngine {
     const gain = this.context.createGain();
     gain.gain.value = 0.16;
     source.connect(gain);
-    gain.connect(this.tracks.get("wind")!);
+    gain.connect(this.tracks.get("pondDrops")!);
     const drop = { source, gain };
     this.drops.add(drop);
     source.onended = () => {
@@ -81,6 +86,12 @@ export class AmbientEngine {
       "tones",
       "train",
       "orbitalPad",
+      "vinylMusic",
+      "ambience",
+      "texture",
+      "textureTone",
+      "pondDrops",
+      "binaural",
     ] as SoundId[]) {
       const c = this.context;
       const gain = c.createGain();
@@ -116,12 +127,14 @@ export class AmbientEngine {
       source.start();
       this.sources.push(source);
     }
+    this.synthesis = new SceneSynthesis(this.context, this.tracks.get("texture")!, this.tracks.get("binaural")!, this.tracks.get("textureTone")!);
   }
 
 
-  private async buffer(file: string, looping = true, local = false) {
+  private async buffer(file: string, looping = true, local = false, loopCrossfade = 2) {
     const url = `${local ? "" : ASSET_URL}/audio/${file}`;
-    let pending = this.buffers.get(url);
+    const cacheKey = JSON.stringify([url, looping, loopCrossfade]);
+    let pending = this.buffers.get(cacheKey);
     if (!pending) {
       pending = (async () => {
         const controller = new AbortController();
@@ -134,9 +147,9 @@ export class AmbientEngine {
           if (this.closed) throw new Error("Audio engine closed");
           const buffer = await this.context.decodeAudioData(bytes);
           if (this.closed) throw new Error("Audio engine closed");
-          if (!looping) return buffer;
+          if (!looping || loopCrossfade <= 0) return buffer;
           // Blend the tail into the opening once, so even non-loop wind has no hard seam.
-          const overlap = Math.min(Math.floor(buffer.sampleRate * 2), Math.floor(buffer.length / 4));
+          const overlap = Math.min(Math.floor(buffer.sampleRate * loopCrossfade), Math.floor(buffer.length / 4));
           const length = buffer.length - overlap;
           const loop = this.context.createBuffer(buffer.numberOfChannels, length, buffer.sampleRate);
           for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
@@ -154,8 +167,8 @@ export class AmbientEngine {
           this.loads.delete(controller);
         }
       })();
-      this.buffers.set(url, pending);
-      void pending.catch(() => this.buffers.delete(url));
+      this.buffers.set(cacheKey, pending);
+      void pending.catch(() => this.buffers.delete(cacheKey));
     }
     return pending;
   }
@@ -192,7 +205,7 @@ export class AmbientEngine {
 
   private async loadRecording(id: RecordedChannel, request: RecordingRequest, profile: RecordingProfile) {
     try {
-      const buffer = await this.buffer(profile.file, true, profile.local);
+      const buffer = await this.buffer(profile.file, true, profile.local, profile.loopCrossfade);
       if (this.closed || this.requests.get(id) !== request) return;
       const track = this.tracks.get(id);
       if (!track) return;
@@ -241,14 +254,17 @@ export class AmbientEngine {
   stop() {
     if (this.closed) return;
     this.piano?.update(false, false, 0);
+    this.synthesis?.stop();
     this.pondEnabled = false;
     this.stopDrops();
     for (const id of this.requests.keys()) this.cancelRequest(id);
     this.master.gain.setTargetAtTime(0, this.context.currentTime, 0.45);
   }
 
-  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain", transition = 0.3, mode: SessionMode = "unwind", curtain = false, orbitImmersive = false) {
+  mix(volumes: Record<SoundId, number>, global: number, playing: boolean, muted: boolean, scene: VisualId = "rain", transition = 0.3, mode: SessionMode = "unwind", curtain = false, orbitImmersive = false, beatHz?: number, vinylImmersive = false) {
     if (this.closed) return;
+    const soundscape = sceneSoundscapes[scene];
+    const audible = playing && !muted && global > 0;
     this.curtain = curtain && mode === "focus" && scene === "morningLattice";
     const pianoEnabled = mode === "focus" && scene === "morningLattice";
     if (pianoEnabled && playing && !muted && global > 0 && volumes.piano > 0 && !this.piano && this.context.state === "running") {
@@ -258,16 +274,25 @@ export class AmbientEngine {
       }
     }
     this.piano?.update(pianoEnabled, playing && !muted && global > 0, (volumes.piano ?? 0) * (this.curtain ? 0.5 : 1), transition);
-    this.pondEnabled = scene === "pond" && playing && !muted && global > 0 && volumes.wind > 0;
+    this.pondEnabled = scene === "pond" && audible && volumes.pondDrops > 0;
     if (!this.pondEnabled) this.stopDrops();
     else void this.preparePondDrop();
     const now = this.context.currentTime;
     for (const [id, gain] of this.tracks) {
-      const channelVolume = id === "orbitalPad"
+      const channelVolume = id === "vinylMusic" && (scene !== "vinyl" || !vinylImmersive) ? 0
+        : id === "night" && scene === "jelly" ? 0
+        : id === duplicateSound(scene)?.removed || (id === "pondDrops" && scene !== "pond") || (id === "textureTone" && !hasAirTones(scene)) ? 0
+        : id === "orbitalPad"
         ? scene !== "orbitStudy" || mode !== "unwind" ? 0 : Math.min(1, (volumes[id] ?? 0) * (orbitImmersive ? 1.1 : 1))
+        : (id === "ambience" && !soundscape?.ambience) || (id === "texture" && !soundscape?.texture) || (id === "binaural" && !soundscape) ? 0
         : (volumes[id] ?? 0);
-      gain.gain.setTargetAtTime(channelVolume * (id === "rain" && this.curtain ? 0.55 : 1), now, transition);
-      if (id === "tones" || id === "piano") continue;
+      gain.gain.setTargetAtTime(channelVolume * (id === "rain" && this.curtain ? 0.55 : 1), now, id === "vinylMusic" ? 1 : transition);
+      if (id === "tones" || id === "piano" || id === "texture" || id === "binaural" || id === "textureTone" || id === "pondDrops") continue;
+      if (id === "ambience" && !soundscape?.ambience) {
+        this.cancelRequest(id);
+        this.fadeVoice(id);
+        continue;
+      }
       const voice = this.voices.get(id);
       if (voice) {
         const profile = recordingProfile(scene, id);
@@ -277,6 +302,7 @@ export class AmbientEngine {
         this.selectRecording(id, scene);
       else this.cancelRequest(id);
     }
+    this.synthesis?.update(soundscape, beatHz ?? soundscape?.beatHz ?? 6, audible && volumes.texture > 0, audible && volumes.binaural > 0, audible && volumes.textureTone > 0);
     this.master.gain.setTargetAtTime(playing && !muted ? global : 0, now, 0.45);
   }
 
@@ -284,6 +310,7 @@ export class AmbientEngine {
     if (this.closed) return;
     this.closed = true;
     this.piano?.close();
+    this.synthesis?.close();
     this.pondEnabled = false;
     this.stopDrops();
     for (const id of this.requests.keys()) this.cancelRequest(id);

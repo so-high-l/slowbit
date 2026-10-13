@@ -11,6 +11,7 @@ export interface SceneFrame {
   h: number;
   t: number;
   focus?: number;
+  reducedMotion?: boolean;
   particles: Particle[];
 }
 export type ScenePainter = (frame: SceneFrame) => void;

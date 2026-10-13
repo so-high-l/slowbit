@@ -1,4 +1,5 @@
 import { background, glow, type SceneFrame } from "./drawing.ts";
+import { paintOrbitSpace } from "./orbit-space.ts";
 import { createImageAssetCache } from "./image-assets.ts";
 import { orbitEffects, projectOrbit, type OrbitMotion } from "./orbit-motion.ts";
 
@@ -49,11 +50,6 @@ const noise = (n: number) => {
   const value = Math.sin(n * 127.1 + 311.7) * 43758.5453;
   return value - Math.floor(value);
 };
-const stars = Array.from({ length: 220 }, (_, i) => ({
-  x: noise(i), y: noise(i + 200), size: i % 23 === 0 ? 1.1 : 0.35 + noise(i + 400) * 0.4,
-  alpha: i % 47 === 0 ? 0.48 : 0.10 + noise(i + 600) * 0.17,
-}));
-
 // A fixed sparse belt, between Mars and Jupiter; never respawn or flicker.
 export const orbitAsteroids = Array.from({ length: 56 }, (_, i) => ({
   angle: (i + noise(i + 800) * 0.7) / 56 * Math.PI * 2,
@@ -99,11 +95,11 @@ function spatialSystem(
           const end = start + Math.PI / 120;
           if ((Math.sin((start + end) / 2) >= 0) !== front) continue;
           ctx.lineWidth = 1;
-          arc(planet.radius, start, end, detail * 0.11 * ((segment + 1) / 12) ** 2);
+          arc(planet.radius, start, end, detail * 0.16 * ((segment + 1) / 12) ** 2);
         }
       }
       for (const asteroid of orbitAsteroids) {
-        const point = projectOrbit(asteroid.radius * unit * 0.74, asteroid.angle + orbit.elapsed * 0.0015, strength);
+        const point = projectOrbit(asteroid.radius * unit * 0.74, asteroid.angle + orbit.elapsed * 0.0035, strength);
         if ((point.depth >= 0) !== front) continue;
         const parallax = 0.35 + asteroid.radius * 0.74;
         ctx.fillStyle = `rgba(170,186,195,${asteroid.alpha * detail * (front ? 1 : 0.65)})`;
@@ -150,7 +146,7 @@ function body(ctx: CanvasRenderingContext2D, key: keyof typeof orbitAssetPaths, 
   }
 }
 
-export const paintOrbitStudy = ({ ctx, w, h, orbit, reducedMotion = false }: SceneFrame & { orbit?: OrbitMotion; reducedMotion?: boolean }) => {
+export const paintOrbitStudy = ({ ctx, w, h, t, orbit, reducedMotion = false }: SceneFrame & { orbit?: OrbitMotion; reducedMotion?: boolean }) => {
   if (w <= 0 || h <= 0) return;
   const { cx, cy, sunSize, planets } = orbitLayout(w, h, reducedMotion ? undefined : orbit);
   const unit = Math.min(w, h);
@@ -159,12 +155,7 @@ export const paintOrbitStudy = ({ ctx, w, h, orbit, reducedMotion = false }: Sce
   ctx.save();
   background(ctx, w, h, "#02070d", "#05111a");
   glow(ctx, cx, cy, unit * 0.65, "rgba(32,67,86,.10)");
-  for (const star of stars) {
-    ctx.fillStyle = `rgba(204,224,236,${star.alpha})`;
-    ctx.beginPath();
-    ctx.arc(star.x * w - dx * 0.3, star.y * h - dy * 0.3, star.size, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  paintOrbitSpace(ctx, w, h, orbit?.elapsed ?? t, dx, dy, reducedMotion);
   if (effect.scale !== 1) {
     ctx.translate(cx, cy);
     ctx.scale(effect.scale, effect.scale);

@@ -86,8 +86,8 @@ function Session() {
   const [exploring, setExploring] = useState(false);
   const orbitImmersive = visualId === "orbitStudy" && exploring && phase === "running";
   useEffect(() => {
-    if (visualId === "orbitStudy" && phase !== "running") setExploring(false);
-  }, [visualId, phase]);
+    if (phase !== "running") setExploring(false);
+  }, [phase]);
   const [reducedMotion, setReducedMotion] = useState(false);
   useEffect(() => {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -177,7 +177,20 @@ function Session() {
     };
   }, [panel]);
   useEffect(() => {
+    if (!panel || phase !== "running") return;
+    const dismissOutside = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      // Let the Sounds button handle its own toggle without reopening the panel.
+      if (panelRef.current?.contains(target) || target.closest('[aria-controls="audio-panel"]')) return;
+      setPanel(false);
+    };
+    document.addEventListener("pointerdown", dismissOutside, true);
+    return () => document.removeEventListener("pointerdown", dismissOutside, true);
+  }, [panel, phase]);
+  useEffect(() => {
     if (phase !== "ended") return;
+    endRef.current?.focus({ preventScroll: true });
     const tween = gsap.fromTo(
       endRef.current,
       { opacity: 0 },
@@ -185,7 +198,7 @@ function Session() {
         opacity: 1,
         duration: matchMedia("(prefers-reduced-motion: reduce)").matches
           ? 0.01
-          : 2,
+          : 0.65,
       },
     );
     return () => {
@@ -203,7 +216,7 @@ function Session() {
     const nextVisual = visuals.find((v) => v.id === id)!;
     if (trackSelection) analytics.sceneSelected(nextVisual, p.mode ?? "unwind");
     setVisualId(id);
-    if (visualId === "orbitStudy" || id === "orbitStudy") setExploring(false);
+    setExploring(false);
     setOpening(false);
     setMotionScale(1);
     update({ lastVisual: id });
@@ -276,12 +289,6 @@ function Session() {
           2,
           "0",
         )}:${(timer.remaining % 60).toString().padStart(2, "0")}`;
-  const endingTime =
-    timer.remaining === null
-      ? "No timer set"
-      : timer.remaining > 0
-        ? `${time} left in your relaxation session`
-        : "Session time is up";
   if (!available.length)
     return (
       <main className="empty-session">
@@ -353,7 +360,7 @@ function Session() {
             <button
               className="text-button finish-button"
               aria-label="Finish session"
-              title="Finish session"
+              data-tooltip="Finish this session and see your closing screen"
               onClick={() => {
                 setPlaying(false);
                 setPhase("ended");
@@ -372,6 +379,7 @@ function Session() {
               style={{ pointerEvents: visible ? "auto" : "none" }}
               aria-pressed={exploring}
               aria-keyshortcuts="Z"
+              data-tooltip={visualId === "vinyl" ? exploring ? "Fade out the piano · Z" : "Fade in the piano · Z" : exploring ? "Return to the normal scene · Z" : "Enter the immersive scene · Z"}
               onClick={() => setExploring((v) => !v)}
             >
               <Orbit size={13} />
@@ -383,6 +391,8 @@ function Session() {
                 ? exploring ? "Sit back up" : "Lie back in the grass"
                 : visualId === "lantern"
                 ? exploring ? "Back to the compartment" : "Closer to the window"
+                : visualId === "vinyl"
+                ? exploring ? "Lift the needle" : "Put the record on"
                 : reducedMotion
                 ? exploring
                   ? "A still point"
@@ -445,6 +455,7 @@ function Session() {
                   className="icon-button"
                   data-tour="hide"
                   aria-label="Hide this space"
+                  data-tooltip="Hide this scene from suggestions; restore it in Settings"
                   onClick={hide}
                 >
                   <EyeOff size={19} />
@@ -455,6 +466,7 @@ function Session() {
                 <button
                   className="icon-button"
                   aria-label="Previous visual"
+                  data-tooltip="Previous scene · ←"
                   disabled={available.length < 2}
                   onClick={() => next(-1)}
                 >
@@ -463,6 +475,7 @@ function Session() {
                 <button
                   className="icon-button"
                   aria-label="Random visual"
+                  data-tooltip="Switch to a random scene"
                   disabled={available.length < 2}
                   onClick={random}
                 >
@@ -471,6 +484,7 @@ function Session() {
                 <button
                   className="icon-button"
                   aria-label="Next visual"
+                  data-tooltip="Next scene · →"
                   disabled={available.length < 2}
                   onClick={() => next(1)}
                 >
@@ -481,6 +495,7 @@ function Session() {
                 className="play-button"
                 data-tour="playback"
                 aria-label={playing ? "Pause session" : "Resume session"}
+                data-tooltip={playing ? "Pause the timer and sound · Space" : "Resume the timer and sound · Space"}
                 onClick={togglePlay}
               >
                 {playing ? (
@@ -495,6 +510,7 @@ function Session() {
                 aria-expanded={panel}
                 aria-controls="audio-panel"
                 aria-label="Sounds"
+                data-tooltip={panel ? "Close the sound board" : "Adjust this scene’s sounds and volume"}
                 onClick={() => {
                   setPanel((v) => !v);
                   update({ showBoard: false });
@@ -507,6 +523,7 @@ function Session() {
                 className="icon-button mute-control"
                 data-tour="mute"
                 aria-label={p.muted ? "Unmute audio" : "Mute audio"}
+                data-tooltip={p.muted ? "Unmute sound · M" : "Mute sound · M"}
                 onClick={() => update({ muted: !p.muted })}
               >
                 {p.muted ? <VolumeX size={19} /> : <Volume2 size={19} />}
@@ -532,6 +549,7 @@ function Session() {
                   fullscreen.fullscreen ? "Exit fullscreen" : "Enter fullscreen"
                 }
                 onClick={fullscreen.toggle}
+                data-tooltip={fullscreen.fullscreen ? "Exit fullscreen · F" : "Enter fullscreen · F"}
               >
                 {fullscreen.fullscreen ? (
                   <Minimize size={18} />
@@ -589,15 +607,19 @@ function Session() {
         <div
           className="ending modal-backdrop"
           ref={endRef}
+          tabIndex={-1}
+          role="region"
+          aria-labelledby="ending-title"
         >
           <div className="ending-layout">
             <div className="ending-content">
-              <h1 className="ending-title">Session complete.</h1>
-              <p className="ending-intro">Come back another time.</p>
-              <MessageComposer onPosted={() => undefined} />
+              <h1 id="ending-title" className="ending-title">Session complete.</h1>
+              <p className="ending-intro">Take this quiet with you.</p>
               <div className="ending-actions">
+                <Link className="primary-button" href="/">Finish</Link>
                 <button
-                  className="primary-button"
+                  type="button"
+                  className="text-button"
                   onClick={() => {
                     sessionAnalytics.extend();
                     timer.resumeOrExtend(null);
@@ -608,16 +630,11 @@ function Session() {
                 >
                   Stay a little longer
                 </button>
-                <span className="ending-time" role="status">
-                  {endingTime}
-                </span>
-                <Link
-                  className="text-button"
-                  href="/"
-                >
-                  Finish
-                </Link>
               </div>
+              <details className="ending-note">
+                <summary>Leave a note</summary>
+                <MessageComposer onPosted={() => undefined} />
+              </details>
             </div>
           </div>
         </div>

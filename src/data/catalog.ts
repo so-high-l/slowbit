@@ -1,4 +1,5 @@
 import type { Mood, Visual, SoundId } from "@/lib/types";
+import { sceneSoundscapes } from "../lib/scene-soundscapes.ts";
 export const moods: {
   id: Mood;
   name: string;
@@ -53,7 +54,7 @@ export const visuals: Visual[] = [
     subtitle: "Nothing to do. Just look up.",
     tags: ["Fluid", "Dreamy"],
     recommendedMoods: ["stuck", "chill"],
-    defaultSounds: { wind: 0.18, tones: 0.38 },
+    defaultSounds: sceneSoundscapes.aurora!.mix,
   },
   {
     id: "stars",
@@ -61,7 +62,7 @@ export const visuals: Visual[] = [
     subtitle: "A little perspective, a lot of space.",
     tags: ["Stars", "Still"],
     recommendedMoods: ["overstimulated", "chill"],
-    defaultSounds: { night: 0.22, wind: 0.06, tones: 0.16 },
+    defaultSounds: sceneSoundscapes.stars!.mix,
   },
   {
     id: "embers",
@@ -69,7 +70,7 @@ export const visuals: Visual[] = [
     subtitle: "Some things can wait.",
     tags: ["Warm", "Grounding"],
     recommendedMoods: ["restless", "fried"],
-    defaultSounds: { fire: 0.38, forest: 0.08, tones: 0.1 },
+    defaultSounds: sceneSoundscapes.embers!.mix,
   },
   {
     id: "drift",
@@ -77,7 +78,7 @@ export const visuals: Visual[] = [
     subtitle: "Let your thoughts float past.",
     tags: ["Soft", "Floating"],
     recommendedMoods: ["restless", "stuck"],
-    defaultSounds: { forest: 0.24, wind: 0.1, tones: 0.22 },
+    defaultSounds: sceneSoundscapes.drift!.mix,
   },
   {
     id: "ocean",
@@ -95,7 +96,7 @@ export const visuals: Visual[] = [
     subtitle: "Nothing needs to move quickly.",
     tags: ["Water", "Minimal", "Slow"],
     recommendedMoods: ["fried", "chill"],
-    defaultSounds: { wind: 0.24, tones: 0.06, night: 0.05 },
+    defaultSounds: sceneSoundscapes.pond!.mix,
   },
   {
     id: "mist",
@@ -103,7 +104,7 @@ export const visuals: Visual[] = [
     subtitle: "A quiet pocket of green light.",
     tags: ["Cave", "Glow", "Still"],
     recommendedMoods: ["overstimulated", "fried"],
-    defaultSounds: { wind: 0.12, tones: 0.1, night: 0.04 },
+    defaultSounds: sceneSoundscapes.mist!.mix,
   },
   {
     id: "snow",
@@ -111,7 +112,7 @@ export const visuals: Visual[] = [
     subtitle: "Watch the world slow down.",
     tags: ["Snow", "Night", "Slow"],
     recommendedMoods: ["restless", "chill"],
-    defaultSounds: { wind: 0.08, tones: 0.12 },
+    defaultSounds: sceneSoundscapes.snow!.mix,
   },
   {
     id: "dunes",
@@ -119,7 +120,7 @@ export const visuals: Visual[] = [
     subtitle: "There is nowhere to rush.",
     tags: ["Desert", "Warm", "Minimal"],
     recommendedMoods: ["fried", "stuck"],
-    defaultSounds: { wind: 0.18, tones: 0.09 },
+    defaultSounds: sceneSoundscapes.dunes!.mix,
   },
   {
     id: "clouds",
@@ -127,7 +128,7 @@ export const visuals: Visual[] = [
     subtitle: "There is space above the noise.",
     tags: ["Sky", "Clouds", "Soft"],
     recommendedMoods: ["overstimulated", "chill"],
-    defaultSounds: { wind: 0.1, tones: 0.16 },
+    defaultSounds: sceneSoundscapes.clouds!.mix,
   },
   {
     id: "jelly",
@@ -159,7 +160,7 @@ export const visuals: Visual[] = [
     subtitle: "Let the edges disappear.",
     tags: ["Abstract", "Fluid", "Dark"],
     recommendedMoods: ["stuck", "restless"],
-    defaultSounds: { tones: 0.16 },
+    defaultSounds: sceneSoundscapes.ink!.mix,
   },
   {
     id: "vinyl",
@@ -167,7 +168,7 @@ export const visuals: Visual[] = [
     subtitle: "Nothing left to solve tonight.",
     tags: ["Warm", "Night", "Cozy"],
     recommendedMoods: ["stuck", "chill"],
-    defaultSounds: { rain: 0.08, tones: 0.12, night: 0.1 },
+    defaultSounds: sceneSoundscapes.vinyl!.mix,
   },
   {
     id: "nightSky",
@@ -175,7 +176,7 @@ export const visuals: Visual[] = [
     subtitle: "Look up and let it pass.",
     tags: ["Sky", "Stars", "Night"],
     recommendedMoods: ["fried", "chill", "restless"],
-    defaultSounds: { wind: 0.08, tones: 0.14, night: 0.12 },
+    defaultSounds: sceneSoundscapes.nightSky!.mix,
   },
   {
     id: "thread",
@@ -183,7 +184,7 @@ export const visuals: Visual[] = [
     subtitle: "Let the line carry the noise.",
     tags: ["Abstract", "Flow", "Minimal"],
     recommendedMoods: ["stuck", "restless", "chill"],
-    defaultSounds: { tones: 0.16, wind: 0.04 },
+    defaultSounds: sceneSoundscapes.thread!.mix,
   },
   {
     id: "ribbonTunnel",
@@ -191,7 +192,7 @@ export const visuals: Visual[] = [
     subtitle: "Drift through the quiet.",
     tags: ["Abstract", "Infinite", "Slow"],
     recommendedMoods: ["fried", "overstimulated", "chill"],
-    defaultSounds: { tones: 0.12, wind: 0.07 },
+    defaultSounds: sceneSoundscapes.ribbonTunnel!.mix,
   },
   {
     id: "magneticField",
@@ -199,19 +200,25 @@ export const visuals: Visual[] = [
     subtitle: "Let everything find its path.",
     tags: ["Abstract", "Field", "Generative"],
     recommendedMoods: ["stuck", "restless", "fried"],
-    defaultSounds: { tones: 0.09 },
+    defaultSounds: sceneSoundscapes.magneticField!.mix,
   },
 ];
 export const sounds: { id: SoundId; name: string; note: string }[] = [
+  { id: "ambience", name: "Scene ambience", note: "The sounds of this place" },
+  { id: "pondDrops", name: "Ripple bubbles", note: "Bubbles accompanying visible pond ripples" },
+  { id: "textureTone", name: "Air harmonics", note: "The tonal layer, separate from air noise" },
+  { id: "texture", name: "Scene texture", note: "A musical texture for this scene" },
+  { id: "binaural", name: "Binaural beat", note: "A listening experiment for stereo headphones" },
   { id: "orbitalPad", name: "Orbital pad", note: "A quiet, spacious synth bed" },
+  { id: "vinylMusic", name: "Nostalgic piano", note: "Plays while the record is on · Z" },
   { id: "piano", name: "Piano", note: "Quiet pieces for focus" },
   { id: "train", name: "Train carriage", note: "A quiet overnight journey" },
   { id: "rain", name: "Rain", note: "Soft, steady rainfall" },
   { id: "fire", name: "Fire", note: "Warm crackle" },
   { id: "wind", name: "Wind", note: "A slow passing breeze" },
-  { id: "forest", name: "Forest", note: "Leaves and distant birds" },
+  { id: "forest", name: "Forest ambience", note: "Leaves and distant birds" },
   { id: "brown", name: "Brown noise", note: "Deep, gentle texture" },
-  { id: "night", name: "Night ambience", note: "Crickets in the distance" },
+  { id: "night", name: "Crickets", note: "Crickets in the distance" },
 ];
 sounds.push({
   id: "tones",

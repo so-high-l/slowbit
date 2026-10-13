@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PreferencesProvider } from "@/hooks/usePreferences";
 import { AudioProvider } from "@/components/audio/AudioProvider";
+import ButtonHints from "@/components/ButtonHints";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "slowbit — a little space to switch off",
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <PreferencesProvider><AudioProvider>{children}</AudioProvider></PreferencesProvider>
+        <ButtonHints />
       </body>
     </html>
   );

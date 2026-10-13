@@ -15,6 +15,7 @@ import {
   normalize,
   resetSceneSoundMix as removeSceneSoundMix,
   saveSceneSoundMix as persistSceneSoundMix,
+  saveSceneBeatHz as persistSceneBeatHz,
   STORAGE_KEY,
 } from "@/lib/preferences";
 import type { Preferences, Visual, VisualId, SoundId, SoundMix } from "@/lib/types";
@@ -98,6 +99,10 @@ function useStore() {
     (sceneId: VisualId, id: SoundId, volume: number) => saveSceneSoundMix(sceneId, { [id]: volume }),
     [saveSceneSoundMix],
   );
+  const setBeatHz = useCallback(
+    (sceneId: VisualId, hz: number) => setPreferences((p) => persistSceneBeatHz(p, sceneId, hz)),
+    [],
+  );
   return {
     preferences,
     ready,
@@ -112,6 +117,7 @@ function useStore() {
     hasCompletedTour,
     completeTour,
     setVolume,
+    setBeatHz,
     setDuration: (n: number | null) => update({ defaultSessionDuration: n }),
   };
 }

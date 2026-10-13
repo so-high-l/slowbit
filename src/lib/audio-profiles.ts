@@ -1,6 +1,7 @@
 import type { SoundId, VisualId } from "./types";
-export type RecordedChannel = Exclude<SoundId, "tones" | "piano">;
-export type RecordingProfile = { file: string; level: number; cutoff: number; highpass?: number; local?: boolean };
+import { sceneAudioAssets, sceneSoundscapes } from "./scene-soundscapes.ts";
+export type RecordedChannel = Exclude<SoundId, "tones" | "piano" | "texture" | "binaural" | "textureTone" | "pondDrops">;
+export type RecordingProfile = { file: string; level: number; cutoff: number; highpass?: number; local?: boolean; loopCrossfade?: number };
 const files = {
   rain: "mixkit-light-rain-looping-1249.wav",
   forestRain: "mixkit-forest-rain-loop-1225.wav",
@@ -14,6 +15,13 @@ const water: VisualId[] = ["ocean", "pond", "mist", "jelly"];
 
 // Recording variants and per-track playback levels.
 export function recordingProfile(scene: VisualId, channel: RecordedChannel): RecordingProfile {
+  if (channel === "ambience") {
+    const ambience = sceneSoundscapes[scene]?.ambience;
+    if (!ambience) throw new Error(`No scene ambience for ${scene}`);
+    const asset = sceneAudioAssets[ambience.asset];
+    return { file: asset.file, loopCrossfade: asset.nativeLoop ? 0 : 2, level: ambience.level, cutoff: ambience.cutoff, highpass: 80 };
+  }
+  if (channel === "vinylMusic") return { file: sceneAudioAssets.vinylMusic.file, level: 0.35, cutoff: 3000, highpass: 100, loopCrossfade: 0 };
   if (channel === "orbitalPad") return { file: "orbital-pad-loop.mp3", level: 0.75, cutoff: 2400, highpass: 70, local: true };
   if (channel === "train") return { file: "picshore-sleeper-carriage-serenity-3.wav", level: 0.3, cutoff: 3200, highpass: 80 };
   if (channel === "brown") return { file: "soft-brown-noise.flac", level: 0.12, cutoff: 1800, highpass: 60 };

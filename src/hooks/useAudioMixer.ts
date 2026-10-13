@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useAudioSession } from "@/components/audio/AudioProvider";
 import { visuals } from "@/data/catalog";
-import { getSceneSoundMix } from "@/lib/preferences";
+import { getSceneSoundMix, getSceneBeatHz } from "@/lib/preferences";
 import { silentMix } from "@/lib/sound-presets";
 import type { Preferences, SoundMix, VisualId, SessionMode } from "@/lib/types";
 export function useAudioMixer(
@@ -22,7 +22,7 @@ export function useAudioMixer(
     engine.current?.mix(
       scene === "meadow" && exploring
         ? { ...volumes, forest: volumes.forest * 0.3, wind: volumes.wind * 0.65 }
-        : scene === "magneticField" && exploring ? { ...volumes, tones: volumes.tones * 0.6 } : volumes,
+        : scene === "magneticField" && exploring ? { ...volumes, tones: volumes.tones * 0.6, texture: volumes.texture * 0.6 } : volumes,
       prefs.globalVolume * masterScale,
       playing,
       prefs.muted,
@@ -31,6 +31,8 @@ export function useAudioMixer(
       mode,
       scene === "morningLattice" && exploring,
       scene === "orbitStudy" && exploring,
+      getSceneBeatHz(prefs, scene),
+      scene === "vinyl" && exploring,
     );
   }, [
     engine,
@@ -44,10 +46,17 @@ export function useAudioMixer(
     mixOverride?.tones,
     mixOverride?.train,
     mixOverride?.piano,
+    mixOverride?.vinylMusic,
     mixOverride?.orbitalPad,
+    mixOverride?.ambience,
+    mixOverride?.texture,
+    mixOverride?.textureTone,
+    mixOverride?.pondDrops,
+    mixOverride?.binaural,
     exploring,
     mode,
     prefs.soundMixesByScene,
+    prefs.beatHzByScene,
     prefs.globalVolume,
     playing,
     masterScale,

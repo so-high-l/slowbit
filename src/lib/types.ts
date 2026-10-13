@@ -25,13 +25,14 @@ export type VisualId =
   | "ribbonTunnel"
   | "magneticField";
 export type SoundId =
-  "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones" | "train" | "piano" | "orbitalPad";
+  "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones" | "train" | "piano" | "orbitalPad" | "ambience" | "texture" | "binaural" | "textureTone" | "pondDrops" | "vinylMusic";
 export type SoundMix = Record<SoundId, number>;
 export type SoundMixesByScene = Partial<Record<VisualId, Partial<SoundMix>>>;
 export interface Preferences {
   favoriteVisuals: VisualId[];
   hiddenVisuals: VisualId[];
   soundMixesByScene: SoundMixesByScene;
+  beatHzByScene: Partial<Record<VisualId, number>>;
   completedTours: string[];
   defaultSessionDuration: number | null;
   lastVisual?: VisualId;

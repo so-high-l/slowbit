@@ -12,6 +12,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { useFullscreen } from "@/hooks/useFullscreen";
 import { checkIns, checkInMix, availableCheckInScene, stationOrder } from "@/lib/check-in";
+import { sceneSoundscapes } from "@/lib/scene-soundscapes";
 import { durationForMode, modeDurations, focusMoods } from "@/lib/session-mode";
 import type { SessionMode, FocusMood, Mood, VisualId } from "@/lib/types";
 
@@ -55,7 +56,7 @@ export default function Home() {
   });
   const useMoodMix = scene === profile.scene;
   const pace = useMoodMix ? profile.pace : 1;
-  const audio = useAudioMixer(p, entered, 0.18, scene ?? "rain", useMoodMix ? checkInMix(mood) : undefined, false, selectedMode ?? "unwind");
+  const audio = useAudioMixer(p, entered, 0.18, scene ?? "rain", useMoodMix && !sceneSoundscapes[scene ?? "rain"] ? checkInMix(mood) : undefined, false, selectedMode ?? "unwind");
   const assetsReady = ready && assetProgress === 100;
   useEffect(() => {
     let loaded = 0;

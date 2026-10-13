@@ -1,5 +1,10 @@
 import type { SoundId, Visual } from "./types";
 export const silentMix: Record<SoundId, number> = {
+  ambience: 0,
+  texture: 0,
+  textureTone: 0,
+  pondDrops: 0,
+  binaural: 0,
   orbitalPad: 0,
   rain: 0,
   fire: 0,
@@ -10,6 +15,7 @@ export const silentMix: Record<SoundId, number> = {
   tones: 0,
   train: 0,
   piano: 0,
+  vinylMusic: 0,
 };
 export function sceneMix(
   visual: Pick<Visual, "defaultSounds">,

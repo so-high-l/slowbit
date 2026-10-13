@@ -1,11 +1,14 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import Shell from "@/components/Shell";
 import { usePreferences } from "@/hooks/usePreferences";
 import { availableVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
 import { modeDurations } from "@/lib/session-mode";
 export default function Settings() {
+  const router = useRouter();
   const {
     preferences: p,
     ready,
@@ -18,6 +21,18 @@ export default function Settings() {
   return (
     <Shell>
       <main className="content-page settings-page">
+        <button
+          type="button"
+          className="secondary-button settings-back-button"
+          data-tooltip="Go back to the previous page"
+          onClick={() => {
+            if (window.history.length > 1) router.back();
+            else router.replace("/");
+          }}
+        >
+          <ArrowLeft size={18} aria-hidden="true" />
+          Back
+        </button>
         <div className="page-heading">
           <span className="eyebrow">MAKE YOURSELF AT HOME</span>
           <h1>

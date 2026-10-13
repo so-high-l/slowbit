@@ -12,6 +12,7 @@ import {
 } from "../src/lib/preferences.ts";
 import { recommend } from "../src/lib/recommendation.ts";
 import type { Visual } from "../src/lib/types.ts";
+import { silentMix } from "../src/lib/sound-presets.ts";
 test("corrupt and untrusted saved values fall back to safe preferences", () => {
   assert.deepEqual(normalize(null), defaults);
   const p = normalize({
@@ -43,7 +44,7 @@ test("first visits use defaults and saved mixes are isolated by scene", () => {
     "rain",
     { brown: 0.42 },
   );
-  assert.deepEqual(getSceneSoundMix(defaults, rain), { rain: 0.4, wind: 0.2, tones: 0.1, fire: 0, forest: 0, brown: 0, night: 0, train: 0, piano: 0, orbitalPad: 0 });
+  assert.deepEqual(getSceneSoundMix(defaults, rain), { ...silentMix, rain: 0.4, wind: 0.2, tones: 0.1 });
   assert.equal(getSceneSoundMix(saved, rain).rain, 0.75);
   assert.equal(getSceneSoundMix(saved, rain).brown, 0.42);
   assert.equal(getSceneSoundMix(saved, stars).night, 0.3);
@@ -52,7 +53,7 @@ test("saved scene mixes survive normalization, merge new defaults, and reset", (
   const saved = saveSceneSoundMix(defaults, "rain", { rain: 0.75 });
   const restored = normalize(JSON.parse(JSON.stringify(saved)));
   const updatedCatalog = { id: "rain" as const, defaultSounds: { rain: 0.4, wind: 0.2, brown: 0.18 } };
-  assert.deepEqual(getSceneSoundMix(restored, updatedCatalog), { rain: 0.75, wind: 0.2, brown: 0.18, fire: 0, forest: 0, night: 0, tones: 0, train: 0, piano: 0, orbitalPad: 0 });
+  assert.deepEqual(getSceneSoundMix(restored, updatedCatalog), { ...silentMix, rain: 0.75, wind: 0.2, brown: 0.18 });
   assert.deepEqual(resetSceneSoundMix(restored, "rain").soundMixesByScene, {});
 });
 test("no timer and mute preferences survive normalization", () => {
@@ -132,4 +133,43 @@ test("favorites receive modest extra weight without excluding other matches", ()
   assert.equal(choose(0), "rain");
   assert.equal(choose(0.5), "rain");
   assert.equal(choose(0.9), "stars");
+});
+
+test("binaural frequency migrates, validates, persists per scene and resets with the mix", async () => {
+  const { getSceneBeatHz, saveSceneBeatHz } = await import("../src/lib/preferences.ts");
+  assert.deepEqual(normalize({}).beatHzByScene, {});
+  assert.equal(getSceneBeatHz(defaults, "snow"), 2.5);
+  let saved = saveSceneBeatHz(defaults, "snow", 9.5);
+  saved = saveSceneSoundMix(saved, "snow", { binaural: 0, rain: 0.17 });
+  const restored = normalize(JSON.parse(JSON.stringify(saved)));
+  assert.equal(getSceneBeatHz(restored, "snow"), 9.5);
+  assert.equal(getSceneBeatHz(restored, "aurora"), 6);
+  assert.equal(restored.soundMixesByScene.snow?.binaural, 0);
+  assert.equal(restored.soundMixesByScene.snow?.rain, 0.17);
+  assert.equal(getSceneBeatHz(resetSceneSoundMix(restored, "snow"), "snow"), 2.5);
+  const invalid = normalize({ beatHzByScene: { snow: 200, aurora: -1, pond: NaN, ink: "loud", ocean: 6, unknown: 8, constructor: 9 } });
+  assert.deepEqual(invalid.beatHzByScene, { snow: 30, aurora: 1 });
+  assert.strictEqual(saveSceneBeatHz(defaults, "ocean", 8), defaults);
+});
+
+test("all scenes default beats off and Reset removes an explicitly enabled beat", async () => {
+  const { visuals } = await import("../src/data/catalog.ts");
+  for (const visual of visuals) {
+    assert.equal(getSceneSoundMix(defaults, visual).binaural, 0, visual.name);
+    const custom = saveSceneSoundMix(defaults, visual.id, { binaural: 0.07 });
+    const restored = normalize(JSON.parse(JSON.stringify(custom)));
+    assert.equal(getSceneSoundMix(restored, visual).binaural, 0.07, "manual choices remain editable");
+    assert.equal(getSceneSoundMix(resetSceneSoundMix(restored, visual.id), visual).binaural, 0);
+  }
+});
+
+test("Vinyl piano volume persists independently and an explicit mute survives reload", async () => {
+  const { visuals } = await import("../src/data/catalog.ts");
+  const vinyl = visuals.find(v => v.id === "vinyl")!;
+  const saved = saveSceneSoundMix(defaults, "vinyl", { vinylMusic: 0.12, ambience: 0.31 });
+  const restored = normalize(JSON.parse(JSON.stringify(saved)));
+  assert.equal(getSceneSoundMix(restored, vinyl).vinylMusic, 0.12);
+  assert.equal(getSceneSoundMix(restored, vinyl).ambience, 0.31);
+  const muted = normalize(JSON.parse(JSON.stringify(saveSceneSoundMix(restored, "vinyl", { vinylMusic: 0 }))));
+  assert.equal(getSceneSoundMix(muted, vinyl).vinylMusic, 0);
 });

@@ -4,7 +4,8 @@ import { recordingProfile } from "../src/lib/audio-profiles.ts";
 import { AmbientEngine } from "../src/lib/audio.ts";
 import type { SoundMix } from "../src/lib/types.ts";
 import { visuals } from "../src/data/catalog.ts";
-import { sceneMix } from "../src/lib/sound-presets.ts";
+import { sceneMix, silentMix } from "../src/lib/sound-presets.ts";
+import { sceneSoundscapes } from "../src/lib/scene-soundscapes.ts";
 
 test("recordings follow scene context under the same mixer channels", () => {
   assert.notEqual(recordingProfile("rain", "rain").file, recordingProfile("meadow", "rain").file);
@@ -19,7 +20,7 @@ test("recordings follow scene context under the same mixer channels", () => {
 });
 
 const mix = (channel: keyof SoundMix): SoundMix => ({
-  rain: 0, wind: 0, fire: 0, forest: 0, night: 0, tones: 0, brown: 0, train: 0, piano: 0, orbitalPad: 0, [channel]: 0.3,
+  ...silentMix, [channel]: 0.3,
 });
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
@@ -40,7 +41,8 @@ function setup(t: TestContext) {
   const node = () => ({
     disconnected: false,
     connections: [] as unknown[],
-    connect(target: unknown) { this.connections.push(target); },
+    routes: [] as { target: unknown; output?: number; input?: number }[],
+    connect(target: unknown, output?: number, input?: number) { this.connections.push(target); this.routes.push({ target, output, input }); return target; },
     disconnect() { this.disconnected = true; },
   });
   const sources: (ReturnType<typeof node> & {
@@ -49,6 +51,8 @@ function setup(t: TestContext) {
   })[] = [];
   const filters: (ReturnType<typeof node> & { frequency: Param; Q: Param; type: string })[] = [];
   const gains: (ReturnType<typeof node> & { gain: Param })[] = [];
+  const oscillators: (ReturnType<typeof node> & { frequency: Param; type: string; onended: (() => void) | null; stops: number[]; start(): void; stop(time?: number): void })[] = [];
+  const mergers: ReturnType<typeof node>[] = [];
   let decodeFails = false;
   let finishDecode: (() => void) | undefined;
   class Context {
@@ -61,6 +65,12 @@ function setup(t: TestContext) {
       const filter = { ...node(), frequency: new Param(), Q: new Param(), type: "" };
       filters.push(filter); return filter;
     }
+    createOscillator() {
+      const oscillator = { ...node(), frequency: new Param(), type: "sine", onended: null as (() => void) | null, stops: [] as number[], start() {}, stop(time = 0) { this.stops.push(time); } };
+      oscillators.push(oscillator); return oscillator;
+    }
+    createChannelMerger() { const merger = node(); mergers.push(merger); return merger; }
+    createStereoPanner() { return { ...node(), pan: new Param() }; }
     createBufferSource() {
       const source = {
         ...node(), buffer: null as unknown, loop: false,
@@ -99,7 +109,7 @@ function setup(t: TestContext) {
     globalThis.fetch = originalFetch;
   });
   return {
-    engine, sources, filters, gains, calls,
+    engine, sources, filters, gains, calls, oscillators, mergers,
     failDecoding() { decodeFails = true; },
     deferDecoding() { finishDecode = () => {}; },
     finishDecoding() { finishDecode?.(); },
@@ -270,26 +280,38 @@ test("close aborts downloads and prevents an in-flight decode from creating a vo
   assert.equal(sources.length, 2);
 });
 
-test("pond drops wait for ripples, never loop, and stop when muted", async t => {
-  const { engine, sources, respond } = setup(t);
+test("pond bubbles have their own gain, work without water or wind, and stop when muted", async t => {
+  const { engine, sources, respond, calls } = setup(t);
   await engine.start();
-  engine.mix(mix("wind"), 0.5, true, false, "pond");
+  engine.mix(mix("pondDrops"), 0.5, true, false, "pond");
   engine.playPondDrop();
   assert.equal(sources.length, 1);
+  assert.equal(calls.length, 1, "only the bubble file is needed");
   respond("mixkit-water-bubble.wav");
   await tick();
   assert.equal(sources.length, 1, "loading must not trigger a late drop");
-  respond(recordingProfile("pond", "wind").file);
-  await tick();
-  assert.equal(sources[1].loop, true, "quiet wind continues behind the drops");
   engine.playPondDrop();
-  assert.equal(sources.length, 3);
-  assert.equal(sources[2].loop, false);
-  engine.mix(mix("wind"), 0.5, true, true, "pond");
-  assert.ok(sources[2].stops.length);
+  const drop = sources[1];
+  assert.equal(drop.loop, false);
+  const gain = drop.connections[0] as { connections: unknown[] };
+  assert.equal(gain.connections[0], engine.tracks.get("pondDrops"));
+  engine.mix(mix("wind"), 0.5, true, false, "pond");
+  assert.ok(drop.stops.length, "muting bubbles stops existing drops even if wind is on");
   engine.playPondDrop();
-  assert.equal(sources.length, 3);
+  assert.equal(sources.length, 2, "wind cannot trigger more bubbles");
 });
+
+for (const channel of ["ambience", "wind"] as const) {
+  test(`pond ${channel} alone never loads or triggers bubbles`, async t => {
+    const { engine, sources, calls } = setup(t);
+    await engine.start();
+    engine.mix(mix(channel), 0.5, true, false, "pond");
+    assert.ok(calls.every(call => !call.url.endsWith("mixkit-water-bubble.wav")));
+    engine.playPondDrop();
+    assert.equal(sources.length, 1);
+  });
+}
+
 
 
 test("curtain muffles late-loading rain and restores the mix without restarting it", async t => {
@@ -380,4 +402,214 @@ test("Orbit Study's relaxation preset reuses water, rain and brown noise without
   assert.equal(engine.tracks.get("rain")!.gain.value, 0.08);
   assert.equal(engine.tracks.get("brown")!.gain.value, 0.10);
   assert.equal(engine.tracks.get("orbitalPad")!.gain.value, 0);
+});
+
+test("binaural carriers stay isolated by ear, retune smoothly, and release on stop", async t => {
+  const { engine, oscillators, mergers, calls } = setup(t);
+  await engine.start();
+  engine.mix(mix("binaural"), 0.5, true, false, "snow");
+  assert.equal(calls.length, 0, "beats require no downloads");
+  assert.equal(oscillators.length, 2);
+  assert.equal(oscillators[1].frequency.value - oscillators[0].frequency.value, 2.5);
+  assert.deepEqual(oscillators.map(o => o.routes[0]), [
+    { target: mergers[0], output: 0, input: 0 },
+    { target: mergers[0], output: 0, input: 1 },
+  ]);
+  engine.mix(mix("binaural"), 0.5, true, false, "aurora", 0.3, "unwind", false, false, 9.5);
+  assert.equal(oscillators.length, 2, "slider changes reuse the carriers");
+  assert.equal(oscillators[1].frequency.value - oscillators[0].frequency.value, 9.5);
+  assert.equal(oscillators[0].frequency.targets.at(-1)?.constant, 0.6);
+  engine.stop();
+  assert.ok(oscillators.every(o => o.stops.includes(12.05)));
+  oscillators[0].onended?.();
+  assert.ok(oscillators.every(o => o.disconnected));
+  assert.ok(mergers.every(m => m.disconnected));
+});
+
+test("Open water ignores new scene channels even with stale custom values", async t => {
+  const { engine, calls, oscillators } = setup(t);
+  await engine.start();
+  engine.mix({ ...silentMix, ambience: 0.5, texture: 0.5, binaural: 0.5 }, 0.5, true, false, "ocean");
+  assert.equal(calls.length, 0);
+  assert.equal(oscillators.length, 0);
+  for (const id of ["ambience", "texture", "binaural"] as const) assert.equal(engine.tracks.get(id)!.gain.value, 0);
+  const ocean = visuals.find(v => v.id === "ocean")!;
+  assert.deepEqual(ocean.defaultSounds, { wind: 0.24 });
+  assert.deepEqual(recordingProfile("ocean", "wind"), { file: "mixkit-water-flowing-ambience-loop-3126.wav", level: 0.3, cutoff: 4200, highpass: 80 });
+});
+
+for (const action of ["mute", "pause", "channel", "scene"] as const) {
+  test(`new synthesis fades and cleans up on ${action}`, async t => {
+    const { engine, oscillators, sources, filters } = setup(t);
+    await engine.start();
+    const volumes = { ...silentMix, texture: 0.3, binaural: 0.08 };
+    engine.mix(volumes, 0.5, true, false, "ribbonTunnel");
+    assert.ok(oscillators.length > 2);
+    assert.equal(sources.length, 2, "ribbon adds one filtered noise source");
+    engine.mix(action === "channel" ? silentMix : volumes, 0.5, action !== "pause", action === "mute", action === "scene" ? "ocean" : "ribbonTunnel");
+    assert.ok(oscillators.every(o => o.stops.length > 0));
+    assert.ok(sources[1].stops.length > 0);
+    await engine.close();
+    assert.ok(oscillators.every(o => o.disconnected));
+    assert.ok(filters.every(f => f.disconnected));
+  });
+}
+
+test("missing new ambience stays silent and a late scene download cannot leak through", async t => {
+  const { engine, sources, respond } = setup(t);
+  await engine.start();
+  engine.mix(mix("ambience"), 0.5, true, false, "aurora");
+  respond(recordingProfile("aurora", "ambience").file, 404);
+  await tick();
+  assert.equal(sources.length, 1);
+  t.mock.timers.tick(1500);
+  engine.mix(mix("ambience"), 0.5, true, false, "mist");
+  respond(recordingProfile("aurora", "ambience").file);
+  await tick();
+  assert.equal(sources.length, 1);
+  respond(recordingProfile("mist", "ambience").file);
+  await tick();
+  assert.equal(sources.length, 2);
+});
+
+test("revised presets keep restrained layers and binaural audio off", () => {
+  assert.equal(Object.keys(sceneSoundscapes).length, 15);
+  const frequencies = new Set<number>();
+  for (const [id, profile] of Object.entries(sceneSoundscapes)) {
+    const visual = visuals.find(v => v.id === id)!;
+    const volumes = sceneMix(visual);
+    assert.equal(volumes.tones, id === "vinyl" ? 0.06 : 0);
+    assert.equal(volumes.binaural, 0, "headphone-only layer is opt-in");
+    assert.ok(Object.entries(volumes).filter(([channel, volume]) => channel !== "vinylMusic" && volume > 0).length <= (id === "vinyl" ? 4 : 3));
+    frequencies.add(profile.beatHz);
+  }
+  assert.equal(frequencies.size, 15);
+});
+
+for (const scene of ["clouds", "ribbonTunnel"] as const) {
+  test(`${scene} air and tonal layers can each play alone`, async t => {
+    const { engine, oscillators, sources, calls } = setup(t);
+    await engine.start();
+    engine.mix(mix("texture"), 0.5, true, false, scene);
+    assert.equal(sources.length, 2, "air has a noise buffer");
+    assert.ok(oscillators.every(o => o.frequency.value < 1), "air contains no audible pitched oscillators");
+    const air = sources[1];
+    engine.mix(mix("textureTone"), 0.5, true, false, scene);
+    assert.ok(air.stops.length, "turning air off fades its source");
+    assert.equal(sources.length, 2, "enabling tones does not create another noise buffer");
+    const tones = oscillators.filter(o => o.frequency.value > 20);
+    assert.ok(tones.length > 0);
+    assert.equal(engine.tracks.get("texture")!.gain.value, 0);
+    assert.equal(engine.tracks.get("textureTone")!.gain.value, 0.3);
+    assert.equal(calls.length, 0);
+    engine.mix(mix("textureTone"), 0.5, true, false, "rain");
+    assert.equal(engine.tracks.get("textureTone")!.gain.value, 0);
+    assert.ok(tones.every(o => o.stops.length), "leaving the scene releases tones");
+    await engine.close();
+    assert.ok(oscillators.every(o => o.disconnected));
+  });
+}
+
+test("duplicate recording channels cannot play even with stale mixer overrides", async t => {
+  const { engine, calls } = setup(t);
+  await engine.start();
+  for (const scene of ["embers", "nightSky", "ocean", "mist"] as const) {
+    const removed = scene === "embers" || scene === "nightSky" ? "wind" : "rain";
+    engine.mix(mix(removed), 0.5, true, false, scene);
+    assert.equal(engine.tracks.get(removed)!.gain.value, 0);
+  }
+  assert.equal(calls.length, 0);
+});
+
+for (const scene of ["aurora", "stars", "pond", "mist", "ink", "vinyl", "nightSky"] as const) {
+  test(`${scene} ambience loads its own file with the correct loop seam handling`, async t => {
+    const { engine, sources, calls, respond } = setup(t);
+    await engine.start();
+    engine.mix(mix("ambience"), 0.5, true, false, scene);
+    const profile = recordingProfile(scene, "ambience");
+    assert.equal(calls.length, 1);
+    assert.ok(calls[0].url.endsWith(`/audio/${profile.file}`));
+    respond(profile.file);
+    await tick();
+    assert.equal(sources[1].loop, true);
+    const buffer = sources[1].buffer as AudioBuffer;
+    const native = scene !== "pond";
+    assert.equal(buffer.length, native ? 100 : 80, "native cycles remain intact; field recordings receive a 2s overlap");
+  });
+}
+
+test("Vinyl Z fades only its separate piano layer and respects its saved volume", async t => {
+  const { engine, sources, calls, respond } = setup(t);
+  await engine.start();
+  const volumes = { ...silentMix, vinylMusic: 0.16, ambience: 0.24, rain: 0.1 };
+  const play = (active: boolean, v = volumes) => engine.mix(v, 0.5, true, false, "vinyl", 0.3, "unwind", false, false, undefined, active);
+  play(false);
+  assert.ok(calls.every(call => !call.url.endsWith("859607__blankierest__sleepy-upright-piano-seamless-loop.wav")), "no music download before Z");
+  assert.equal(engine.tracks.get("vinylMusic")!.gain.value, 0);
+  play(true);
+  respond("859607__blankierest__sleepy-upright-piano-seamless-loop.wav");
+  await tick();
+  assert.equal(sources[1].loop, true);
+  const gain = engine.tracks.get("vinylMusic")!.gain as unknown as { value: number; targets: { value: number; constant: number }[] };
+  assert.equal(gain.value, 0.16);
+  assert.equal(gain.targets.at(-1)?.constant, 1, "slow three-second settling fade");
+  assert.equal(engine.tracks.get("ambience")!.gain.value, 0.24);
+  assert.equal(engine.tracks.get("rain")!.gain.value, 0.1);
+  play(false);
+  assert.equal(gain.value, 0);
+  assert.equal(volumes.vinylMusic, 0.16, "toggle never changes preferences");
+  play(true);
+  assert.equal(sources.length, 2, "toggling reuses the current loop without restarting it");
+  play(true, { ...volumes, vinylMusic: 0 });
+  assert.equal(gain.value, 0, "saved zero always wins over Z");
+});
+
+for (const action of ["toggle", "scene", "pause", "mute", "stop", "close"] as const) {
+  test(`Vinyl ${action} blocks a late piano download`, async t => {
+    const { engine, sources, respond, calls } = setup(t);
+    await engine.start();
+    const volumes = { ...silentMix, vinylMusic: 0.16 };
+    engine.mix(volumes, 0.5, true, false, "vinyl", 0.3, "unwind", false, false, undefined, true);
+    if (action === "stop") engine.stop();
+    else if (action === "close") await engine.close();
+    else engine.mix(volumes, 0.5, action !== "pause", action === "mute", action === "scene" ? "rain" : "vinyl", 0.3, "unwind", false, false, undefined, action !== "toggle");
+    if (action === "close") assert.ok(calls.every(call => call.signal?.aborted));
+    else respond("859607__blankierest__sleepy-upright-piano-seamless-loop.wav");
+    await tick();
+    assert.equal(sources.length, 1);
+  });
+}
+
+for (const scene of ["snow", "dunes"] as const) {
+  test(`${scene} ignores stale ambience settings after rejected recordings are removed`, async t => {
+    const { engine, calls, sources, respond } = setup(t);
+    await engine.start();
+    engine.mix(mix("ambience"), 0.5, true, false, scene);
+    assert.equal(calls.length, 0, "stale saved volume cannot fetch a rejected recording");
+    assert.equal(engine.tracks.get("ambience")!.gain.value, 0);
+    engine.mix(mix("ambience"), 0.5, true, false, "aurora");
+    respond(recordingProfile("aurora", "ambience").file);
+    await tick();
+    assert.equal(sources.length, 2);
+    engine.mix(mix("ambience"), 0.5, true, false, scene);
+    assert.ok(sources[1].stops.length > 0, "previous scene ambience fades out");
+    assert.equal(engine.tracks.get("ambience")!.gain.value, 0);
+    assert.equal(calls.length, 1);
+    assert.equal(sceneSoundscapes[scene]?.ambience, undefined);
+    assert.equal(sceneMix(visuals.find(v => v.id === scene)!).ambience, 0);
+  });
+}
+
+test("Deep blue blocks saved crickets and silences them when entering from another scene", async t => {
+  const { engine, calls, respond } = setup(t);
+  await engine.start();
+  engine.mix(mix("night"), 0.5, true, false, "jelly");
+  assert.equal(calls.length, 0);
+  assert.equal(engine.tracks.get("night")!.gain.value, 0);
+  engine.mix(mix("night"), 0.5, true, false, "meadow");
+  respond(recordingProfile("meadow", "night").file);
+  await tick();
+  assert.ok(engine.tracks.get("night")!.gain.value > 0);
+  engine.mix(mix("night"), 0.5, true, false, "jelly");
+  assert.equal(engine.tracks.get("night")!.gain.value, 0);
 });

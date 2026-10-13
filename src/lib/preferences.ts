@@ -1,5 +1,7 @@
 import type { Preferences, Visual, VisualId, SoundId, SoundMix } from "./types";
 import { sceneMix } from "./sound-presets.ts";
+import { clampBeatHz, sceneSoundscapes } from "./scene-soundscapes.ts";
+import { hasAirTones, migrateSoundControls } from "./sound-controls.ts";
 export const STORAGE_KEY = "relax_dev_preferences";
 export const visualIds: VisualId[] = [
   "orbitStudy",
@@ -26,6 +28,7 @@ export const visualIds: VisualId[] = [
   "magneticField",
 ];
 const soundIds: SoundId[] = [
+  "ambience", "texture", "binaural", "textureTone", "pondDrops",
   "orbitalPad",
   "rain",
   "fire",
@@ -36,11 +39,13 @@ const soundIds: SoundId[] = [
   "tones",
   "train",
   "piano",
+  "vinylMusic",
 ];
 export const defaults: Preferences = {
   favoriteVisuals: [],
   hiddenVisuals: [],
   soundMixesByScene: {},
+  beatHzByScene: {},
   completedTours: [],
   defaultSessionDuration: 10,
   globalVolume: 0.6,
@@ -71,7 +76,7 @@ export function normalize(raw: unknown): Preferences {
               : [];
           }),
         );
-        return Object.keys(validMix).length ? [[scene, validMix]] : [];
+        return Object.keys(validMix).length ? [[scene, migrateSoundControls(scene as VisualId, validMix)]] : [];
       }),
     ) as Preferences["soundMixesByScene"];
   };
@@ -83,6 +88,11 @@ export function normalize(raw: unknown): Preferences {
     favoriteVisuals: ids(p.favoriteVisuals),
     hiddenVisuals: ids(p.hiddenVisuals),
     soundMixesByScene: sceneMixes(p.soundMixesByScene),
+    beatHzByScene: Object.fromEntries(
+      Object.entries(p.beatHzByScene && typeof p.beatHzByScene === "object" ? p.beatHzByScene : {})
+        .filter(([id, value]) => visualIds.includes(id as VisualId) && sceneSoundscapes[id as VisualId] && typeof value === "number" && Number.isFinite(value))
+        .map(([id, value]) => [id, clampBeatHz(value, sceneSoundscapes[id as VisualId]!.beatHz)]),
+    ),
     completedTours: tours(p.completedTours),
     defaultSessionDuration:
       p.defaultSessionDuration === null
@@ -112,13 +122,17 @@ export function getSceneSoundMix(
   preferences: Preferences,
   visual: Pick<Visual, "id" | "defaultSounds">,
 ): SoundMix {
-  return { ...sceneMix(visual), ...preferences.soundMixesByScene[visual.id] };
+  return { ...sceneMix(visual), ...migrateSoundControls(visual.id, preferences.soundMixesByScene[visual.id] ?? {}) };
 }
 export function saveSceneSoundMix(
   preferences: Preferences,
   sceneId: VisualId,
   mix: Partial<SoundMix>,
 ): Preferences {
+  const previousMix = migrateSoundControls(sceneId, preferences.soundMixesByScene[sceneId] ?? {});
+  // Freeze the other half of a split layer before its first slider edit.
+  if (hasAirTones(sceneId) && previousMix.textureTone === undefined) previousMix.textureTone = sceneSoundscapes[sceneId]!.mix.textureTone;
+  if (sceneId === "pond" && previousMix.pondDrops === undefined) previousMix.pondDrops = sceneSoundscapes.pond!.mix.pondDrops;
   const savedMix = Object.fromEntries(
     soundIds.flatMap((id) => {
       const candidate = mix[id];
@@ -132,7 +146,7 @@ export function saveSceneSoundMix(
     soundMixesByScene: {
       ...preferences.soundMixesByScene,
       [sceneId]: {
-        ...preferences.soundMixesByScene[sceneId],
+        ...previousMix,
         ...savedMix,
       },
     },
@@ -140,7 +154,15 @@ export function saveSceneSoundMix(
 }
 export function resetSceneSoundMix(preferences: Preferences, sceneId: VisualId): Preferences {
   const { [sceneId]: _removed, ...remaining } = preferences.soundMixesByScene;
-  return { ...preferences, soundMixesByScene: remaining };
+  const { [sceneId]: _beat, ...remainingBeats } = preferences.beatHzByScene;
+  return { ...preferences, soundMixesByScene: remaining, beatHzByScene: remainingBeats };
+}
+export function getSceneBeatHz(preferences: Preferences, sceneId: VisualId): number {
+  return clampBeatHz(preferences.beatHzByScene[sceneId], sceneSoundscapes[sceneId]?.beatHz ?? 6);
+}
+export function saveSceneBeatHz(preferences: Preferences, sceneId: VisualId, value: number): Preferences {
+  if (!sceneSoundscapes[sceneId]) return preferences;
+  return { ...preferences, beatHzByScene: { ...preferences.beatHzByScene, [sceneId]: clampBeatHz(value, sceneSoundscapes[sceneId]!.beatHz) } };
 }
 export function hasCompletedTour(preferences: Preferences, tourId: string): boolean {
   return preferences.completedTours.includes(tourId);

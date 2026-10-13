@@ -24,7 +24,7 @@ import { paintNightSky } from "./NightSky";
 import { paintFlowingThread } from "./FlowingThread";
 import { paintRibbonTunnel } from "./InfiniteRibbonTunnel";
 import { paintMagneticField } from "./MagneticField";
-import { glow } from "./drawing";
+import { paintFollowLight } from "./follow-light";
 import { advanceDepth } from "./depth";
 import { paintMorningLattice } from "./MorningLattice";
 import { orbitImages, paintOrbitStudy } from "./OrbitStudy";
@@ -160,11 +160,13 @@ export default function CanvasScene({
       if (!dirty.current && (isPaused.current || reduced)) return;
       if (!isPaused.current && !reduced) {
         const previousTime = t;
-        t += dt;
+        // Keep the record at its last angle while the needle is lifted.
+        // Resuming Z continues from that angle instead of jumping to wall time.
+        if (kind !== "vinyl" || active.current) t += dt;
         // Normal mode drifts quietly; immersion smoothly raises orbital speed.
         if (kind === "orbitStudy") advanceOrbitMotion(orbit, dt);
         if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
-        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "lantern" ? 0.65 : 1.4)));
+        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "jelly" ? 0.32 : kind === "lantern" ? 0.65 : 1.4)));
         if (kind === "stars" || kind === "drift")
           advanceDepth(particles, dt, focus, kind === "stars" ? 0.09 : 0.045);
         if (kind === "drift")
@@ -184,27 +186,10 @@ export default function CanvasScene({
         ctx.translate(-w * 0.5, -h * 0.43);
       }
       if (kind === "orbitStudy") paintOrbitStudy({ ctx, w, h, t, particles, orbit, reducedMotion: reduced });
-      else painters[kind]({ ctx, w, h, t, particles, focus });
+      else painters[kind]({ ctx, w, h, t, particles, focus, reducedMotion: reduced });
       ctx.restore();
-      if (
-        kind !== "orbitStudy" && kind !== "morningLattice" && kind !== "lantern" && kind !== "meadow" && kind !== "magneticField" &&
-        focus > 0.005 &&
-        (reduced || (kind !== "stars" && kind !== "drift"))
-      ) {
-        const x =
-          w * (0.5 + Math.sin(t * 0.075) * (kind === "aurora" ? 0.18 : 0.09));
-        const y = h * (0.43 + Math.sin(t * 0.11) * 0.1);
-        const warm = kind === "embers";
-        ctx.save();
-        ctx.globalAlpha = focus;
-        glow(ctx, x, y, 54, warm ? "#f2b96f20" : "#cde6d824");
-        glow(ctx, x, y, 18, warm ? "#f6c38475" : "#dbeee777");
-        ctx.fillStyle = warm ? "#f0cd9d" : "#d9e9df";
-        ctx.beginPath();
-        ctx.arc(x, y, 2.5 + Math.sin(t * 0.5) * 0.3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
+      // Deep Blue draws its guide inside the water, sharing the camera depth.
+      if (kind !== "jelly") paintFollowLight(ctx, kind, w, h, t, focus, reduced);
     };
     frame = requestAnimationFrame(draw);
     return () => {

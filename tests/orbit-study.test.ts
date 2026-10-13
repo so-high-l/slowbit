@@ -81,10 +81,11 @@ function render(t: number, focus: number, orbit?: OrbitMotion, reducedMotion = f
     return operations;
 }
 
-test("base painting remains complete and identical regardless of ambient time", () => {
+test("the normal starfield moves over time and stays still with reduced motion", () => {
   const first = render(0, 0);
-  assert.deepEqual(render(900, 1), first);
-  assert.equal(first.filter(op => (op as unknown[])[0] === "arc").length, 237, "220 stars, eight orbit rings, and nine fallback bodies");
+  assert.notDeepEqual(render(12, 0), first);
+  assert.deepEqual(render(900, 1, undefined, true), render(0, 0, undefined, true));
+  assert.equal(first.filter(op => (op as unknown[])[0] === "arc").length, 479, "420 stars, 42 dust motes, eight orbit rings, and nine fallback bodies");
 });
 
 test("orbital drift is frame-rate independent, ordered, and slower outside immersion", () => {
@@ -133,7 +134,7 @@ test("immersion preserves orbit distances, caps zoom and pulse, and respects red
   assert.deepEqual(orbitEffects(state, true), { planeStrength: 0, planeY: 1, rotation: -0, scale: 1, lineAlpha: 0.27, pulse: 1, x: 0, y: 0 });
   assert.notDeepEqual(render(0, 0, state), render(0, 0));
   const withoutColor = (ops: unknown[]) => ops.filter(op => (op as unknown[])[0] !== "strokeStyle");
-  assert.deepEqual(withoutColor(render(0, 0, state, true)), withoutColor(render(0, 0)), "reduced motion only changes ring contrast");
+  assert.deepEqual(withoutColor(render(0, 0, state, true)), withoutColor(render(0, 0, undefined, true)), "reduced motion only changes ring contrast");
 });
 
 test("the orbital plane projects planets onto tilted ellipses with restrained depth scaling", () => {
@@ -159,7 +160,7 @@ test("immersive rendering layers rear planets behind the sun and foreground plan
   for (const rear of ["#9b9c99", "#ccb887", "#b9a18b", "#86b7c3"]) assert.ok(colorIndex(rear) < sun);
   for (const front of ["#789fb6", "#ae7960", "#c2b596", "#6488c2"]) assert.ok(colorIndex(front) > sun);
   assert.ok(ops.some(op => op[0] === "ellipse" && op[4] === Number(op[3]) * 0.74), "orbits use compressed ellipses");
-  assert.equal(ops.filter(op => op[0] === "arc").length, 285, "220 stars, 56 belt points, nine bodies");
+  assert.equal(ops.filter(op => op[0] === "arc").length, 527, "420 stars, 42 dust motes, 56 belt points, nine bodies");
   assert.ok(ops.filter(op => op[0] === "ellipse").length > 16, "faded trail segments supplement the two orbit halves");
 });
 
@@ -169,6 +170,6 @@ test("the sparse belt stays between Mars and Jupiter and disappears with immersi
   const inactive = render(0, 0, createOrbitMotion());
   assert.deepEqual(inactive, render(0, 0), "inactive immersion preserves every base drawing operation");
   const reduced = render(0, 0, { ...createOrbitMotion(), strength: 1, elapsed: 200 }, true) as unknown[][];
-  assert.equal(reduced.filter(op => op[0] === "arc").length, 237);
+  assert.equal(reduced.filter(op => op[0] === "arc").length, 479);
   assert.equal(reduced.filter(op => op[0] === "ellipse").length, 1, "only Saturn's fallback ring remains with reduced motion");
 });

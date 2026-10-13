@@ -2,7 +2,7 @@ import { background, glow, type ScenePainter } from "./drawing";
 
 const TAU = Math.PI * 2;
 
-export const paintLateNightRecord: ScenePainter = ({ ctx, w, h, t }) => {
+export const paintLateNightRecord: ScenePainter = ({ ctx, w, h, t, focus = 0 }) => {
   background(ctx, w, h, "#090a0b", "#261b16");
 
   // Warm room gradient
@@ -17,7 +17,10 @@ export const paintLateNightRecord: ScenePainter = ({ ctx, w, h, t }) => {
   const lampX = w * 0.75;
   const lampY = h * 0.32;
   const pulse = 0.5 + 0.5 * Math.sin(t * 0.24);
-  glow(ctx, lampX, lampY, Math.min(w, h) * 0.20, `rgba(230, 155, 79, ${0.08 + pulse * 0.012})`);
+  // The existing immersion transition dims the brighter idle lamp back to
+  // its original warmth when the record starts playing.
+  const idleLight = 1 - Math.max(0, Math.min(1, focus));
+  glow(ctx, lampX, lampY, Math.min(w, h) * (0.20 + idleLight * 0.02), `rgba(230, 155, 79, ${0.08 + idleLight * 0.06 + pulse * 0.012})`);
 
   // Lamp silhouette
   ctx.fillStyle = "rgba(18, 12, 10, .7)";
