@@ -34,7 +34,7 @@ export const sceneSoundscapes: Partial<Record<VisualId, SceneSoundscape>> = {
   pond: { beatHz: 5, carrierHz: 196, ambience: { asset: "pond", name: "Water lapping", cutoff: 3600, level: 0.65 }, mix: { ambience: 0.30, pondDrops: 0.30, night: 0.03, binaural: 0 } },
   mist: { beatHz: 3.5, carrierHz: 146, ambience: { asset: "cave", name: "Cave drips", cutoff: 2600, level: 0.55 }, mix: { ambience: 0.27, brown: 0.04, binaural: 0 } },
   snow: { beatHz: 2.5, carrierHz: 174, mix: { brown: 0.2, binaural: 0, wind: 0.17 } },
-  dunes: { beatHz: 8, carrierHz: 208, mix: { brown: 0.04, binaural: 0 } },
+  dunes: { beatHz: 8, carrierHz: 208, mix: { brown: 0.4, binaural: 0 } },
   clouds: { beatHz: 9, carrierHz: 262, texture: { kind: "air", name: "Cloud air" }, mix: { texture: 0.15, textureTone: 0.1, brown: 0.2, binaural: 0 } },
   ink: { beatHz: 10, carrierHz: 285, ambience: { asset: "brush", name: "Gentle water", cutoff: 3000, level: 0.55 }, texture: { kind: "round", name: "Rounded tones" }, mix: { ambience: 0.24, texture: 0.09, binaural: 0 } },
   vinyl: { beatHz: 5.5, carrierHz: 165, ambience: { asset: "vinyl", name: "Vinyl surface", cutoff: 2400, level: 0.10 }, mix: { ambience: 0.24, rain: 0.10, tones: 0.06, brown: 0.06, vinylMusic: 0.16, binaural: 0 } },
