@@ -473,7 +473,7 @@ test("missing new ambience stays silent and a late scene download cannot leak th
 });
 
 test("revised presets keep restrained layers and binaural audio off", () => {
-  assert.equal(Object.keys(sceneSoundscapes).length, 15);
+  assert.equal(Object.keys(sceneSoundscapes).length, 16);
   const frequencies = new Set<number>();
   for (const [id, profile] of Object.entries(sceneSoundscapes)) {
     const visual = visuals.find(v => v.id === id)!;
@@ -483,7 +483,7 @@ test("revised presets keep restrained layers and binaural audio off", () => {
     assert.ok(Object.entries(volumes).filter(([channel, volume]) => channel !== "vinylMusic" && volume > 0).length <= (id === "vinyl" ? 4 : 3));
     frequencies.add(profile.beatHz);
   }
-  assert.equal(frequencies.size, 15);
+  assert.equal(frequencies.size, 16);
 });
 
 for (const scene of ["clouds", "ribbonTunnel"] as const) {
@@ -612,4 +612,36 @@ test("Deep blue blocks saved crickets and silences them when entering from anoth
   assert.ok(engine.tracks.get("night")!.gain.value > 0);
   engine.mix(mix("night"), 0.5, true, false, "jelly");
   assert.equal(engine.tracks.get("night")!.gain.value, 0);
+});
+
+test("Quiet Machine tape loops independently and releases its source on scene exit", async t => {
+  const { engine, sources, calls, oscillators } = setup(t);
+  await engine.start();
+  engine.mix(mix("texture"), 0.5, true, false, "quietMachine", 0.3, "focus");
+  assert.equal(calls.length, 0, "original tape needs no download");
+  assert.equal(sources.length, 2);
+  assert.equal(sources[1].loop, true);
+  assert.equal(oscillators.length, 0, "tape contains no pitched or binaural carrier");
+  assert.equal(engine.tracks.get("brown")!.gain.value, 0);
+  engine.mix(mix("texture"), 0.5, true, false, "rain");
+  assert.ok(sources[1].stops.length > 0);
+  await engine.close();
+  assert.ok(sources[1].disconnected);
+});
+
+test("Quiet Machine soft atmosphere loads its own native loop independently of tape", async t => {
+  const { engine, calls, sources, respond } = setup(t);
+  await engine.start();
+  engine.mix(mix("ambience"), 0.5, true, false, "quietMachine", 0.3, "focus");
+  assert.equal(calls.length, 1);
+  assert.ok(calls[0].url.endsWith("/audio/quiet-machine-d-minor-loop.wav"));
+  respond("quiet-machine-d-minor-loop.wav");
+  await tick();
+  assert.equal(sources.length, 2);
+  assert.equal(sources[1].loop, true);
+  assert.equal((sources[1].buffer as AudioBuffer).length, 100, "the generated file is already a native loop");
+  assert.equal(engine.tracks.get("texture")!.gain.value, 0);
+  assert.equal(engine.tracks.get("brown")!.gain.value, 0);
+  engine.mix(mix("ambience"), 0.5, true, false, "rain");
+  assert.ok(sources[1].stops.length > 0);
 });

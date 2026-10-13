@@ -1,3 +1,4 @@
+import { createAnalogTape } from "./analog-tape.ts";
 import { binauralFrequencies, type SceneSoundscape, type TextureKind } from "./scene-soundscapes.ts";
 
 type Voice = {
@@ -10,6 +11,7 @@ type Voice = {
 // Original, gently modulated textures. These are independent of the legacy
 // Soft tones channel and need no files on R2.
 const textures: Record<TextureKind, { partials: [number, number][]; period: number; noise?: number; pan?: boolean }> = {
+  tape: { partials: [], noise: 0.18, period: 24 },
   halo: { partials: [[174.6, 0.085], [261.6, 0.04], [523.2, 0.012]], period: 29 },
   float: { partials: [[130.8, 0.09], [196, 0.045], [293.7, 0.02]], period: 37 },
   air: { partials: [[349.2, 0.025], [523.3, 0.01]], noise: 0.22, period: 43 },
@@ -102,10 +104,11 @@ export class SceneSynthesis {
       voice.nodes.push(gain, modulation);
     });
     if (spec.noise && !tonalOnly) {
-      const buffer = this.context.createBuffer(1, this.context.sampleRate * 16, this.context.sampleRate);
+      const buffer = this.context.createBuffer(1, this.context.sampleRate * (kind === "tape" ? 24 : 16), this.context.sampleRate);
       const data = buffer.getChannelData(0);
+      if (kind === "tape") data.set(createAnalogTape(this.context.sampleRate));
       let seed = kind === "air" ? 1907 : 7919;
-      for (let i = 0; i < data.length; i++) {
+      for (let i = 0; kind !== "tape" && i < data.length; i++) {
         seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
         // Short edge fade avoids a discontinuity when the noise buffer loops.
         const edge = Math.min(1, i / 128, (data.length - 1 - i) / 128);
@@ -116,7 +119,7 @@ export class SceneSynthesis {
       source.loop = true;
       const filter = this.context.createBiquadFilter();
       filter.type = "bandpass";
-      filter.frequency.value = kind === "air" ? 1500 : 700;
+      filter.frequency.value = kind === "air" ? 1500 : kind === "tape" ? 1100 : 700;
       filter.Q.value = 0.35;
       const gain = this.context.createGain();
       gain.gain.value = spec.noise;

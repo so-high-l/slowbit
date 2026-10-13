@@ -64,6 +64,7 @@ function Session() {
   );
   const [sessionAnalytics] = useState(() => createSessionAnalytics(captureProductEvent));
   const visual = visuals.find((v) => v.id === visualId)!;
+  const isFocusPlaceholder = visualId === "focusComingSoon";
   useEffect(() => {
     if (phase === "running" && !p.hiddenVisuals.includes(visualId))
       sessionAnalytics.start(p.defaultSessionDuration, p.mode === "focus" ? p.focusMood ?? "fresh" : p.lastMood ?? "fried", visual, p.mode ?? "unwind");
@@ -218,6 +219,7 @@ function Session() {
     setVisualId(id);
     setExploring(false);
     setOpening(false);
+    if (id === "focusComingSoon") setPanel(false);
     setMotionScale(1);
     update({ lastVisual: id });
     setNotice("");
@@ -271,8 +273,8 @@ function Session() {
         else void fullscreen.toggle();
       }
       if (phase !== "running") return;
-      if (k === "z") setExploring((v) => !v);
-      if (k === "m") update({ muted: !p.muted });
+      if (k === "z" && !isFocusPlaceholder) setExploring((v) => !v);
+      if (k === "m" && !isFocusPlaceholder) update({ muted: !p.muted });
       if (k === " ") togglePlay();
       if (k === "arrowright") next(1);
       if (k === "arrowleft") next(-1);
@@ -373,17 +375,23 @@ function Session() {
             <span className="eyebrow">YOU ARE HERE. THAT’S ENOUGH.</span>
             <h1>{visual.name}</h1>
             <p>{visual.subtitle}</p>
-            <button
+            {!isFocusPlaceholder && <button
               className={`explore-switch ${exploring ? "active" : ""}`}
               type="button"
               style={{ pointerEvents: visible ? "auto" : "none" }}
               aria-pressed={exploring}
               aria-keyshortcuts="Z"
-              data-tooltip={visualId === "vinyl" ? exploring ? "Fade out the piano · Z" : "Fade in the piano · Z" : exploring ? "Return to the normal scene · Z" : "Enter the immersive scene · Z"}
+              data-tooltip={visualId === "vinyl"
+                ? exploring ? "Fade out the piano · Z" : "Fade in the piano · Z"
+                : visualId === "quietMachine"
+                  ? exploring ? "Return to the full mechanism · Z" : "Zoom into the main circle · Z"
+                  : exploring ? "Return to the normal scene · Z" : "Enter the immersive scene · Z"}
               onClick={() => setExploring((v) => !v)}
             >
               <Orbit size={13} />
-              {visualId === "orbitStudy"
+              {visualId === "quietMachine"
+                ? exploring ? "Return to the full mechanism" : "Look inside the mechanism"
+                : visualId === "orbitStudy"
                 ? exploring ? "Return to the orbit map" : "Enter the orbital system"
                 : visualId === "morningLattice"
                 ? exploring ? "Open the curtain" : "Draw the curtain"
@@ -405,7 +413,7 @@ function Session() {
                     ? "Following the light"
                     : "Follow the light"}
               <kbd>Z</kbd>
-            </button>
+            </button>}
           </div>
           <div className="session-bottom">
             <div className="session-status" role="status">
@@ -495,7 +503,9 @@ function Session() {
                 className="play-button"
                 data-tour="playback"
                 aria-label={playing ? "Pause session" : "Resume session"}
-                data-tooltip={playing ? "Pause the timer and sound · Space" : "Resume the timer and sound · Space"}
+                data-tooltip={isFocusPlaceholder
+                  ? playing ? "Pause the timer · Space" : "Resume the timer · Space"
+                  : playing ? "Pause the timer and sound · Space" : "Resume the timer and sound · Space"}
                 onClick={togglePlay}
               >
                 {playing ? (
@@ -504,7 +514,7 @@ function Session() {
                   <Play size={20} fill="currentColor" />
                 )}
               </button>
-              <button
+              {!isFocusPlaceholder && <button
                 className={`sounds-button ${panel ? "active" : ""}`}
                 data-tour="audio"
                 aria-expanded={panel}
@@ -518,8 +528,8 @@ function Session() {
               >
                 <SlidersHorizontal size={18} />
                 <span>Sounds</span>
-              </button>
-              <button
+              </button>}
+              {!isFocusPlaceholder && <button
                 className="icon-button mute-control"
                 data-tour="mute"
                 aria-label={p.muted ? "Unmute audio" : "Mute audio"}
@@ -527,7 +537,7 @@ function Session() {
                 onClick={() => update({ muted: !p.muted })}
               >
                 {p.muted ? <VolumeX size={19} /> : <Volume2 size={19} />}
-              </button>
+              </button>}
               <button
                 className={`icon-button board-toggle ${p.showBoard ? "active" : ""}`}
                 data-tour="chat"
@@ -566,9 +576,9 @@ function Session() {
                 <kbd>←</kbd>
                 <kbd>→</kbd> explore
               </span>
-              <span>
+              {!isFocusPlaceholder && <span>
                 <kbd>M</kbd> mute
-              </span>
+              </span>}
               <span>
                 <kbd>F</kbd> fullscreen
               </span>
@@ -581,7 +591,7 @@ function Session() {
           <AnonymousBoard visible={p.showBoard} onClose={() => update({ showBoard: false })} />
         </div>
       )}
-      {panel && phase === "running" && (
+      {panel && phase === "running" && !isFocusPlaceholder && (
         <aside
           className="audio-panel"
           id="audio-panel"

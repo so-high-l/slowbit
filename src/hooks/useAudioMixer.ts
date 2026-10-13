@@ -18,7 +18,9 @@ export function useAudioMixer(
   const { engine, active } = audio;
   const visual = visuals.find((item) => item.id === scene);
   useEffect(() => {
-    const volumes = mixOverride ?? (visual ? getSceneSoundMix(prefs, visual) : silentMix);
+    const volumes = scene === "focusComingSoon"
+      ? silentMix
+      : mixOverride ?? (visual ? getSceneSoundMix(prefs, visual) : silentMix);
     engine.current?.mix(
       scene === "meadow" && exploring
         ? { ...volumes, forest: volumes.forest * 0.3, wind: volumes.wind * 0.65 }

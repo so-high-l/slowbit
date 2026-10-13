@@ -6,8 +6,8 @@ import { sceneSoundscapes } from "../src/lib/scene-soundscapes.ts";
 import { duplicateSound, soundLabel } from "../src/lib/sound-controls.ts";
 import { defaults, getSceneSoundMix, normalize, saveSceneSoundMix, resetSceneSoundMix } from "../src/lib/preferences.ts";
 
-test("all 22 scenes expose only one control per recorded file", () => {
-  assert.equal(visuals.length, 22);
+test("all 24 scenes expose only one control per recorded file", () => {
+  assert.equal(visuals.length, 24);
   for (const visual of visuals) {
     const channels: RecordedChannel[] = ["rain", "wind", "forest", "fire", "night", "brown"];
     if (sceneSoundscapes[visual.id]?.ambience) channels.push("ambience");

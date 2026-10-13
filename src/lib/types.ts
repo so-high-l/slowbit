@@ -4,6 +4,8 @@ export type Mood = "fried" | "restless" | "stuck" | "overstimulated" | "burned_o
 export type VisualId =
   | "orbitStudy"
   | "morningLattice"
+  | "quietMachine"
+  | "focusComingSoon"
   | "rain"
   | "aurora"
   | "stars"

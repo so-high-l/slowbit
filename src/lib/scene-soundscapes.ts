@@ -5,6 +5,7 @@ import type { SoundMix, VisualId } from "./types";
 // nativeLoop means the creator supplies a loop, not that it has been auditioned
 // in this app. Keep the complete original cycle during conversion.
 export const sceneAudioAssets = {
+  machinePad: { file: "quiet-machine-d-minor-loop.wav", author: "Slowbit", source: "scripts/generate-quiet-machine-pad.py", nativeLoop: true },
   polar: { file: "527281__dlgebert__monologue-wind.wav", author: "dlgebert", source: "https://freesound.org/people/dlgebert/sounds/527281/", nativeLoop: true },
   city: { file: "223093__qubodup__seamless-city-loop.flac", author: "qubodup", source: "https://freesound.org/people/qubodup/sounds/223093/", nativeLoop: true },
   pond: { file: "91919__filipe-chagas__waterlappingrockybeachambiance.wav", author: "Filipe Chagas", source: "https://freesound.org/people/Filipe%20Chagas/sounds/91919/", nativeLoop: false },
@@ -15,7 +16,7 @@ export const sceneAudioAssets = {
   vinylMusic: { file: "859607__blankierest__sleepy-upright-piano-seamless-loop.wav", author: "blankie.rest", source: "https://freesound.org/people/blankie.rest/sounds/859607/", nativeLoop: true },
 } as const;
 
-export type TextureKind = "halo" | "float" | "air" | "round" | "bow" | "ribbon" | "glass";
+export type TextureKind = "tape" | "halo" | "float" | "air" | "round" | "bow" | "ribbon" | "glass";
 export type SceneSoundscape = {
   beatHz: number;
   carrierHz: number;
@@ -27,6 +28,7 @@ export type SceneSoundscape = {
 // Beat differences are optional creative presets, not claims about mental states.
 // Every scene starts with binaural volume at zero; ambience carries its identity.
 export const sceneSoundscapes: Partial<Record<VisualId, SceneSoundscape>> = {
+  quietMachine: { beatHz: 13, carrierHz: 200, ambience: { asset: "machinePad", name: "Soft atmosphere", cutoff: 2600, level: 0.35 }, texture: { kind: "tape", name: "Analog tape" }, mix: { ambience: 0.18, texture: 0.30, brown: 0.12, binaural: 0 } },
   aurora: { beatHz: 6, carrierHz: 220, ambience: { asset: "polar", name: "Polar air", cutoff: 2200, level: 0.55 }, texture: { kind: "halo", name: "Luminous tones" }, mix: { ambience: 0.28, texture: 0.12, binaural: 0 } },
   stars: { beatHz: 3, carrierHz: 160, ambience: { asset: "city", name: "Distant city", cutoff: 1200, level: 0.55 }, mix: { ambience: 0.26, brown: 0.06, binaural: 0 } },
   embers: { beatHz: 4.5, carrierHz: 180, mix: { fire: 0.38, forest: 0.05, binaural: 0 } },

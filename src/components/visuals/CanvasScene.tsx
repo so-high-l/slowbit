@@ -4,6 +4,8 @@ import { pondDropStarted } from "@/lib/pond-timing";
 import { useRef, useEffect } from "react";
 import gsap from "gsap";
 import type { VisualId } from "@/lib/types";
+import { paintQuietMachine } from "./QuietMachine";
+import { paintFocusComingSoon } from "./FocusComingSoon";
 import { paintRain } from "./RainWindow";
 import { paintAurora } from "./GradientFlow";
 import { paintStars } from "./Stars";
@@ -30,6 +32,8 @@ import { paintMorningLattice } from "./MorningLattice";
 import { orbitImages, paintOrbitStudy } from "./OrbitStudy";
 import { advanceOrbitMotion, createOrbitMotion } from "./orbit-motion";
 const painters = {
+  focusComingSoon: paintFocusComingSoon,
+  quietMachine: paintQuietMachine,
   orbitStudy: paintOrbitStudy,
   morningLattice: paintMorningLattice,
   rain: paintRain,
@@ -89,6 +93,8 @@ export default function CanvasScene({
       h = 0,
       frame = 0,
       t = 0,
+      machineTime = 0,
+      machineZoomTime = 0,
       last = 0,
       focus = 0;
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -157,16 +163,21 @@ export default function CanvasScene({
       const dt = Math.min((now - last) / 1000, 0.05) * pace.current;
       last = now;
       if (document.hidden) return;
-      if (!dirty.current && (isPaused.current || reduced)) return;
+      if (!dirty.current && (isPaused.current || reduced || kind === "focusComingSoon")) return;
       if (!isPaused.current && !reduced) {
         const previousTime = t;
+        if (kind === "quietMachine") machineTime += dt;
         // Keep the record at its last angle while the needle is lifted.
         // Resuming Z continues from that angle instead of jumping to wall time.
         if (kind !== "vinyl" || active.current) t += dt;
         // Normal mode drifts quietly; immersion smoothly raises orbital speed.
         if (kind === "orbitStudy") advanceOrbitMotion(orbit, dt);
         if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
-        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "jelly" ? 0.32 : kind === "lantern" ? 0.65 : 1.4)));
+        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "quietMachine" ? 0.2 : kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "jelly" ? 0.32 : kind === "lantern" ? 0.65 : 1.4)));
+        if (kind === "quietMachine") {
+          if (active.current) machineZoomTime += dt * Math.max(0, Math.min(1, (focus - 0.72) / 0.24));
+          else if (!active.current && focus < 0.001) machineZoomTime = 0;
+        }
         if (kind === "stars" || kind === "drift")
           advanceDepth(particles, dt, focus, kind === "stars" ? 0.09 : 0.045);
         if (kind === "drift")
@@ -186,10 +197,11 @@ export default function CanvasScene({
         ctx.translate(-w * 0.5, -h * 0.43);
       }
       if (kind === "orbitStudy") paintOrbitStudy({ ctx, w, h, t, particles, orbit, reducedMotion: reduced });
+      else if (kind === "quietMachine") paintQuietMachine({ ctx, w, h, t: machineTime, zoomTime: machineZoomTime, particles, focus, reducedMotion: reduced });
       else painters[kind]({ ctx, w, h, t, particles, focus, reducedMotion: reduced });
       ctx.restore();
       // Deep Blue draws its guide inside the water, sharing the camera depth.
-      if (kind !== "jelly") paintFollowLight(ctx, kind, w, h, t, focus, reduced);
+      if (kind !== "jelly" && kind !== "quietMachine" && kind !== "focusComingSoon") paintFollowLight(ctx, kind, w, h, t, focus, reduced);
     };
     frame = requestAnimationFrame(draw);
     return () => {

@@ -6,6 +6,8 @@ export const STORAGE_KEY = "relax_dev_preferences";
 export const visualIds: VisualId[] = [
   "orbitStudy",
   "morningLattice",
+  "quietMachine",
+  "focusComingSoon",
   "rain",
   "aurora",
   "stars",
