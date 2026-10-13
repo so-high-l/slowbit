@@ -41,6 +41,7 @@ const soundIds: SoundId[] = [
   "tones",
   "train",
   "piano",
+  "lofi",
   "vinylMusic",
 ];
 export const defaults: Preferences = {

@@ -234,6 +234,7 @@ export const sounds: { id: SoundId; name: string; note: string }[] = [
   { id: "orbitalPad", name: "Orbital pad", note: "A quiet, spacious synth bed" },
   { id: "vinylMusic", name: "Nostalgic piano", note: "Plays while the record is on · Z" },
   { id: "piano", name: "Piano", note: "Quiet pieces for focus" },
+  { id: "lofi", name: "Lofi", note: "Low-key beats for focus" },
   { id: "train", name: "Train carriage", note: "A quiet overnight journey" },
   { id: "rain", name: "Rain", note: "Soft, steady rainfall" },
   { id: "fire", name: "Fire", note: "Warm crackle" },

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FocusPlaylist, focusTrackUrls, shuffleBag, pianoFade } from "../src/lib/focus-music.ts";
+import { FocusPlaylist, focusTrackUrls, lofiTrackFiles, lofiTrackUrls, shuffleBag, pianoFade } from "../src/lib/focus-music.ts";
 import { availableVisuals } from "../src/lib/scene-availability.ts";
 import { normalize, defaults, saveSceneSoundMix, getSceneSoundMix } from "../src/lib/preferences.ts";
 import type { Visual } from "../src/lib/types.ts";
@@ -39,6 +39,8 @@ test("shuffle cycles contain every track without consecutive repeats", () => {
     assert.equal(new Set(bag).size, 4); assert.notEqual(bag[0], last); last = bag[3];
   }
   assert.deepEqual(focusTrackUrls(""), []);
+  assert.deepEqual(lofiTrackUrls(""), []);
+  assert.deepEqual(lofiTrackUrls("https://assets.test/"), lofiTrackFiles.map(file => `https://assets.test/audio/lofi/${file}`));
   assert.deepEqual(pianoFade(0), [1, 0]);
   assert.ok(pianoFade(.5)[0] > pianoFade(.5)[1]);
   assert.ok(pianoFade(1)[0] < .00001); assert.equal(pianoFade(1)[1], 1);

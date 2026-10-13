@@ -4,6 +4,7 @@ import { visuals } from "../src/data/catalog.ts";
 import { availableVisuals } from "../src/lib/scene-availability.ts";
 import { defaults, getSceneSoundMix, normalize, saveSceneSoundMix } from "../src/lib/preferences.ts";
 import { createAnalogTape } from "../src/lib/analog-tape.ts";
+import { sceneSoundscapes } from "../src/lib/scene-soundscapes.ts";
 import { machineAngle, paintQuietMachine, quietMachineCamera, quietMachineDetailStrengths, quietMachineLayout, quietMachineRecursiveState } from "../src/components/visuals/QuietMachine.ts";
 
 test("Quiet Machine is Focus-only with independent, persistent tape and brown noise levels", () => {
@@ -12,12 +13,15 @@ test("Quiet Machine is Focus-only with independent, persistent tape and brown no
   assert.ok(!availableVisuals(visuals, "unwind").includes(scene));
   const mix = getSceneSoundMix(defaults, scene);
   assert.equal(mix.texture, 0.3);
+  assert.equal(mix.lofi, 0.22);
   assert.equal(mix.brown, 0.12);
   assert.equal(mix.binaural, 0);
-  const saved = normalize({ ...saveSceneSoundMix(defaults, scene.id, { texture: 0 }), lastVisual: scene.id, favoriteVisuals: [scene.id] });
+  assert.equal(sceneSoundscapes.quietMachine?.playlist, "lofi");
+  const saved = normalize({ ...saveSceneSoundMix(defaults, scene.id, { texture: 0, lofi: 0.14 }), lastVisual: scene.id, favoriteVisuals: [scene.id] });
   assert.equal(saved.lastVisual, scene.id);
   assert.deepEqual(saved.favoriteVisuals, [scene.id]);
   assert.equal(getSceneSoundMix(saved, scene).texture, 0);
+  assert.equal(getSceneSoundMix(saved, scene).lofi, 0.14);
   assert.equal(getSceneSoundMix(saved, scene).brown, 0.12);
 });
 

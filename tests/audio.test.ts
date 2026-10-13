@@ -480,7 +480,8 @@ test("revised presets keep restrained layers and binaural audio off", () => {
     const volumes = sceneMix(visual);
     assert.equal(volumes.tones, id === "vinyl" ? 0.06 : 0);
     assert.equal(volumes.binaural, 0, "headphone-only layer is opt-in");
-    assert.ok(Object.entries(volumes).filter(([channel, volume]) => channel !== "vinylMusic" && volume > 0).length <= (id === "vinyl" ? 4 : 3));
+    const maxLayers = id === "vinyl" || id === "quietMachine" ? 4 : 3;
+    assert.ok(Object.entries(volumes).filter(([channel, volume]) => channel !== "vinylMusic" && volume > 0).length <= maxLayers);
     frequencies.add(profile.beatHz);
   }
   assert.equal(frequencies.size, 16);

@@ -1,4 +1,4 @@
-import { FocusPlaylist, focusTrackUrls } from "./focus-music.ts";
+import { FocusPlaylist, focusTrackUrls, lofiTrackUrls } from "./focus-music.ts";
 import type { SoundId, VisualId, SessionMode } from "./types";
 import { recordingProfile, type RecordedChannel, type RecordingProfile } from "./audio-profiles.ts";
 import { sceneSoundscapes } from "./scene-soundscapes.ts";
@@ -22,6 +22,7 @@ export class AmbientEngine {
   private loads = new Set<AbortController>();
   private closed = false;
   private piano?: FocusPlaylist;
+  private lofi?: FocusPlaylist;
   private synthesis?: SceneSynthesis;
   private curtain = false;
   private pondEnabled = false;
@@ -254,6 +255,7 @@ export class AmbientEngine {
   stop() {
     if (this.closed) return;
     this.piano?.update(false, false, 0);
+    this.lofi?.update(false, false, 0);
     this.synthesis?.stop();
     this.pondEnabled = false;
     this.stopDrops();
@@ -274,6 +276,14 @@ export class AmbientEngine {
       }
     }
     this.piano?.update(pianoEnabled, playing && !muted && global > 0, (volumes.piano ?? 0) * (this.curtain ? 0.5 : 1), transition);
+    const lofiEnabled = mode === "focus" && soundscape?.playlist === "lofi";
+    if (lofiEnabled && audible && volumes.lofi > 0 && !this.lofi && this.context.state === "running") {
+      const urls = lofiTrackUrls(ASSET_URL);
+      if (urls.length) {
+        try { this.lofi = new FocusPlaylist(this.context, this.master, urls); } catch { /* Other layers remain available if media nodes are unsupported. */ }
+      }
+    }
+    this.lofi?.update(lofiEnabled, audible, volumes.lofi ?? 0, transition);
     this.pondEnabled = scene === "pond" && audible && volumes.pondDrops > 0;
     if (!this.pondEnabled) this.stopDrops();
     else void this.preparePondDrop();
@@ -287,7 +297,7 @@ export class AmbientEngine {
         : (id === "ambience" && !soundscape?.ambience) || (id === "texture" && !soundscape?.texture) || (id === "binaural" && !soundscape) ? 0
         : (volumes[id] ?? 0);
       gain.gain.setTargetAtTime(channelVolume * (id === "rain" && this.curtain ? 0.55 : 1), now, id === "vinylMusic" ? 1 : transition);
-      if (id === "tones" || id === "piano" || id === "texture" || id === "binaural" || id === "textureTone" || id === "pondDrops") continue;
+      if (id === "tones" || id === "piano" || id === "lofi" || id === "texture" || id === "binaural" || id === "textureTone" || id === "pondDrops") continue;
       if (id === "ambience" && !soundscape?.ambience) {
         this.cancelRequest(id);
         this.fadeVoice(id);
@@ -310,6 +320,7 @@ export class AmbientEngine {
     if (this.closed) return;
     this.closed = true;
     this.piano?.close();
+    this.lofi?.close();
     this.synthesis?.close();
     this.pondEnabled = false;
     this.stopDrops();

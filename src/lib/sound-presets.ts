@@ -15,6 +15,7 @@ export const silentMix: Record<SoundId, number> = {
   tones: 0,
   train: 0,
   piano: 0,
+  lofi: 0,
   vinylMusic: 0,
 };
 export function sceneMix(

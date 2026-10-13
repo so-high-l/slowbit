@@ -2,8 +2,19 @@ export const focusTrackFiles = [
   "leberch-flowing-piano-606083.mp3", "leberch-peaceful-piano-576857.mp3",
   "leberch-atmospheric-piano-603148.mp3", "leberch-piano-calm-525211.mp3",
 ];
+export const lofiTrackFiles = [
+  "absolutesound-deep-thinking-lofi-music-510766.mp3",
+  "knoodles-chill-hop-trap-lofi-558426.mp3",
+  "knoodles-chill-house-midnight-drive-551512.mp3",
+  "knoodles-chill-trap-lofi-evening-565444.mp3",
+  "serenomusic-abstract-chill-612078.mp3",
+  "zephiramusic-lofi-background-580735.mp3",
+];
 export function focusTrackUrls(base: string) {
   return base ? focusTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/${file}`) : [];
+}
+export function lofiTrackUrls(base: string) {
+  return base ? lofiTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/lofi/${file}`) : [];
 }
 export function shuffleBag(size: number, seed = 719) {
   let bag: number[] = [], last = -1;

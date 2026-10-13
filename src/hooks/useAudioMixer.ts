@@ -48,6 +48,7 @@ export function useAudioMixer(
     mixOverride?.tones,
     mixOverride?.train,
     mixOverride?.piano,
+    mixOverride?.lofi,
     mixOverride?.vinylMusic,
     mixOverride?.orbitalPad,
     mixOverride?.ambience,
