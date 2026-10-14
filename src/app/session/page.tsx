@@ -387,6 +387,8 @@ function Session() {
                   ? exploring ? "Return to the full mechanism · Z" : "Zoom into the main circle · Z"
                   : visualId === "nightDrive"
                     ? exploring ? "Return to the quiet cabin · Z" : "Wake the radio lights · Z"
+                  : visualId === "readingRoom"
+                    ? exploring ? "Turn off the reading light · Z" : "Turn on the reading light · Z"
                   : exploring ? "Return to the normal scene · Z" : "Enter the immersive scene · Z"}
               onClick={() => setExploring((v) => !v)}
             >
@@ -395,6 +397,8 @@ function Session() {
                 ? exploring ? "Return to the full mechanism" : "Look inside the mechanism"
                 : visualId === "nightDrive"
                 ? exploring ? "Return to the quiet cabin" : "Tune into the night"
+                : visualId === "readingRoom"
+                ? exploring ? "Dim the room" : "Turn on the reading light"
                 : visualId === "orbitStudy"
                 ? exploring ? "Return to the orbit map" : "Enter the orbital system"
                 : visualId === "morningLattice"

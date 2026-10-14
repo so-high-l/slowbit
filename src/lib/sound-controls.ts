@@ -1,5 +1,6 @@
 import type { SoundId, SoundMix, VisualId } from "./types";
 import { sceneSoundscapes } from "./scene-soundscapes.ts";
+import { silentMix } from "./sound-presets.ts";
 
 // Retain the channel used by the default mix; never offer two copies of a file.
 export function duplicateSound(scene: VisualId): { removed: SoundId; kept: SoundId } | undefined {
@@ -13,6 +14,7 @@ export function hasAirTones(scene: VisualId) {
 
 export function soundLabel(scene: VisualId, id: SoundId, fallback: string): string {
   if (id === "lofi" && scene === "nightDrive") return "Lo-fi Radio";
+  if (id === "lofi" && scene === "readingRoom") return "Jazz Radio";
   if (id === "ambience") return sceneSoundscapes[scene]?.ambience?.name ?? fallback;
   if (id === "texture") return sceneSoundscapes[scene]?.texture?.name ?? fallback;
   if (id === "textureTone") return scene === "clouds" ? "Air harmonics" : "Low hum";
@@ -28,6 +30,16 @@ export function soundLabel(scene: VisualId, id: SoundId, fallback: string): stri
     if (["meadow", "drift", "embers", "nightSky"].includes(scene)) return "Forest rain";
   }
   return fallback;
+}
+
+/** Z changes the live room mix without modifying its persisted slider values. */
+export function readingRoomImmersiveMix(volumes: SoundMix, immersive: boolean): SoundMix {
+  if (!immersive) return volumes;
+  return {
+    ...silentMix,
+    rain: volumes.rain,
+    lofi: Math.min(1, volumes.lofi * 4.8),
+  };
 }
 
 // Migrate saved mixes before editing so an old hidden slider cannot keep playing

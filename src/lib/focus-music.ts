@@ -22,6 +22,18 @@ export const nightDriveTrackFiles = [
   "sapce-loungue-chill-drift.mp3",
   "shadow-bloom.mp3",
 ];
+export const readingRoomTrackFiles = [
+  "amber-slowdance.mp3",
+  "coffee-in-blue.mp3",
+  "crimson-latte.mp3",
+  "dreams-over-wood.mp3",
+  "evening-sketches.mp3",
+  "mellow-windows.mp3",
+  "shadows-in-swing.mp3",
+  "soft-strings-cafe.mp3",
+  "twilight-reverb.mp3",
+  "whispers-on-5th.mp3",
+];
 export function focusTrackUrls(base: string) {
   return base ? focusTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/${file}`) : [];
 }
@@ -30,6 +42,9 @@ export function lofiTrackUrls(base: string) {
 }
 export function nightDriveTrackUrls(base: string) {
   return base ? nightDriveTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/lofi/night-drive/${file}`) : [];
+}
+export function readingRoomTrackUrls(base: string) {
+  return base ? readingRoomTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/lofi/reading-room/${file}`) : [];
 }
 export function shuffleBag(size: number, seed = Math.floor(Math.random() * 0x1_0000_0000)) {
   let bag: number[] = [], last = -1;

@@ -42,6 +42,7 @@ export const visuals: Visual[] = [
   { id: "morningLattice", name: "Sunlit wall", subtitle: "A little daylight. Room to think.", tags: ["Focus", "Daylight", "Quiet"], modes: ["focus"], recommendedMoods: [], defaultSounds: { piano: 0.3, brown: 0.3, rain: 0.3 } },
   { id: "quietMachine", name: "Quiet Machine", subtitle: "Systems in balance. Ideas in motion.", tags: ["Focus", "Abstract", "Analog", "Quiet"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.quietMachine!.mix },
   { id: "nightDrive", name: "Night Drive", subtitle: "A little further, one quiet mile at a time.", tags: ["Focus", "Night", "Road", "Lo-fi"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.nightDrive!.mix },
+  { id: "readingRoom", name: "Reading Room", subtitle: "Settle in. Let the room hold the rest.", tags: ["Focus", "Warm", "Reading", "Study", "Cozy"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.readingRoom!.mix },
   { id: "focusComingSoon", name: "More focus scenes", subtitle: "Coming soon.", tags: ["Focus", "Coming soon"], modes: ["focus"], recommendedMoods: [], defaultSounds: {} },
   {
     id: "rain",

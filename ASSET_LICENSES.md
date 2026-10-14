@@ -124,3 +124,24 @@ External media from **Pixabay**, under the **Pixabay Content License**. These re
 
 - **License:** https://pixabay.com/service/license-summary/
 - **Usage:** Scene-specific randomized Lo-fi Radio playlist for Night Drive, with only the current and next track buffered for crossfading.
+
+## Reading Room jazz playlist
+
+External media from **Pixabay**, under the **Pixabay Content License**. These recordings are not covered by Slowbit's MIT source-code license. MP3 files are not included in Git; the project owner uploads them to R2 under `audio/lofi/reading-room/`. Retain the download record and a copy of the license for every track. Do not distribute the recordings as standalone audio files.
+
+| R2 object | Track | Source |
+| --- | --- | --- |
+| `audio/lofi/reading-room/amber-slowdance.mp3` | Amber Slowdance | https://pixabay.com/music/smooth-jazz-free-jazz-guitar-vibe-amber-slowdance-394353/ |
+| `audio/lofi/reading-room/coffee-in-blue.mp3` | Coffee in Blue | https://pixabay.com/music/cafe-free-jazz-guitar-vibe-coffee-in-blue-399261/ |
+| `audio/lofi/reading-room/crimson-latte.mp3` | Crimson Latte | https://pixabay.com/music/smooth-jazz-free-jazz-guitar-vibe-crimson-latte-392837/ |
+| `audio/lofi/reading-room/dreams-over-wood.mp3` | Dreams Over Wood | https://pixabay.com/music/smooth-jazz-free-jazz-guitar-vibe-dreams-over-wood-399268/ |
+| `audio/lofi/reading-room/evening-sketches.mp3` | Evening Sketches | https://pixabay.com/music/smooth-jazz-free-jazz-guitar-vibe-evening-sketches-392838/ |
+| `audio/lofi/reading-room/mellow-windows.mp3` | Mellow Windows | https://pixabay.com/music/cafe-free-jazz-guitar-vibe-mellow-windows-399260/ |
+| `audio/lofi/reading-room/shadows-in-swing.mp3` | Shadows in Swing | https://pixabay.com/music/smooth-jazz-free-jazz-guitar-vibe-shadows-in-swing-399263/ |
+| `audio/lofi/reading-room/soft-strings-cafe.mp3` | Soft Strings Café | https://pixabay.com/music/smooth-jazz-free-jazz-guitar-vibe-soft-strings-caf%C3%A9-394352/ |
+| `audio/lofi/reading-room/twilight-reverb.mp3` | Twilight Reverb | https://pixabay.com/music/smooth-jazz-free-jazz-guitar-vibe-twilight-reverb-399264/ |
+| `audio/lofi/reading-room/whispers-on-5th.mp3` | Whispers on 5th | https://pixabay.com/music/smooth-jazz-free-jazz-guitar-vibe-whispers-on-5th-394354/ |
+
+- **License:** https://pixabay.com/service/license-summary/
+- **Usage:** Scene-specific randomized Jazz Radio playlist for Reading Room, with only the current and next track buffered for crossfading.
+- **Scene images:** `public/images/reading-room/Cozy Rainy Night Study dark.png` and `public/images/reading-room/Cozy Rainy Night Study.png` were supplied by the project owner. No external source license was provided, and the images are not covered by Slowbit's MIT source-code license.

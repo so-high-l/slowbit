@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FocusPlaylist, focusTrackUrls, lofiTrackFiles, lofiTrackUrls, nightDriveTrackFiles, nightDriveTrackUrls, shuffleBag, pianoFade } from "../src/lib/focus-music.ts";
+import { FocusPlaylist, focusTrackUrls, lofiTrackFiles, lofiTrackUrls, nightDriveTrackFiles, nightDriveTrackUrls, readingRoomTrackFiles, readingRoomTrackUrls, shuffleBag, pianoFade } from "../src/lib/focus-music.ts";
 import { availableVisuals } from "../src/lib/scene-availability.ts";
 import { normalize, defaults, saveSceneSoundMix, getSceneSoundMix } from "../src/lib/preferences.ts";
 import type { Visual } from "../src/lib/types.ts";
@@ -43,6 +43,8 @@ test("shuffle cycles contain every track without consecutive repeats", () => {
   assert.deepEqual(lofiTrackUrls("https://assets.test/"), lofiTrackFiles.map(file => `https://assets.test/audio/lofi/${file}`));
   assert.deepEqual(nightDriveTrackUrls(""), []);
   assert.deepEqual(nightDriveTrackUrls("https://assets.test/"), nightDriveTrackFiles.map(file => `https://assets.test/audio/lofi/night-drive/${file}`));
+  assert.deepEqual(readingRoomTrackUrls(""), []);
+  assert.deepEqual(readingRoomTrackUrls("https://assets.test/"), readingRoomTrackFiles.map(file => `https://assets.test/audio/lofi/reading-room/${file}`));
   assert.deepEqual(pianoFade(0), [1, 0]);
   assert.ok(pianoFade(.5)[0] > pianoFade(.5)[1]);
   assert.ok(pianoFade(1)[0] < .00001); assert.equal(pianoFade(1)[1], 1);

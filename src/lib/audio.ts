@@ -1,4 +1,4 @@
-import { FocusPlaylist, focusTrackUrls, lofiTrackUrls, nightDriveTrackUrls } from "./focus-music.ts";
+import { FocusPlaylist, focusTrackUrls, lofiTrackUrls, nightDriveTrackUrls, readingRoomTrackUrls } from "./focus-music.ts";
 import type { SoundId, VisualId, SessionMode } from "./types";
 import { recordingProfile, type RecordedChannel, type RecordingProfile } from "./audio-profiles.ts";
 import { sceneSoundscapes } from "./scene-soundscapes.ts";
@@ -24,6 +24,7 @@ export class AmbientEngine {
   private piano?: FocusPlaylist;
   private lofi?: FocusPlaylist;
   private nightDriveLofi?: FocusPlaylist;
+  private readingRoomJazz?: FocusPlaylist;
   private synthesis?: SceneSynthesis;
   private curtain = false;
   private pondEnabled = false;
@@ -258,6 +259,7 @@ export class AmbientEngine {
     this.piano?.update(false, false, 0);
     this.lofi?.update(false, false, 0);
     this.nightDriveLofi?.update(false, false, 0);
+    this.readingRoomJazz?.update(false, false, 0);
     this.synthesis?.stop();
     this.pondEnabled = false;
     this.stopDrops();
@@ -294,6 +296,14 @@ export class AmbientEngine {
       }
     }
     this.nightDriveLofi?.update(nightDriveLofiEnabled, audible, volumes.lofi ?? 0, transition);
+    const readingRoomJazzEnabled = mode === "focus" && soundscape?.playlist === "readingRoomJazz";
+    if (readingRoomJazzEnabled && audible && volumes.lofi > 0 && !this.readingRoomJazz && this.context.state === "running") {
+      const urls = readingRoomTrackUrls(ASSET_URL);
+      if (urls.length) {
+        try { this.readingRoomJazz = new FocusPlaylist(this.context, this.master, urls); } catch { /* Rain and night ambience remain available if media nodes are unsupported. */ }
+      }
+    }
+    this.readingRoomJazz?.update(readingRoomJazzEnabled, audible, volumes.lofi ?? 0, transition);
     this.pondEnabled = scene === "pond" && audible && volumes.pondDrops > 0;
     if (!this.pondEnabled) this.stopDrops();
     else void this.preparePondDrop();
@@ -332,6 +342,7 @@ export class AmbientEngine {
     this.piano?.close();
     this.lofi?.close();
     this.nightDriveLofi?.close();
+    this.readingRoomJazz?.close();
     this.synthesis?.close();
     this.pondEnabled = false;
     this.stopDrops();

@@ -6,6 +6,7 @@ export type VisualId =
   | "morningLattice"
   | "quietMachine"
   | "nightDrive"
+  | "readingRoom"
   | "focusComingSoon"
   | "rain"
   | "aurora"
