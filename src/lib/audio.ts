@@ -1,4 +1,4 @@
-import { FocusPlaylist, focusTrackUrls, lofiTrackUrls } from "./focus-music.ts";
+import { FocusPlaylist, focusTrackUrls, lofiTrackUrls, nightDriveTrackUrls } from "./focus-music.ts";
 import type { SoundId, VisualId, SessionMode } from "./types";
 import { recordingProfile, type RecordedChannel, type RecordingProfile } from "./audio-profiles.ts";
 import { sceneSoundscapes } from "./scene-soundscapes.ts";
@@ -23,6 +23,7 @@ export class AmbientEngine {
   private closed = false;
   private piano?: FocusPlaylist;
   private lofi?: FocusPlaylist;
+  private nightDriveLofi?: FocusPlaylist;
   private synthesis?: SceneSynthesis;
   private curtain = false;
   private pondEnabled = false;
@@ -256,6 +257,7 @@ export class AmbientEngine {
     if (this.closed) return;
     this.piano?.update(false, false, 0);
     this.lofi?.update(false, false, 0);
+    this.nightDriveLofi?.update(false, false, 0);
     this.synthesis?.stop();
     this.pondEnabled = false;
     this.stopDrops();
@@ -284,6 +286,14 @@ export class AmbientEngine {
       }
     }
     this.lofi?.update(lofiEnabled, audible, volumes.lofi ?? 0, transition);
+    const nightDriveLofiEnabled = mode === "focus" && soundscape?.playlist === "nightDriveLofi";
+    if (nightDriveLofiEnabled && audible && volumes.lofi > 0 && !this.nightDriveLofi && this.context.state === "running") {
+      const urls = nightDriveTrackUrls(ASSET_URL);
+      if (urls.length) {
+        try { this.nightDriveLofi = new FocusPlaylist(this.context, this.master, urls); } catch { /* Other layers remain available if media nodes are unsupported. */ }
+      }
+    }
+    this.nightDriveLofi?.update(nightDriveLofiEnabled, audible, volumes.lofi ?? 0, transition);
     this.pondEnabled = scene === "pond" && audible && volumes.pondDrops > 0;
     if (!this.pondEnabled) this.stopDrops();
     else void this.preparePondDrop();
@@ -321,6 +331,7 @@ export class AmbientEngine {
     this.closed = true;
     this.piano?.close();
     this.lofi?.close();
+    this.nightDriveLofi?.close();
     this.synthesis?.close();
     this.pondEnabled = false;
     this.stopDrops();

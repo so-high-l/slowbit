@@ -10,13 +10,28 @@ export const lofiTrackFiles = [
   "serenomusic-abstract-chill-612078.mp3",
   "zephiramusic-lofi-background-580735.mp3",
 ];
+export const nightDriveTrackFiles = [
+  "city-lights.mp3",
+  "dreamy-lofi.mp3",
+  "golden-hour-drive.mp3",
+  "late-night-drive.mp3",
+  "moody-lofi-groove.mp3",
+  "night-drive-deep-mood.mp3",
+  "night-drive-melody.mp3",
+  "night-drive-turning-pages.mp3",
+  "sapce-loungue-chill-drift.mp3",
+  "shadow-bloom.mp3",
+];
 export function focusTrackUrls(base: string) {
   return base ? focusTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/${file}`) : [];
 }
 export function lofiTrackUrls(base: string) {
   return base ? lofiTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/lofi/${file}`) : [];
 }
-export function shuffleBag(size: number, seed = 719) {
+export function nightDriveTrackUrls(base: string) {
+  return base ? nightDriveTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/lofi/night-drive/${file}`) : [];
+}
+export function shuffleBag(size: number, seed = Math.floor(Math.random() * 0x1_0000_0000)) {
   let bag: number[] = [], last = -1;
   return () => {
     if (!bag.length) {

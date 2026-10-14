@@ -7,6 +7,7 @@ type LightStyle = { color: string; x: number; y: number; spread: number; reflect
 export const sceneLights: Record<VisualId, LightStyle> = {
   focusComingSoon: { color: "192,212,220", x: 0.5, y: 0.5, spread: 0 },
   quietMachine: { color: "221,191,144", x: 0.55, y: 0.48, spread: 0.07 },
+  nightDrive: { color: "245,181,110", x: 0.5, y: 0.48, spread: 0 },
   orbitStudy: { color: "218,230,248", x: 0.61, y: 0.38, spread: 0.10 },
   morningLattice: { color: "249,216,158", x: 0.70, y: 0.42, spread: 0.06, reflection: true },
   rain: { color: "204,222,237", x: 0.61, y: 0.42, spread: 0.07, reflection: true },

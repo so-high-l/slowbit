@@ -7,6 +7,7 @@ export const visualIds: VisualId[] = [
   "orbitStudy",
   "morningLattice",
   "quietMachine",
+  "nightDrive",
   "focusComingSoon",
   "rain",
   "aurora",

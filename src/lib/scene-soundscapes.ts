@@ -20,7 +20,7 @@ export type TextureKind = "tape" | "halo" | "float" | "air" | "round" | "bow" | 
 export type SceneSoundscape = {
   beatHz: number;
   carrierHz: number;
-  playlist?: "lofi";
+  playlist?: "lofi" | "nightDriveLofi";
   ambience?: { asset: keyof typeof sceneAudioAssets; name: string; cutoff: number; level: number };
   texture?: { kind: TextureKind; name: string };
   mix: Partial<SoundMix>;
@@ -30,6 +30,7 @@ export type SceneSoundscape = {
 // Every scene starts with binaural volume at zero; ambience carries its identity.
 export const sceneSoundscapes: Partial<Record<VisualId, SceneSoundscape>> = {
   quietMachine: { beatHz: 13, carrierHz: 200, playlist: "lofi", ambience: { asset: "machinePad", name: "Soft atmosphere", cutoff: 2600, level: 0.35 }, texture: { kind: "tape", name: "Analog tape" }, mix: { lofi: 0.2, ambience: 0.1, texture: 0, brown: 0.12, binaural: 0 } },
+  nightDrive: { beatHz: 14, carrierHz: 210, playlist: "nightDriveLofi", mix: { lofi: 0.24, brown: 0.08, binaural: 0 } },
   aurora: { beatHz: 6, carrierHz: 220, ambience: { asset: "polar", name: "Polar air", cutoff: 2200, level: 0.55 }, texture: { kind: "halo", name: "Luminous tones" }, mix: { ambience: 0.28, texture: 0.12, binaural: 0 } },
   stars: { beatHz: 3, carrierHz: 160, ambience: { asset: "city", name: "Distant city", cutoff: 1200, level: 0.55 }, mix: { ambience: 0.26, brown: 0.06, binaural: 0 } },
   embers: { beatHz: 4.5, carrierHz: 180, mix: { fire: 0.38, forest: 0.05, binaural: 0 } },

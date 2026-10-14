@@ -53,7 +53,7 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
     (s.id !== "texture" || soundscape?.texture) &&
     (s.id !== "train" || visual.id === "lantern") &&
     (s.id !== "piano" || (p.mode === "focus" && visual.id === "morningLattice")) &&
-    (s.id !== "lofi" || soundscape?.playlist === "lofi") &&
+    (s.id !== "lofi" || Boolean(soundscape?.playlist)) &&
     (s.id !== "orbitalPad" || ((p.mode ?? "unwind") === "unwind" && visual.id === "orbitStudy")),
   );
   const renderTrack = (s: typeof sounds[number]) => {

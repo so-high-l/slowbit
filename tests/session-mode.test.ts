@@ -19,7 +19,7 @@ test("Focus and Unwind expose separate scene catalogs", () => {
   const focus = availableVisuals(visuals, "focus").map(scene => scene.id);
   const unwind = availableVisuals(visuals, "unwind").map(scene => scene.id);
 
-  assert.deepEqual(focus, ["morningLattice", "quietMachine", "focusComingSoon"]);
+  assert.deepEqual(focus, ["morningLattice", "quietMachine", "nightDrive", "focusComingSoon"]);
   assert.equal(unwind.length, visuals.length - focus.length);
   assert.ok(focus.every(id => !unwind.includes(id)));
   const placeholder = visuals.find(scene => scene.id === "focusComingSoon")!;

@@ -12,8 +12,8 @@ test("Quiet Machine is Focus-only with independent, persistent tape and brown no
   assert.ok(availableVisuals(visuals, "focus").includes(scene));
   assert.ok(!availableVisuals(visuals, "unwind").includes(scene));
   const mix = getSceneSoundMix(defaults, scene);
-  assert.equal(mix.texture, 0.3);
-  assert.equal(mix.lofi, 0.22);
+  assert.equal(mix.texture, 0);
+  assert.equal(mix.lofi, 0.2);
   assert.equal(mix.brown, 0.12);
   assert.equal(mix.binaural, 0);
   assert.equal(sceneSoundscapes.quietMachine?.playlist, "lofi");

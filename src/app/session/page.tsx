@@ -385,12 +385,16 @@ function Session() {
                 ? exploring ? "Fade out the piano · Z" : "Fade in the piano · Z"
                 : visualId === "quietMachine"
                   ? exploring ? "Return to the full mechanism · Z" : "Zoom into the main circle · Z"
+                  : visualId === "nightDrive"
+                    ? exploring ? "Return to the quiet cabin · Z" : "Wake the radio lights · Z"
                   : exploring ? "Return to the normal scene · Z" : "Enter the immersive scene · Z"}
               onClick={() => setExploring((v) => !v)}
             >
               <Orbit size={13} />
               {visualId === "quietMachine"
                 ? exploring ? "Return to the full mechanism" : "Look inside the mechanism"
+                : visualId === "nightDrive"
+                ? exploring ? "Return to the quiet cabin" : "Tune into the night"
                 : visualId === "orbitStudy"
                 ? exploring ? "Return to the orbit map" : "Enter the orbital system"
                 : visualId === "morningLattice"

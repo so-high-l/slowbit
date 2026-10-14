@@ -104,3 +104,23 @@ External media by **leberch**, from **Pixabay**, under the **Pixabay Content Lic
 
 - **Orbital pad**: `public/audio/orbital-pad-loop.mp3` is original, procedurally composed Slowbit audio, with no third-party samples. Included under the project's MIT license. Reproduce it with `node scripts/generate-orbital-pad.mjs` (requires ffmpeg). A 48-second stereo open-fifth pad with gentle detuning, no percussion, melody, or vocals. Source oscillators complete integer cycles across the loop; the audio engine additionally blends the loop seam and fades playback in.
 - **Planet PNGs**: supplied by the project owner and installed locally; filenames and placement are documented in `public/images/orbit-study/README.md`. No source license was provided for these images; they are not covered by the source-code MIT license. The scene uses markers while images load or if an image becomes unavailable.
+
+## Night Drive lo-fi playlist
+
+External media from **Pixabay**, under the **Pixabay Content License**. These recordings are not covered by Slowbit's MIT source-code license. MP3 files are not included in Git; the project owner uploads them to R2 under `audio/lofi/night-drive/`. Retain the download record and a copy of the license for every track. Attribution is not required by the Pixabay Content License, but the creator and source are retained here. Do not distribute the recordings as standalone audio files.
+
+| R2 object | Track and creator | Source | Notes |
+| --- | --- | --- | --- |
+| `audio/lofi/night-drive/city-lights.mp3` | City Lights (Chill Lo-Fi) — Monument_Music | https://pixabay.com/music/beats-city-lights-chill-lo-fi-176145/ | Content ID registered |
+| `audio/lofi/night-drive/dreamy-lofi.mp3` | Dreamy lo-fi — DF_wahyumusicproduction | https://pixabay.com/music/lofi-dreamy-lo-fi-456975/ | — |
+| `audio/lofi/night-drive/golden-hour-drive.mp3` | Golden Hour Drive — Turning_Pages | https://pixabay.com/music/beats-golden-hour-drive-403137/ | AI generated |
+| `audio/lofi/night-drive/late-night-drive.mp3` | Miyagisama - Late Night Drive — Miyagisama | https://pixabay.com/music/beats-miyagisama-late-night-drive-9987/ | — |
+| `audio/lofi/night-drive/moody-lofi-groove.mp3` | Chillhop Night Drive – Moody Lofi Groove — DesiFreeMusic | https://pixabay.com/music/epic-classical-chillhop-night-drive-moody-lofi-groove-451182/ | AI generated |
+| `audio/lofi/night-drive/night-drive-deep-mood.mp3` | Night Drive, Deep Mood — OpenMindAudio | https://pixabay.com/music/lofi-chill-lo-fi-ambient-trap-background-music-night-drive-deep-mood-456784/ | AI generated |
+| `audio/lofi/night-drive/night-drive-melody.mp3` | Night Drive Melody — Tristan1234G34 | https://pixabay.com/music/lofi-night-drive-melody-469369/ | — |
+| `audio/lofi/night-drive/night-drive-turning-pages.mp3` | Night Drive — Turning_Pages | https://pixabay.com/music/beats-night-drive-403138/ | AI generated |
+| `audio/lofi/night-drive/sapce-loungue-chill-drift.mp3` | Space Lounge, Chill Drift — OpenMindAudio | https://pixabay.com/music/lofi-relaxing-lo-fi-background-music-space-lounge-chill-drift-456780/ | AI generated; R2 filename retains uploaded spelling |
+| `audio/lofi/night-drive/shadow-bloom.mp3` | Shadow Bloom, Smooth Fade — OpenMindAudio | https://pixabay.com/music/lofi-chill-lo-fi-ambient-trap-outro-shadow-bloom-smooth-fade-456783/ | AI generated |
+
+- **License:** https://pixabay.com/service/license-summary/
+- **Usage:** Scene-specific randomized Lo-fi Radio playlist for Night Drive, with only the current and next track buffered for crossfading.
