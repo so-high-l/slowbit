@@ -67,6 +67,6 @@ export function availableCheckInScene(mood: Mood, hidden: VisualId[]): VisualId 
     "rain", "drift", "aurora", "stars", "embers", "ocean",
     "pond", "mist", "snow", "dunes", "clouds", "jelly",
     "meadow", "lantern", "ink", "vinyl", "nightSky",
-    "thread", "ribbonTunnel", "magneticField", "orbitStudy",
+    "thread", "ribbonTunnel", "deepPassage", "magneticField", "orbitStudy",
   ] as VisualId[]).find(id => !hidden.includes(id));
 }

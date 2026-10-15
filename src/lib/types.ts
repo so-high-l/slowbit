@@ -27,6 +27,7 @@ export type VisualId =
   | "nightSky"
   | "thread"
   | "ribbonTunnel"
+  | "deepPassage"
   | "magneticField";
 export type SoundId =
   "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones" | "train" | "piano" | "lofi" | "orbitalPad" | "ambience" | "texture" | "binaural" | "textureTone" | "pondDrops" | "vinylMusic";

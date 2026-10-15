@@ -218,6 +218,15 @@ export const visuals: Visual[] = [
     defaultSounds: sceneSoundscapes.ribbonTunnel!.mix,
   },
   {
+    id: "deepPassage",
+    name: "Deep Passage",
+    subtitle: "Follow the distance. Let everything else fall away.",
+    tags: ["Abstract", "Infinite", "Deep", "Slow"],
+    modes: ["unwind"],
+    recommendedMoods: ["restless", "overstimulated", "chill"],
+    defaultSounds: sceneSoundscapes.deepPassage!.mix,
+  },
+  {
     id: "magneticField",
     name: "Magnetic Field",
     subtitle: "Let everything find its path.",

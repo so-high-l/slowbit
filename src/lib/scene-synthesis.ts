@@ -18,6 +18,7 @@ const textures: Record<TextureKind, { partials: [number, number][]; period: numb
   round: { partials: [[196, 0.095], [392, 0.018]], period: 23 },
   bow: { partials: [[146.8, 0.085], [293.6, 0.032], [440.4, 0.014], [587.2, 0.006]], period: 41 },
   ribbon: { partials: [[116.5, 0.025]], noise: 0.27, period: 53, pan: true },
+  current: { partials: [[73.4, 0.065], [110, 0.026], [146.8, 0.012]], period: 61, pan: true },
   glass: { partials: [[293.7, 0.07], [587.3, 0.025], [830.6, 0.012]], period: 31 },
 };
 

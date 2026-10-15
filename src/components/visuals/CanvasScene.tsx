@@ -28,6 +28,7 @@ import { paintLateNightRecord } from "./LateNightRecord";
 import { paintNightSky } from "./NightSky";
 import { paintFlowingThread } from "./FlowingThread";
 import { paintRibbonTunnel } from "./InfiniteRibbonTunnel";
+import { paintDeepPassage } from "./DeepPassage";
 import { paintMagneticField } from "./MagneticField";
 import { paintFollowLight } from "./follow-light";
 import { advanceDepth } from "./depth";
@@ -61,6 +62,7 @@ const painters = {
   nightSky: paintNightSky,
   thread: paintFlowingThread,
   ribbonTunnel: paintRibbonTunnel,
+  deepPassage: paintDeepPassage,
   magneticField: paintMagneticField,
 } satisfies Record<VisualId, ScenePainter>;
 export default function CanvasScene({
@@ -101,6 +103,7 @@ export default function CanvasScene({
       t = 0,
       machineTime = 0,
       machineZoomTime = 0,
+      deepPassageTime = 0,
       last = 0,
       focus = 0;
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -181,11 +184,13 @@ export default function CanvasScene({
         // Normal mode drifts quietly; immersion smoothly raises orbital speed.
         if (kind === "orbitStudy") advanceOrbitMotion(orbit, dt);
         if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
-        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "quietMachine" ? 0.2 : kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "jelly" ? 0.32 : kind === "nightDrive" ? 0.75 : kind === "readingRoom" ? 0.62 : kind === "lantern" ? 0.65 : 1.4)));
+        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "quietMachine" ? 0.2 : kind === "deepPassage" ? 0.34 : kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "jelly" ? 0.32 : kind === "nightDrive" ? 0.75 : kind === "readingRoom" ? 0.62 : kind === "lantern" ? 0.65 : 1.4)));
         if (kind === "quietMachine") {
           if (active.current) machineZoomTime += dt * Math.max(0, Math.min(1, (focus - 0.72) / 0.24));
           else if (!active.current && focus < 0.001) machineZoomTime = 0;
         }
+        if (kind === "deepPassage" && !active.current && focus < 0.001) focus = 0;
+        if (kind === "deepPassage") deepPassageTime += dt * focus;
         if (kind === "stars" || kind === "drift")
           advanceDepth(particles, dt, focus, kind === "stars" ? 0.09 : 0.045);
         if (kind === "drift")
@@ -206,10 +211,11 @@ export default function CanvasScene({
       }
       if (kind === "orbitStudy") paintOrbitStudy({ ctx, w, h, t, particles, orbit, reducedMotion: reduced });
       else if (kind === "quietMachine") paintQuietMachine({ ctx, w, h, t: machineTime, zoomTime: machineZoomTime, particles, focus, reducedMotion: reduced });
+      else if (kind === "deepPassage") paintDeepPassage({ ctx, w, h, t: deepPassageTime, particles, focus, reducedMotion: reduced });
       else painters[kind]({ ctx, w, h, t, particles, focus, reducedMotion: reduced });
       ctx.restore();
       // Deep Blue draws its guide inside the water, sharing the camera depth.
-      if (kind !== "jelly" && kind !== "quietMachine" && kind !== "nightDrive" && kind !== "readingRoom" && kind !== "focusComingSoon") paintFollowLight(ctx, kind, w, h, t, focus, reduced);
+      if (kind !== "jelly" && kind !== "quietMachine" && kind !== "nightDrive" && kind !== "readingRoom" && kind !== "deepPassage" && kind !== "focusComingSoon") paintFollowLight(ctx, kind, w, h, t, focus, reduced);
     };
     frame = requestAnimationFrame(draw);
     return () => {

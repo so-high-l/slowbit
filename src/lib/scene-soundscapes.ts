@@ -6,6 +6,7 @@ import type { SoundMix, VisualId } from "./types";
 // in this app. Keep the complete original cycle during conversion.
 export const sceneAudioAssets = {
   machinePad: { file: "quiet-machine-d-minor-loop.wav", author: "Slowbit", source: "scripts/generate-quiet-machine-pad.py", nativeLoop: true },
+  deepPassageDrone: { file: "liecio-mysterious-drone-pad-in-perfect-loop-257593.mp3", author: "Liecio", source: "https://pixabay.com/sound-effects/musical-mysterious-drone-pad-in-perfect-loop-257593/", nativeLoop: true },
   polar: { file: "527281__dlgebert__monologue-wind.wav", author: "dlgebert", source: "https://freesound.org/people/dlgebert/sounds/527281/", nativeLoop: true },
   city: { file: "223093__qubodup__seamless-city-loop.flac", author: "qubodup", source: "https://freesound.org/people/qubodup/sounds/223093/", nativeLoop: true },
   pond: { file: "91919__filipe-chagas__waterlappingrockybeachambiance.wav", author: "Filipe Chagas", source: "https://freesound.org/people/Filipe%20Chagas/sounds/91919/", nativeLoop: false },
@@ -16,7 +17,7 @@ export const sceneAudioAssets = {
   vinylMusic: { file: "859607__blankierest__sleepy-upright-piano-seamless-loop.wav", author: "blankie.rest", source: "https://freesound.org/people/blankie.rest/sounds/859607/", nativeLoop: true },
 } as const;
 
-export type TextureKind = "tape" | "halo" | "float" | "air" | "round" | "bow" | "ribbon" | "glass";
+export type TextureKind = "tape" | "halo" | "float" | "air" | "round" | "bow" | "ribbon" | "current" | "glass";
 export type SceneSoundscape = {
   beatHz: number;
   carrierHz: number;
@@ -46,6 +47,7 @@ export const sceneSoundscapes: Partial<Record<VisualId, SceneSoundscape>> = {
   nightSky: { beatHz: 4, carrierHz: 185, ambience: { asset: "rural", name: "Rural night", cutoff: 6000, level: 0.6 }, mix: { ambience: 0.05, forest: 0.03, binaural: 0 } },
   thread: { beatHz: 11, carrierHz: 247, texture: { kind: "bow", name: "Bowed harmonics" }, mix: { texture: 0.32, brown: 0.04, binaural: 0 } },
   ribbonTunnel: { beatHz: 7.5, carrierHz: 233, texture: { kind: "ribbon", name: "Moving air" }, mix: { texture: 0.05, textureTone: 0.5, brown: 0.05, binaural: 0 } },
+  deepPassage: { beatHz: 1.5, carrierHz: 128, ambience: { asset: "deepPassageDrone", name: "Deep passage drone", cutoff: 3200, level: 0.45 }, texture: { kind: "current", name: "Deep current" }, mix: { ambience: 0.22, wind: 0.30, texture: 0, brown: 0, binaural: 0 } },
   magneticField: { beatHz: 12, carrierHz: 294, texture: { kind: "glass", name: "Glass resonance" }, mix: { texture: 0.16, brown: 0.16, binaural: 0 } },
 };
 
