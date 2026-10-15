@@ -17,11 +17,11 @@ export const sceneAudioAssets = {
   vinylMusic: { file: "859607__blankierest__sleepy-upright-piano-seamless-loop.wav", author: "blankie.rest", source: "https://freesound.org/people/blankie.rest/sounds/859607/", nativeLoop: true },
 } as const;
 
-export type TextureKind = "tape" | "halo" | "float" | "air" | "round" | "bow" | "ribbon" | "current" | "glass";
+export type TextureKind = "tape" | "halo" | "float" | "air" | "round" | "bow" | "ribbon" | "current" | "chromatic" | "glass";
 export type SceneSoundscape = {
   beatHz: number;
   carrierHz: number;
-  playlist?: "lofi" | "nightDriveLofi" | "readingRoomJazz";
+  playlist?: "lofi" | "nightDriveLofi" | "readingRoomJazz" | "chromaticDriftAmbient";
   ambience?: { asset: keyof typeof sceneAudioAssets; name: string; cutoff: number; level: number };
   texture?: { kind: TextureKind; name: string };
   mix: Partial<SoundMix>;
@@ -48,6 +48,7 @@ export const sceneSoundscapes: Partial<Record<VisualId, SceneSoundscape>> = {
   thread: { beatHz: 11, carrierHz: 247, texture: { kind: "bow", name: "Bowed harmonics" }, mix: { texture: 0.32, brown: 0.04, binaural: 0 } },
   ribbonTunnel: { beatHz: 7.5, carrierHz: 233, texture: { kind: "ribbon", name: "Moving air" }, mix: { texture: 0.05, textureTone: 0.5, brown: 0.05, binaural: 0 } },
   deepPassage: { beatHz: 1.5, carrierHz: 128, ambience: { asset: "deepPassageDrone", name: "Deep passage drone", cutoff: 3200, level: 0.45 }, texture: { kind: "current", name: "Deep current" }, mix: { ambience: 0.22, wind: 0.30, texture: 0, brown: 0, binaural: 0 } },
+  chromaticDrift: { beatHz: 2, carrierHz: 202, playlist: "chromaticDriftAmbient", texture: { kind: "chromatic", name: "Chromatic hum" }, mix: { lofi: 0.22, texture: 0.04, binaural: 0 } },
   magneticField: { beatHz: 12, carrierHz: 294, texture: { kind: "glass", name: "Glass resonance" }, mix: { texture: 0.16, brown: 0.16, binaural: 0 } },
 };
 

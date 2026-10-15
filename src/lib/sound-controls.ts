@@ -15,6 +15,7 @@ export function hasAirTones(scene: VisualId) {
 export function soundLabel(scene: VisualId, id: SoundId, fallback: string): string {
   if (id === "lofi" && scene === "nightDrive") return "Lo-fi Radio";
   if (id === "lofi" && scene === "readingRoom") return "Jazz Radio";
+  if (id === "lofi" && scene === "chromaticDrift") return "777 Hz + ambience";
   if (id === "ambience") return sceneSoundscapes[scene]?.ambience?.name ?? fallback;
   if (id === "texture") return sceneSoundscapes[scene]?.texture?.name ?? fallback;
   if (id === "textureTone") return scene === "clouds" ? "Air harmonics" : "Low hum";

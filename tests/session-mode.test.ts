@@ -15,13 +15,13 @@ test("mode duration choices preserve compatible values and replace incompatible 
   assert.equal(durationForMode("unwind", null), null);
 });
 
-test("Focus and Unwind expose separate scene catalogs", () => {
+test("Focus and Unwind expose their catalogs with two shared abstract scenes", () => {
   const focus = availableVisuals(visuals, "focus").map(scene => scene.id);
   const unwind = availableVisuals(visuals, "unwind").map(scene => scene.id);
 
-  assert.deepEqual(focus, ["morningLattice", "quietMachine", "nightDrive", "readingRoom", "focusComingSoon"]);
-  assert.equal(unwind.length, visuals.length - focus.length);
-  assert.ok(focus.every(id => !unwind.includes(id)));
+  assert.deepEqual(focus, ["morningLattice", "quietMachine", "nightDrive", "readingRoom", "focusComingSoon", "deepPassage", "chromaticDrift"]);
+  assert.deepEqual(focus.filter(id => unwind.includes(id)), ["deepPassage", "chromaticDrift"]);
+  assert.equal(unwind.length, visuals.length - 5);
   const placeholder = visuals.find(scene => scene.id === "focusComingSoon")!;
   assert.deepEqual(placeholder.defaultSounds, {});
   assert.ok(Object.values(getSceneSoundMix(defaults, placeholder)).every(volume => volume === 0));

@@ -12,6 +12,15 @@
 - **Upstream license:** MIT with Commons Clause.
 - **Usage:** Visual direction only. Deep Passage is an original Canvas 2D painter and does not copy React Bits source code, packages, or assets.
 
+### Chromatic Drift visual reference
+
+- **Reference:** React Bits, Grainient — https://reactbits.dev/backgrounds/grainient
+- **Source:** https://github.com/DavidHDev/react-bits
+- **Source revision:** `382dc89411ce8446ef2b2ed99e352c44a53a1b54`
+- **Upstream license:** MIT with Commons Clause.
+- **Usage:** The Grainient WebGL2 shader and renderer are adapted into Chromatic Drift as part of the Slowbit application. Slowbit adds session pause, reduced-motion behavior, smooth Z-speed changes, and cleanup while preserving the upstream default visual settings.
+- **Notice:** The complete upstream copyright and license text is included in [`licenses/react-bits-grainient.md`](licenses/react-bits-grainient.md).
+
 ## Third-party assets
 
 ### Deep Passage drone
@@ -23,6 +32,26 @@
 - **License:** Pixabay Content License — https://pixabay.com/service/license-summary/
 - **Usage:** Primary scene-specific ambience for Deep Passage. The original seamless loop fades in through Slowbit's audio engine.
 - **MIT status:** Not covered by Slowbit's MIT source-code license.
+
+### Chromatic Drift ambient playlist
+
+External media from **Pixabay**, under the **Pixabay Content License**. These recordings are not covered by Slowbit's MIT source-code license. MP3 files are not included in Git; the project owner uploads them to R2 under `audio/chromatic-drift/`. Retain the download record and a copy of the license for every track. Do not distribute the recordings as standalone audio files.
+
+| R2 object | Track and creator | Source |
+| --- | --- | --- |
+| `audio/chromatic-drift/divineawakeningfrequency-3-warm-soft-ambient-pad-with-gentle-evolving-cinematic-okie-31-445842.mp3` | 3. warm-soft ambient pad with gentle evolving cinematic okie #3.1 — DivineAwakeningFrequency | https://pixabay.com/music/ambient-3-warm-soft-ambient-pad-with-gentle-evolving-cinematic-okie-31-445842/ |
+| `audio/chromatic-drift/divineawakeningfrequency-ambient-pad-wide-stereo-airy-alpha-brainwave-friendly-450942.mp3` | ambient pad wide stereo airy alpha brainwave friendly — DivineAwakeningFrequency | https://pixabay.com/music/ambient-ambient-pad-wide-stereo-airy-alpha-brainwave-friendly-450942/ |
+| `audio/chromatic-drift/divineawakeningfrequency-ambient-warm-cinematic-texturesoftly-like-glowing-up-1-444078.mp3` | ambient warm cinematic texture softly like glowing up 1 — DivineAwakeningFrequency | https://pixabay.com/music/ambient-ambient-warm-cinematic-texturesoftly-like-glowing-up-1-444078/ |
+| `audio/chromatic-drift/divineawakeningfrequency-drone-warm-halo-texture-ambient-91-449668.mp3` | drone warm halo texture ambient 9.1 — DivineAwakeningFrequency | https://pixabay.com/music/ambient-drone-warm-halo-texture-ambient-91-449668/ |
+| `audio/chromatic-drift/divineawakeningfrequency-gentle-bed-slow-soothing-like-soft-movie-revelation-frequency-5-442218.mp3` | gentle bed slow soothing like soft movie Revelation frequency #5 — DivineAwakeningFrequency | https://pixabay.com/music/ambient-gentle-bed-slow-soothing-like-soft-movie-revelation-frequency-5-442218/ |
+| `audio/chromatic-drift/divineawakeningfrequency-soft-airy-ambient-pad-warm-angelic-93-449672.mp3` | soft airy ambient pad warm angelic 9.3 — DivineAwakeningFrequency | https://pixabay.com/music/ambient-soft-airy-ambient-pad-warm-angelic-93-449672/ |
+| `audio/chromatic-drift/divineawakeningfrequency-ultra-clean-ambient-crystal-air-pad-made-only-of-smooth-high-frequency-440086.mp3` | ultra clean ambient crystal air pad made only of smooth high frequency — DivineAwakeningFrequency | https://pixabay.com/music/ambient-ultra-clean-ambient-crystal-air-pad-made-only-of-smooth-high-frequency-440086/ |
+| `audio/chromatic-drift/divineawakeningfrequency-warm-pad-heart-mind-energy-ambient-450813.mp3` | warm pad heart mind energy ambient — DivineAwakeningFrequency | https://pixabay.com/music/ambient-warm-pad-heart-mind-energy-ambient-450813/ |
+| `audio/chromatic-drift/hoggyart-777-hz-higher-angelic-frequencies-223415.mp3` | 777 Hz Higher Angelic Frequencies — HoggyArt | https://pixabay.com/music/ambient-777-hz-higher-angelic-frequencies-223415/ |
+| `audio/chromatic-drift/liecio-calming-and-relaxing-meditation-music-110208.mp3` | Calming and Relaxing Meditation Music — Liecio | https://pixabay.com/music/meditationspiritual-calming-and-relaxing-meditation-music-110208/ |
+
+- **License:** https://pixabay.com/service/license-summary/
+- **Usage:** Scene-specific randomized ambient playlist for Chromatic Drift. Slowbit buffers only the current and next tracks and crossfades them over six seconds.
 
 ### Light Rain Loop
 

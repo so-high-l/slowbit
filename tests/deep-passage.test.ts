@@ -5,9 +5,9 @@ import { deepPassagePoint } from "../src/components/visuals/DeepPassage.ts";
 import { sceneSoundscapes } from "../src/lib/scene-soundscapes.ts";
 import { recordingProfile } from "../src/lib/audio-profiles.ts";
 
-test("Deep Passage is an Unwind-only scene with its own restrained soundscape", () => {
+test("Deep Passage is available for Focus and Unwind with its own restrained soundscape", () => {
   const scene = visuals.find(visual => visual.id === "deepPassage")!;
-  assert.deepEqual(scene.modes, ["unwind"]);
+  assert.deepEqual(scene.modes, ["focus", "unwind"]);
   assert.equal(sceneSoundscapes.deepPassage?.ambience?.asset, "deepPassageDrone");
   assert.equal(sceneSoundscapes.deepPassage?.ambience?.name, "Deep passage drone");
   assert.equal(sceneSoundscapes.deepPassage?.texture?.kind, "current");

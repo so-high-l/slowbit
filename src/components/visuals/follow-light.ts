@@ -31,6 +31,7 @@ export const sceneLights: Record<VisualId, LightStyle> = {
   thread: { color: "227,208,234", x: 0.57, y: 0.46, spread: 0.10 },
   ribbonTunnel: { color: "195,223,241", x: 0.55, y: 0.45, spread: 0.07 },
   deepPassage: { color: "174,222,255", x: 0.5, y: 0.43, spread: 0 },
+  chromaticDrift: { color: "218,226,255", x: 0.56, y: 0.44, spread: 0.08 },
   magneticField: { color: "169,226,222", x: 0.58, y: 0.44, spread: 0.10 },
 };
 

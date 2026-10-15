@@ -35,6 +35,8 @@ import { advanceDepth } from "./depth";
 import { paintMorningLattice } from "./MorningLattice";
 import { orbitImages, paintOrbitStudy } from "./OrbitStudy";
 import { advanceOrbitMotion, createOrbitMotion } from "./orbit-motion";
+type CanvasVisualId = Exclude<VisualId, "chromaticDrift">;
+
 const painters = {
   focusComingSoon: paintFocusComingSoon,
   quietMachine: paintQuietMachine,
@@ -64,14 +66,14 @@ const painters = {
   ribbonTunnel: paintRibbonTunnel,
   deepPassage: paintDeepPassage,
   magneticField: paintMagneticField,
-} satisfies Record<VisualId, ScenePainter>;
+} satisfies Record<CanvasVisualId, ScenePainter>;
 export default function CanvasScene({
   kind,
   paused = false,
   exploring = false,
   motionScale = 1,
 }: {
-  kind: VisualId;
+  kind: CanvasVisualId;
   paused?: boolean;
   exploring?: boolean;
   motionScale?: number;

@@ -28,6 +28,7 @@ export type VisualId =
   | "thread"
   | "ribbonTunnel"
   | "deepPassage"
+  | "chromaticDrift"
   | "magneticField";
 export type SoundId =
   "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones" | "train" | "piano" | "lofi" | "orbitalPad" | "ambience" | "texture" | "binaural" | "textureTone" | "pondDrops" | "vinylMusic";

@@ -34,6 +34,18 @@ export const readingRoomTrackFiles = [
   "twilight-reverb.mp3",
   "whispers-on-5th.mp3",
 ];
+export const chromaticDriftTrackFiles = [
+  "divineawakeningfrequency-3-warm-soft-ambient-pad-with-gentle-evolving-cinematic-okie-31-445842.mp3",
+  "divineawakeningfrequency-ambient-pad-wide-stereo-airy-alpha-brainwave-friendly-450942.mp3",
+  "divineawakeningfrequency-ambient-warm-cinematic-texturesoftly-like-glowing-up-1-444078.mp3",
+  "divineawakeningfrequency-drone-warm-halo-texture-ambient-91-449668.mp3",
+  "divineawakeningfrequency-gentle-bed-slow-soothing-like-soft-movie-revelation-frequency-5-442218.mp3",
+  "divineawakeningfrequency-soft-airy-ambient-pad-warm-angelic-93-449672.mp3",
+  "divineawakeningfrequency-ultra-clean-ambient-crystal-air-pad-made-only-of-smooth-high-frequency-440086.mp3",
+  "divineawakeningfrequency-warm-pad-heart-mind-energy-ambient-450813.mp3",
+  "hoggyart-777-hz-higher-angelic-frequencies-223415.mp3",
+  "liecio-calming-and-relaxing-meditation-music-110208.mp3",
+];
 export function focusTrackUrls(base: string) {
   return base ? focusTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/${file}`) : [];
 }
@@ -45,6 +57,9 @@ export function nightDriveTrackUrls(base: string) {
 }
 export function readingRoomTrackUrls(base: string) {
   return base ? readingRoomTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/lofi/reading-room/${file}`) : [];
+}
+export function chromaticDriftTrackUrls(base: string) {
+  return base ? chromaticDriftTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/chromatic-drift/${file}`) : [];
 }
 export function shuffleBag(size: number, seed = Math.floor(Math.random() * 0x1_0000_0000)) {
   let bag: number[] = [], last = -1;

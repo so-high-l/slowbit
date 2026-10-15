@@ -30,6 +30,7 @@ export const visualIds: VisualId[] = [
   "thread",
   "ribbonTunnel",
   "deepPassage",
+  "chromaticDrift",
   "magneticField",
 ];
 const soundIds: SoundId[] = [
