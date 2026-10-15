@@ -2411,6 +2411,14 @@ input[type="range"] {
   backdrop-filter: blur(8px);
 }
 
+.session-bottom > .explore-switch {
+  margin-top: 0;
+}
+
+.session.controls-hidden .session-bottom > :not(.explore-switch) {
+  pointer-events: none;
+}
+
 @media (pointer: coarse) {
   .explore-switch { min-height: 44px; padding: 10px 14px; }
   .explore-switch kbd { display: none; }

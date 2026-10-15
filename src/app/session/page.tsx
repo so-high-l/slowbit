@@ -149,7 +149,7 @@ function Session() {
   useEffect(() => {
     if (!controls.current) return;
     const standardControls = controls.current.querySelectorAll(
-      ".session-header, .scene-caption > :not(.explore-switch), .session-bottom",
+      ".session-header, .scene-caption > *, .session-bottom > :not(.explore-switch)",
     );
     const exploreSwitch = controls.current.querySelector(".explore-switch");
     const tween = gsap.to(standardControls, {
@@ -387,9 +387,18 @@ function Session() {
             <span className="eyebrow">YOU ARE HERE. THAT’S ENOUGH.</span>
             <h1>{visual.name}</h1>
             <p>{visual.subtitle}</p>
+          </div>
+          <div className="session-bottom">
+            <div className="session-status" role="status">
+              {notice ||
+                fullscreen.message ||
+                audio.error ||
+                (!playing ? "Take your time. Your session is paused." : "")}
+            </div>
             {!isFocusPlaceholder && <button
               className={`explore-switch ${exploring ? "active" : ""}`}
               type="button"
+              disabled={p.showBoard || opening}
               style={{ pointerEvents: visible || !exploring ? "auto" : "none" }}
               aria-pressed={exploring}
               aria-keyshortcuts="Z"
@@ -434,14 +443,6 @@ function Session() {
                     : "Follow the light"}
               <kbd>Z</kbd>
             </button>}
-          </div>
-          <div className="session-bottom" style={{ pointerEvents: visible ? "auto" : "none" }}>
-            <div className="session-status" role="status">
-              {notice ||
-                fullscreen.message ||
-                audio.error ||
-                (!playing ? "Take your time. Your session is paused." : "")}
-            </div>
             <div className="control-dock">
               <div className="dock-group">
                 <button
