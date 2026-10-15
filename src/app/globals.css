@@ -195,36 +195,71 @@ em {
 
 .grainient-guide {
   position: absolute;
-  left: 55%;
+  left: 56%;
   top: 46%;
-  width: 96px;
-  height: 96px;
-  margin: -48px 0 0 -48px;
+  width: 112px;
+  height: 112px;
+  margin: -56px 0 0 -56px;
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
+  transform: scale(.72);
+  transition: opacity 2.8s ease, transform 3.2s cubic-bezier(.22, .8, .24, 1);
+  mix-blend-mode: screen;
+}
+
+.grainient-guide::before,
+.grainient-guide::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+.grainient-guide::before {
+  inset: 0;
   background: radial-gradient(circle,
-      #fff7e8 0 2px,
-      #ffba7029 4px,
-      #ff8a3320 15px,
-      transparent 62%);
-  filter: blur(.15px);
-  transition: opacity 2.4s ease;
-  animation: grainient-guide-drift 24s ease-in-out infinite alternate;
+      #fffaf1 0 2px,
+      #fff0cfb8 3px,
+      #ffc57b3d 10px,
+      #f58b3721 30px,
+      transparent 68%);
+  filter: blur(.2px);
+  animation: grainient-guide-breathe 8.5s ease-in-out infinite;
+}
+
+.grainient-guide::after {
+  inset: -70%;
+  border: 1px solid #ffd4a02b;
+  box-shadow: 0 0 34px #ff9b4b14, inset 0 0 28px #fff1d30d;
+  opacity: 0;
+  animation: grainient-bloom-ring 13s ease-out infinite;
 }
 
 .grainient-scene-shell[data-immersive="true"] .grainient-guide {
-  opacity: .72;
+  opacity: .78;
+  transform: scale(1);
 }
 
-@keyframes grainient-guide-drift {
-  0% { transform: translate3d(-18vw, 14vh, 0) scale(.88); }
-  50% { transform: translate3d(2vw, -16vh, 0) scale(1.04); }
-  100% { transform: translate3d(20vw, 11vh, 0) scale(.92); }
+@keyframes grainient-guide-breathe {
+  0%, 100% { transform: scale(.92); filter: blur(.2px); }
+  50% { transform: scale(1.08); filter: blur(.7px); }
+}
+
+@keyframes grainient-bloom-ring {
+  0%, 18% { opacity: 0; transform: scale(.16); }
+  28% { opacity: .38; }
+  76%, 100% { opacity: 0; transform: scale(2.35); }
+}
+
+.grainient-scene-shell[data-paused="true"] .grainient-guide::before,
+.grainient-scene-shell[data-paused="true"] .grainient-guide::after {
+  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .grainient-guide { animation: none; transition: none; }
+  .grainient-guide,
+  .grainient-guide::before,
+  .grainient-guide::after { animation: none; transition: none; }
 }
 
 .scene-vignette {

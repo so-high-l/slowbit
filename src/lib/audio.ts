@@ -10,6 +10,12 @@ const ASSET_URL = (process.env.NEXT_PUBLIC_ASSET_URL ?? "").replace(/\/$/, "");
 type Voice = { key: string; source: AudioBufferSourceNode; gain: GainNode; filter: BiquadFilterNode; highpass: BiquadFilterNode };
 type RecordingRequest = { key: string; scene: VisualId; retries: number; retry?: ReturnType<typeof setTimeout> };
 
+export function owlDelayMs(initial: boolean, random = Math.random()) {
+  const [minimum, maximum] = initial ? [20_000, 55_000] : [75_000, 180_000];
+  const amount = Math.max(0, Math.min(1, random));
+  return Math.round(minimum + (maximum - minimum) * amount);
+}
+
 export class AmbientEngine {
   context: AudioContext;
   master: GainNode;
@@ -32,6 +38,11 @@ export class AmbientEngine {
   private pondBuffer?: AudioBuffer;
   private pondLoading = false;
   private drops = new Set<{ source: AudioBufferSourceNode; gain: GainNode }>();
+  private owlEnabled = false;
+  private owlBuffer?: AudioBuffer;
+  private owlLoading = false;
+  private owlTimer?: ReturnType<typeof setTimeout>;
+  private owlVoice?: { source: AudioBufferSourceNode; gain: GainNode };
 
   private stopDrops() {
     for (const drop of this.drops) {
@@ -64,6 +75,69 @@ export class AmbientEngine {
     try { this.pondBuffer = await this.buffer("mixkit-water-bubble.wav", false); }
     catch { /* Skip missing drops rather than substitute noise. */ }
     finally { this.pondLoading = false; }
+  }
+
+  private stopOwl() {
+    clearTimeout(this.owlTimer);
+    this.owlTimer = undefined;
+    if (!this.owlVoice) return;
+    const { source, gain } = this.owlVoice;
+    this.owlVoice = undefined;
+    source.onended = null;
+    source.stop();
+    source.disconnect();
+    gain.disconnect();
+  }
+
+  private scheduleOwl(initial: boolean) {
+    if (this.closed || !this.owlEnabled || !this.owlBuffer || this.owlTimer || this.owlVoice) return;
+    this.owlTimer = setTimeout(() => {
+      this.owlTimer = undefined;
+      this.playOwl();
+    }, owlDelayMs(initial));
+  }
+
+  private playOwl() {
+    const night = this.tracks.get("night");
+    if (this.closed || !this.owlEnabled || !this.owlBuffer || !night || this.owlVoice) return;
+    const source = this.context.createBufferSource();
+    source.buffer = this.owlBuffer;
+    source.loop = false;
+    const gain = this.context.createGain();
+    gain.gain.value = 0.32;
+    source.connect(gain);
+    gain.connect(night);
+    this.owlVoice = { source, gain };
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+      if (this.owlVoice?.source === source) this.owlVoice = undefined;
+      this.scheduleOwl(false);
+    };
+    source.start();
+  }
+
+  private async prepareOwl() {
+    if (this.owlBuffer) {
+      this.scheduleOwl(true);
+      return;
+    }
+    if (this.owlLoading) return;
+    this.owlLoading = true;
+    try {
+      this.owlBuffer = await this.buffer("public_sounds_animals_owl.mp3", false);
+      this.scheduleOwl(true);
+    } catch { /* Crickets continue alone when the optional owl recording is unavailable. */ }
+    finally { this.owlLoading = false; }
+  }
+
+  private updateOwl(enabled: boolean) {
+    this.owlEnabled = enabled;
+    if (!enabled) {
+      this.stopOwl();
+      return;
+    }
+    if (!this.owlTimer && !this.owlVoice) void this.prepareOwl();
   }
 
   constructor() {
@@ -265,6 +339,8 @@ export class AmbientEngine {
     this.synthesis?.stop();
     this.pondEnabled = false;
     this.stopDrops();
+    this.owlEnabled = false;
+    this.stopOwl();
     for (const id of this.requests.keys()) this.cancelRequest(id);
     this.master.gain.setTargetAtTime(0, this.context.currentTime, 0.45);
   }
@@ -317,6 +393,7 @@ export class AmbientEngine {
     this.pondEnabled = scene === "pond" && audible && volumes.pondDrops > 0;
     if (!this.pondEnabled) this.stopDrops();
     else void this.preparePondDrop();
+    this.updateOwl(audible && scene !== "jelly" && (volumes.night ?? 0) > 0);
     const now = this.context.currentTime;
     for (const [id, gain] of this.tracks) {
       const channelVolume = id === "vinylMusic" && (scene !== "vinyl" || !vinylImmersive) ? 0
@@ -357,6 +434,8 @@ export class AmbientEngine {
     this.synthesis?.close();
     this.pondEnabled = false;
     this.stopDrops();
+    this.owlEnabled = false;
+    this.stopOwl();
     for (const id of this.requests.keys()) this.cancelRequest(id);
     for (const load of this.loads) load.abort();
     for (const voice of this.liveVoices) {

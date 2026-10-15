@@ -16,12 +16,14 @@ test("Chromatic Drift is available for Focus and Unwind with a randomized ambien
   assert.equal(sceneSoundscapes.chromaticDrift?.mix.binaural, 0);
 });
 
-test("immersion increases the Grainient flow while pause and reduced motion stop it", () => {
+test("immersion enters the endless bloom while pause and reduced motion stop it", () => {
   const normal = grainientSceneSettings({ immersive: false });
   const immersive = grainientSceneSettings({ immersive: true });
   assert.ok(immersive.speed > normal.speed);
-  assert.equal(grainientSceneSettings({ paused: true, immersive: true }).speed, 0);
-  assert.equal(grainientSceneSettings({ reducedMotion: true, immersive: true }).speed, 0);
+  assert.equal(normal.bloom, 0);
+  assert.equal(immersive.bloom, 1);
+  assert.equal(grainientSceneSettings({ paused: true, immersive: true }).frozen, true);
+  assert.equal(grainientSceneSettings({ reducedMotion: true, immersive: true }).bloom, 0);
   assert.equal(grainientSceneSettings({ reducedMotion: true }).grainAnimated, false);
 });
 

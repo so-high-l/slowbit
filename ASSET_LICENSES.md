@@ -75,6 +75,14 @@ External media from **Pixabay**, under the **Pixabay Content License**. These re
 - **Usage:** Night ambience.
 - **MIT status:** Not covered by Slowbit's MIT source-code license.
 
+### Distant owl
+
+- **R2 object:** `audio/public_sounds_animals_owl.mp3`
+- **Source:** Supplied and uploaded by the project owner; original source page was not provided.
+- **License:** Not independently verified; retain the original download and license record.
+- **Usage:** A rare one-shot layered into the Crickets channel after randomized long pauses.
+- **MIT status:** Not covered by Slowbit's MIT source-code license.
+
 ### Campfire
 
 - **R2 object:** `audio/mixkit-campfire-crackles-1330.wav`

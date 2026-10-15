@@ -261,7 +261,7 @@ export const sounds: { id: SoundId; name: string; note: string }[] = [
   { id: "wind", name: "Wind", note: "A slow passing breeze" },
   { id: "forest", name: "Forest ambience", note: "Leaves and distant birds" },
   { id: "brown", name: "Brown noise", note: "Deep, gentle texture" },
-  { id: "night", name: "Crickets", note: "Crickets in the distance" },
+  { id: "night", name: "Crickets & owl", note: "Crickets with a rare distant owl" },
 ];
 sounds.push({
   id: "tones",

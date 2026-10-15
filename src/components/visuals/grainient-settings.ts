@@ -13,7 +13,9 @@ export function grainientSceneSettings({
 }: GrainientSceneSettingsInput) {
   const still = paused || reducedMotion;
   return {
-    speed: still ? 0 : (immersive ? 0.72 : 0.24) * Math.max(0, Math.min(2, motionScale)),
+    speed: still ? 0 : (immersive ? 0.78 : 0.52) * Math.max(0, Math.min(2, motionScale)),
+    bloom: reducedMotion ? 0 : immersive ? 1 : 0,
+    frozen: still,
     grainAnimated: !still,
   };
 }

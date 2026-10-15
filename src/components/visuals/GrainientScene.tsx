@@ -33,6 +33,8 @@ interface GrainientProps extends Omit<HTMLAttributes<HTMLDivElement>, "style"> {
   intro?: boolean;
   lightMode?: boolean;
   dpr?: number;
+  bloom?: number;
+  frozen?: boolean;
   style?: CSSProperties;
 }
 
@@ -58,6 +60,8 @@ type Settings = {
   intro: boolean;
   lightMode: boolean;
   dpr?: number;
+  bloom: number;
+  frozen: boolean;
 };
 
 type Sample = { x: number; y: number; vx: number; vy: number; age: number; grow: number; done: boolean };
@@ -108,6 +112,8 @@ uniform float uContrast;
 uniform float uSaturation;
 uniform float uSettle;
 uniform float uReveal;
+uniform float uBloom;
+uniform float uBloomTime;
 in vec2 vUv;
 out vec4 outColor;
 
@@ -156,6 +162,27 @@ float coord(vec2 p) {
   return uType == 1 ? 1.0 - length(w) * 1.1 : dot(w, uDir) / uExtent + 0.5;
 }
 
+float sceneCoord(vec2 p) {
+  float baseField = coord(p);
+  if (uBloom <= 0.0001) return baseField;
+  vec2 bloomCenter = vec2(0.06 * uAspect, 0.04);
+  vec2 bloomDelta = p - bloomCenter;
+  float bloomRadius = length(bloomDelta);
+  vec2 bloomDirection = bloomDelta / max(bloomRadius, 0.0001);
+  float organicEdge = (noise(bloomDelta * 2.8 + drift(bloomDelta * 1.4, uTime) * 0.7) - 0.5) * 0.075;
+  float radialLog = log2(max(0.026, bloomRadius + 0.052 + organicEdge));
+  float radialPhase = radialLog * 1.28 - uBloomTime * 0.052;
+  float bloomAngle = atan(bloomDelta.y, bloomDelta.x);
+  radialPhase += sin(bloomAngle * 3.0 + radialLog * 0.7) * 0.035;
+  radialPhase += (noise(bloomDirection * 1.7 + vec2(uTime * 0.04, -uTime * 0.03)) - 0.5) * 0.52;
+  float membrane = 0.5 + 0.5 * sin(radialPhase * 6.2831853);
+  membrane = smoothstep(0.04, 0.96, membrane);
+  vec2 inward = bloomCenter + bloomDelta / (1.0 + uBloom * 0.13);
+  float originalField = coord(mix(p, inward, uBloom));
+  float bloomField = mix(originalField, membrane, 0.74);
+  return mix(originalField, bloomField, uBloom);
+}
+
 vec3 labToRgb(vec3 lab) {
   float l = lab.x + 0.3963377774 * lab.y + 0.2158037573 * lab.z;
   float m = lab.x - 0.1055613458 * lab.y - 0.0638541728 * lab.z;
@@ -192,7 +219,10 @@ void main() {
     float s = sin(a);
     p = uTwirl[i].xy + mat2(c, -s, s, c) * d;
   }
-  float raw = coord(p);
+  vec2 bloomCenter = vec2(0.06 * uAspect, 0.04);
+  vec2 bloomDelta = p - bloomCenter;
+  float bloomRadius = length(bloomDelta);
+  float raw = sceneCoord(p);
   float s = raw;
   if (uBands > 1.0) {
     s *= uBands;
@@ -215,8 +245,14 @@ void main() {
     }
   }
   vec3 lab = mix(from, to, shaped);
+  float guide = exp(-dot(bloomDelta, bloomDelta) / 0.009) * uBloom;
+  float waveRadius = fract(uBloomTime * 0.034) * 1.15;
+  float waveDistance = (bloomRadius - waveRadius) / 0.035;
+  float outwardWave = exp(-(waveDistance * waveDistance)) * uBloom;
+  lab.x += guide * (0.065 + 0.012 * sin(uBloomTime * 0.7)) + outwardWave * 0.018;
+  lab.yz *= 1.0 - guide * 0.08;
   if (uSilk > 0.0) {
-    vec2 grad = vec2(coord(p + vec2(0.004, 0.0)) - raw, coord(p + vec2(0.0, 0.004)) - raw) / 0.004;
+    vec2 grad = vec2(sceneCoord(p + vec2(0.004, 0.0)) - raw, sceneCoord(p + vec2(0.0, 0.004)) - raw) / 0.004;
     vec2 slope = grad * sin(3.14159265 * clamp(raw, 0.0, 1.0) * uBands) * uSilk * 4.0;
     vec3 normal = normalize(vec3(-slope, 1.0));
     vec3 light = normalize(vec3(-uDir.y, uDir.x, 1.2));
@@ -337,6 +373,8 @@ const GrainientCore = ({
   intro = true,
   lightMode = false,
   dpr,
+  bloom = 0,
+  frozen = false,
   className = '',
   style,
   ...rest
@@ -366,7 +404,9 @@ const GrainientCore = ({
     clickSwirl,
     intro,
     lightMode,
-    dpr
+    dpr,
+    bloom: clamp(bloom, 0, 1),
+    frozen
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -428,6 +468,8 @@ const GrainientCore = ({
     let paletteKey = '';
     let time = 0;
     let currentSpeed = settingsRef.current.speed;
+    let currentBloom = settingsRef.current.bloom;
+    let bloomTime = 0;
     let introClock = settingsRef.current.intro && !reduce ? 0 : 1;
     let frameSeed = 0;
     let grainClock = 0;
@@ -483,6 +525,8 @@ const GrainientCore = ({
       gl.uniform1f(fu.uSaturation, s.saturation);
       gl.uniform1f(fu.uSettle, introClock * introClock * (3 - 2 * introClock));
       gl.uniform1f(fu.uReveal, introClock);
+      gl.uniform1f(fu.uBloom, currentBloom);
+      gl.uniform1f(fu.uBloomTime, bloomTime);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, canvas.width, canvas.height);
@@ -581,20 +625,25 @@ const GrainientCore = ({
       const s = settingsRef.current;
       const dt = last ? clamp((now - last) / 1000, 0.001, 0.05) : 1 / 60;
       last = now;
-      // Slowbit changes the target speed when Z is toggled. Ease toward it so
-      // the original field stays continuous instead of visibly changing gear.
-      currentSpeed += (s.speed - currentSpeed) * (1 - Math.exp(-dt / 1.4));
-      if (!reduce) time += dt * currentSpeed * 0.16;
-      if (introClock < 1) introClock = Math.min(1, introClock + dt / INTRO_SECONDS);
-      grainClock += dt;
-      if (s.grainAnimated && !reduce && grainClock > 1 / 24) {
-        grainClock = 0;
-        frameSeed = (frameSeed + 1) % 97;
+      if (!s.frozen && !reduce) {
+        // Ease into the recursive field while preserving one continuous
+        // composition. The logarithmic shader phase never resets.
+        currentSpeed += (s.speed - currentSpeed) * (1 - Math.exp(-dt / 1.8));
+        currentBloom += (s.bloom - currentBloom) * (1 - Math.exp(-dt / 2.8));
+        time += dt * currentSpeed * 0.16;
+        bloomTime += dt * currentBloom;
+        if (introClock < 1) introClock = Math.min(1, introClock + dt / INTRO_SECONDS);
+        grainClock += dt;
+        if (s.grainAnimated && grainClock > 1 / 24) {
+          grainClock = 0;
+          frameSeed = (frameSeed + 1) % 97;
+        }
       }
       updateTouches(dt, view.width / view.height);
       draw();
       const busy =
-        (!reduce && (s.speed > 0 || s.grainAnimated)) || introClock < 1 || trail.length > 0 || spins.length > 0;
+        (!s.frozen && !reduce && (s.speed > 0 || s.grainAnimated || Math.abs(s.bloom - currentBloom) > 0.001)) ||
+        (!s.frozen && introClock < 1) || trail.length > 0 || spins.length > 0;
       if (busy) raf = requestAnimationFrame(frame);
       else last = 0;
     };
@@ -714,7 +763,11 @@ export default function GrainientScene({
   const settings = grainientSceneSettings({ paused, immersive, motionScale, reducedMotion });
 
   return (
-    <div className="grainient-scene-shell" data-immersive={immersive && !reducedMotion}>
+    <div
+      className="grainient-scene-shell"
+      data-immersive={immersive && !reducedMotion}
+      data-paused={paused || reducedMotion}
+    >
       <GrainientCore
         colors={DEFAULT_COLORS}
         type="linear"
@@ -728,6 +781,8 @@ export default function GrainientScene({
         grainAmount={0.08}
         grainSize={1.2}
         grainAnimated={settings.grainAnimated}
+        bloom={settings.bloom}
+        frozen={settings.frozen}
         contrast={1}
         saturation={1}
         variation={0}

@@ -1,7 +1,7 @@
 import { test, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { recordingProfile } from "../src/lib/audio-profiles.ts";
-import { AmbientEngine } from "../src/lib/audio.ts";
+import { AmbientEngine, owlDelayMs } from "../src/lib/audio.ts";
 import type { SoundMix } from "../src/lib/types.ts";
 import { visuals } from "../src/data/catalog.ts";
 import { sceneMix, silentMix } from "../src/lib/sound-presets.ts";
@@ -17,6 +17,14 @@ test("recordings follow scene context under the same mixer channels", () => {
   assert.ok(recordingProfile("jelly", "wind").cutoff < recordingProfile("ocean", "wind").cutoff);
   assert.equal(recordingProfile("jelly", "wind").file, "underwater-loop.wav");
   assert.notEqual(recordingProfile("jelly", "wind").file, recordingProfile("ocean", "wind").file);
+});
+
+test("owl timing uses a short randomized first wait and much longer later gaps", () => {
+  assert.equal(owlDelayMs(true, 0), 20_000);
+  assert.equal(owlDelayMs(true, 1), 55_000);
+  assert.equal(owlDelayMs(false, 0), 75_000);
+  assert.equal(owlDelayMs(false, 1), 180_000);
+  assert.notEqual(owlDelayMs(false, 0.18), owlDelayMs(false, 0.82));
 });
 
 const mix = (channel: keyof SoundMix): SoundMix => ({
@@ -299,6 +307,31 @@ test("pond bubbles have their own gain, work without water or wind, and stop whe
   assert.ok(drop.stops.length, "muting bubbles stops existing drops even if wind is on");
   engine.playPondDrop();
   assert.equal(sources.length, 2, "wind cannot trigger more bubbles");
+});
+
+test("the owl follows the Crickets channel as a rare one-shot and cancels on mute", async t => {
+  const { engine, sources, calls, respond } = setup(t);
+  await engine.start();
+  engine.mix(mix("night"), 0.5, true, false, "nightSky");
+  assert.ok(calls.some(call => call.url.endsWith("night-crickets.wav")));
+  assert.ok(calls.some(call => call.url.endsWith("public_sounds_animals_owl.mp3")));
+  respond("night-crickets.wav");
+  respond("public_sounds_animals_owl.mp3");
+  await tick();
+  const beforeOwl = sources.length;
+  t.mock.timers.tick(19_999);
+  assert.equal(sources.length, beforeOwl, "the owl never calls immediately");
+  t.mock.timers.tick(35_001);
+  assert.equal(sources.length, beforeOwl + 1, "the first randomized window eventually produces one call");
+  const owl = sources.at(-1)!;
+  assert.equal(owl.loop, false);
+  const owlGain = owl.connections[0] as { connections: unknown[] };
+  assert.equal(owlGain.connections[0], engine.tracks.get("night"), "owl and crickets share one slider");
+  engine.mix(mix("night"), 0.5, true, true, "nightSky");
+  assert.ok(owl.stops.length, "muting Crickets stops an owl call already in progress");
+  const afterMute = sources.length;
+  t.mock.timers.tick(180_000);
+  assert.equal(sources.length, afterMute, "muting cancels future owl calls");
 });
 
 for (const channel of ["ambience", "wind"] as const) {
