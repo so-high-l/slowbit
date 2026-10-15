@@ -148,7 +148,11 @@ function Session() {
   }, [reveal]);
   useEffect(() => {
     if (!controls.current) return;
-    const tween = gsap.to(controls.current, {
+    const standardControls = controls.current.querySelectorAll(
+      ".session-header, .scene-caption > :not(.explore-switch), .session-bottom",
+    );
+    const exploreSwitch = controls.current.querySelector(".explore-switch");
+    const tween = gsap.to(standardControls, {
       opacity: visible ? 1 : 0,
       y: visible ? 0 : 8,
       duration: matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -156,10 +160,19 @@ function Session() {
         : 0.7,
       ease: "power2.out",
     });
+    const exploreTween = exploreSwitch ? gsap.to(exploreSwitch, {
+      opacity: visible || !exploring ? 1 : 0,
+      y: visible || !exploring ? 0 : 8,
+      duration: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? 0.01
+        : 0.7,
+      ease: "power2.out",
+    }) : undefined;
     return () => {
       tween.kill();
+      exploreTween?.kill();
     };
-  }, [visible, phase]);
+  }, [visible, phase, exploring, visualId]);
   useEffect(() => {
     if (!panel) return;
     const tween = gsap.fromTo(
@@ -351,9 +364,8 @@ function Session() {
         <div
           className="session-ui"
           ref={controls}
-          style={{ pointerEvents: visible ? "auto" : "none" }}
         >
-          <header className="session-header">
+          <header className="session-header" style={{ pointerEvents: visible ? "auto" : "none" }}>
             <Logo />
             <div className="timer-chip">
               <span className={playing ? "timer-breath" : ""} />
@@ -378,7 +390,7 @@ function Session() {
             {!isFocusPlaceholder && <button
               className={`explore-switch ${exploring ? "active" : ""}`}
               type="button"
-              style={{ pointerEvents: visible ? "auto" : "none" }}
+              style={{ pointerEvents: visible || !exploring ? "auto" : "none" }}
               aria-pressed={exploring}
               aria-keyshortcuts="Z"
               data-tooltip={visualId === "vinyl"
@@ -423,7 +435,7 @@ function Session() {
               <kbd>Z</kbd>
             </button>}
           </div>
-          <div className="session-bottom">
+          <div className="session-bottom" style={{ pointerEvents: visible ? "auto" : "none" }}>
             <div className="session-status" role="status">
               {notice ||
                 fullscreen.message ||

@@ -3742,6 +3742,11 @@ input[type="range"] {
   text-align: left;
   pointer-events: none;
   text-shadow: 0 2px 18px #0006;
+  transition: border-color .7s ease;
+}
+
+.session.controls-hidden .scene-caption {
+  border-left-color: transparent;
 }
 
 .session .scene-caption .eyebrow {
@@ -3774,7 +3779,7 @@ input[type="range"] {
 }
 
 .session .scene-caption[data-orbit-immersive] {
-  transition: opacity 1.4s ease-in-out;
+  transition: opacity 1.4s ease-in-out, border-color .7s ease;
 }
 
 .session .scene-caption[data-orbit-immersive="true"] {
@@ -3782,8 +3787,9 @@ input[type="range"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .session .scene-caption,
   .session .scene-caption[data-orbit-immersive] {
-    transition: none;
+    transition-duration: .01ms;
   }
 }
 
