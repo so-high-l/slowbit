@@ -642,6 +642,77 @@ em {
   gap: 12px;
 }
 
+.now-playing {
+  position: absolute;
+  left: 28px;
+  bottom: 31px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(320px, calc(100vw - 56px));
+  padding: 0;
+  text-shadow: 0 1px 12px #0005;
+  opacity: .92;
+  pointer-events: none;
+}
+
+.now-playing-mark {
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  width: 13px;
+  height: 16px;
+  flex: 0 0 13px;
+  padding-bottom: 1px;
+  color: #e6f5ec;
+}
+
+.now-playing-mark i {
+  display: block;
+  width: 2px;
+  height: 6px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: .82;
+  animation: now-playing-pulse 1.4s ease-in-out infinite;
+}
+
+.now-playing-mark i:nth-child(2) { height: 11px; animation-delay: -.8s; }
+.now-playing-mark i:nth-child(3) { height: 8px; animation-delay: -.4s; }
+.now-playing-mark i:nth-child(4) { height: 13px; animation-delay: -.2s; }
+
+@keyframes now-playing-pulse {
+  0%, 100% { transform: scaleY(.65); opacity: .45; }
+  50% { transform: scaleY(1); opacity: .9; }
+}
+
+.now-playing-copy {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.now-playing-playlist {
+  overflow: hidden;
+  color: #d1ded7;
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.now-playing-track {
+  overflow: hidden;
+  color: #ffffff;
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .timer-chip {
   position: absolute;
   left: 50%;
@@ -1458,6 +1529,12 @@ input[type="range"] {
     gap: 10px;
   }
 
+  .now-playing {
+    left: 16px;
+    bottom: 20px;
+    max-width: min(280px, calc(100vw - 32px));
+  }
+
   .audio-panel {
     top: 125px;
     right: 15px;
@@ -1505,6 +1582,18 @@ input[type="range"] {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-playing-mark i {
+    animation-duration: .01ms;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .now-playing {
+    text-shadow: 0 1px 6px #0008;
   }
 }
 

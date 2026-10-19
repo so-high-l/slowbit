@@ -61,6 +61,10 @@ export function readingRoomTrackUrls(base: string) {
 export function chromaticDriftTrackUrls(base: string) {
   return base ? chromaticDriftTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/chromatic-drift/${file}`) : [];
 }
+export function trackDisplayName(url: string) {
+  const filename = decodeURIComponent(url.split("/").pop() ?? "").replace(/\.[^.]+$/, "");
+  return filename.replace(/\b\d{5,}\b/g, "").replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim().replace(/\b\w/g, letter => letter.toUpperCase());
+}
 export function shuffleBag(size: number, seed = Math.floor(Math.random() * 0x1_0000_0000)) {
   let bag: number[] = [], last = -1;
   return () => {
@@ -95,8 +99,11 @@ export class FocusPlaylist {
   private output: GainNode;
   private context: AudioContext;
   private urls: string[];
-  constructor(context: AudioContext, master: GainNode, urls: string[], makeAudio = () => new Audio()) {
+  private onTrackChange?: (track: string | null) => void;
+  private announcedTrack: string | null = null;
+  constructor(context: AudioContext, master: GainNode, urls: string[], makeAudio = () => new Audio(), onTrackChange?: (track: string | null) => void) {
     this.context = context; this.urls = urls;
+    this.onTrackChange = onTrackChange;
     this.next = shuffleBag(urls.length);
     this.output = context.createGain(); this.output.gain.value = 0; this.output.connect(master);
     this.slots = Array.from({ length: 2 }, () => {
@@ -110,6 +117,11 @@ export class FocusPlaylist {
       media.onerror = () => this.fail(slot);
       return slot;
     });
+  }
+  private announceTrack(track: string | null) {
+    if (track === this.announcedTrack) return;
+    this.announcedTrack = track;
+    this.onTrackChange?.(track);
   }
   private load(slot: Slot) {
     if (this.closed || !this.running || slot.track >= 0 || this.failed.size >= this.urls.length) return;
@@ -148,6 +160,7 @@ export class FocusPlaylist {
     const a = this.slots[this.current], b = this.slots[1 - this.current];
     if (a.track < 0) this.load(a);
     if (!a.ready) return;
+    this.announceTrack(this.urls[a.track] ?? null);
     if (!a.media.ended) this.play(a);
     const remaining = a.media.duration - a.media.currentTime;
     if (remaining <= 25 || a.media.ended) this.load(b);
@@ -171,6 +184,7 @@ export class FocusPlaylist {
     if (enabled) { clearTimeout(this.departure); this.departure = undefined; }
     this.output.gain.setTargetAtTime(enabled ? volume : 0, this.context.currentTime, enabled ? transition : 0.2);
     this.running = enabled && playing && volume > 0;
+    if (!this.running) this.announceTrack(null);
     if (this.running) this.tick();
     else if (enabled) this.slots.forEach(s => s.media.pause());
     else if (!this.departure) this.departure = setTimeout(() => { this.departure = undefined; if (!this.running) { this.slots.forEach(s => this.clear(s)); this.crossStart = null; } }, 1200);

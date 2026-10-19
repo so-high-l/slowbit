@@ -36,6 +36,7 @@ import { visuals } from "@/data/catalog";
 import { analytics, captureProductEvent } from "@/lib/analytics";
 import { createSessionAnalytics } from "@/lib/analytics-events";
 import type { VisualId } from "@/lib/types";
+import { trackDisplayName } from "@/lib/focus-music";
 export default function SessionPage() {
   const store = usePreferences();
   if (!store.ready)
@@ -149,7 +150,7 @@ function Session() {
   useEffect(() => {
     if (!controls.current) return;
     const standardControls = controls.current.querySelectorAll(
-      ".session-header, .scene-caption > *, .session-bottom > :not(.explore-switch)",
+      ".session-header, .now-playing, .scene-caption > *, .session-bottom > :not(.explore-switch)",
     );
     const exploreSwitch = controls.current.querySelector(".explore-switch");
     const tween = gsap.to(standardControls, {
@@ -172,7 +173,7 @@ function Session() {
       tween.kill();
       exploreTween?.kill();
     };
-  }, [visible, phase, exploring, visualId]);
+  }, [visible, phase, exploring, visualId, audioSession.nowPlaying]);
   useEffect(() => {
     if (!panel) return;
     const tween = gsap.fromTo(
@@ -383,6 +384,15 @@ function Session() {
               <span>Finish session</span> <X size={18} aria-hidden="true" />
             </button>
           </header>
+          {audioSession.nowPlaying && !isFocusPlaceholder && (
+            <div className="now-playing" key={visualId} role="status" aria-live="polite">
+              <span className="now-playing-mark" aria-hidden="true"><i /><i /><i /><i /></span>
+              <span className="now-playing-copy">
+                <span className="now-playing-track">{trackDisplayName(audioSession.nowPlaying.track)}</span>
+                <span className="now-playing-playlist">Playing from {audioSession.nowPlaying.playlist}</span>
+              </span>
+            </div>
+          )}
           <div className="scene-caption" data-orbit-immersive={visualId === "orbitStudy" ? orbitImmersive : undefined} inert={p.showBoard || opening}>
             <span className="eyebrow">YOU ARE HERE. THAT’S ENOUGH.</span>
             <h1>{visual.name}</h1>

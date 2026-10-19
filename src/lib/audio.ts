@@ -9,6 +9,7 @@ import { duplicateSound, hasAirTones } from "./sound-controls.ts";
 const ASSET_URL = (process.env.NEXT_PUBLIC_ASSET_URL ?? "").replace(/\/$/, "");
 type Voice = { key: string; source: AudioBufferSourceNode; gain: GainNode; filter: BiquadFilterNode; highpass: BiquadFilterNode };
 type RecordingRequest = { key: string; scene: VisualId; retries: number; retry?: ReturnType<typeof setTimeout> };
+export type NowPlaying = { playlist: string; track: string } | null;
 
 export function owlDelayMs(initial: boolean, random = Math.random()) {
   const [minimum, maximum] = initial ? [20_000, 55_000] : [75_000, 180_000];
@@ -43,6 +44,8 @@ export class AmbientEngine {
   private owlLoading = false;
   private owlTimer?: ReturnType<typeof setTimeout>;
   private owlVoice?: { source: AudioBufferSourceNode; gain: GainNode };
+  private onNowPlayingChange?: (nowPlaying: NowPlaying) => void;
+  private activeNowPlaying: NowPlaying = null;
 
   private stopDrops() {
     for (const drop of this.drops) {
@@ -140,11 +143,19 @@ export class AmbientEngine {
     if (!this.owlTimer && !this.owlVoice) void this.prepareOwl();
   }
 
-  constructor() {
+  constructor(onNowPlayingChange?: (nowPlaying: NowPlaying) => void) {
+    this.onNowPlayingChange = onNowPlayingChange;
     this.context = new AudioContext();
     this.master = this.context.createGain();
     this.master.gain.value = 0;
     this.master.connect(this.context.destination);
+  }
+
+  private publishNowPlaying(playlist: string, track: string | null) {
+    const next = track ? { playlist, track } : null;
+    if (next?.track === this.activeNowPlaying?.track && next?.playlist === this.activeNowPlaying?.playlist) return;
+    this.activeNowPlaying = next;
+    this.onNowPlayingChange?.(next);
   }
 
   async start() {
@@ -354,7 +365,7 @@ export class AmbientEngine {
     if (pianoEnabled && playing && !muted && global > 0 && volumes.piano > 0 && !this.piano && this.context.state === "running") {
       const urls = focusTrackUrls(ASSET_URL);
       if (urls.length) {
-        try { this.piano = new FocusPlaylist(this.context, this.master, urls); } catch { /* Ambient playback remains available if media nodes are unsupported. */ }
+        try { this.piano = new FocusPlaylist(this.context, this.master, urls, undefined, track => this.publishNowPlaying("Piano", track)); } catch { /* Ambient playback remains available if media nodes are unsupported. */ }
       }
     }
     this.piano?.update(pianoEnabled, playing && !muted && global > 0, (volumes.piano ?? 0) * (this.curtain ? 0.5 : 1), transition);
@@ -362,7 +373,7 @@ export class AmbientEngine {
     if (lofiEnabled && audible && volumes.lofi > 0 && !this.lofi && this.context.state === "running") {
       const urls = lofiTrackUrls(ASSET_URL);
       if (urls.length) {
-        try { this.lofi = new FocusPlaylist(this.context, this.master, urls); } catch { /* Other layers remain available if media nodes are unsupported. */ }
+        try { this.lofi = new FocusPlaylist(this.context, this.master, urls, undefined, track => this.publishNowPlaying("Lo-fi", track)); } catch { /* Other layers remain available if media nodes are unsupported. */ }
       }
     }
     this.lofi?.update(lofiEnabled, audible, volumes.lofi ?? 0, transition);
@@ -370,7 +381,7 @@ export class AmbientEngine {
     if (nightDriveLofiEnabled && audible && volumes.lofi > 0 && !this.nightDriveLofi && this.context.state === "running") {
       const urls = nightDriveTrackUrls(ASSET_URL);
       if (urls.length) {
-        try { this.nightDriveLofi = new FocusPlaylist(this.context, this.master, urls); } catch { /* Other layers remain available if media nodes are unsupported. */ }
+        try { this.nightDriveLofi = new FocusPlaylist(this.context, this.master, urls, undefined, track => this.publishNowPlaying("Night Drive Radio", track)); } catch { /* Other layers remain available if media nodes are unsupported. */ }
       }
     }
     this.nightDriveLofi?.update(nightDriveLofiEnabled, audible, volumes.lofi ?? 0, transition);
@@ -378,7 +389,7 @@ export class AmbientEngine {
     if (readingRoomJazzEnabled && audible && volumes.lofi > 0 && !this.readingRoomJazz && this.context.state === "running") {
       const urls = readingRoomTrackUrls(ASSET_URL);
       if (urls.length) {
-        try { this.readingRoomJazz = new FocusPlaylist(this.context, this.master, urls); } catch { /* Rain and night ambience remain available if media nodes are unsupported. */ }
+        try { this.readingRoomJazz = new FocusPlaylist(this.context, this.master, urls, undefined, track => this.publishNowPlaying("Reading Room Jazz", track)); } catch { /* Rain and night ambience remain available if media nodes are unsupported. */ }
       }
     }
     this.readingRoomJazz?.update(readingRoomJazzEnabled, audible, volumes.lofi ?? 0, transition);
@@ -386,7 +397,7 @@ export class AmbientEngine {
     if (chromaticDriftAmbientEnabled && audible && volumes.lofi > 0 && !this.chromaticDriftAmbient && this.context.state === "running") {
       const urls = chromaticDriftTrackUrls(ASSET_URL);
       if (urls.length) {
-        try { this.chromaticDriftAmbient = new FocusPlaylist(this.context, this.master, urls); } catch { /* Procedural support remains available if media nodes are unsupported. */ }
+        try { this.chromaticDriftAmbient = new FocusPlaylist(this.context, this.master, urls, undefined, track => this.publishNowPlaying("Chromatic Drift", track)); } catch { /* Procedural support remains available if media nodes are unsupported. */ }
       }
     }
     this.chromaticDriftAmbient?.update(chromaticDriftAmbientEnabled, audible, volumes.lofi ?? 0, transition);
