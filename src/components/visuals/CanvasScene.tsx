@@ -35,7 +35,7 @@ import { advanceDepth } from "./depth";
 import { paintMorningLattice } from "./MorningLattice";
 import { orbitImages, paintOrbitStudy } from "./OrbitStudy";
 import { advanceOrbitMotion, createOrbitMotion } from "./orbit-motion";
-type CanvasVisualId = Exclude<VisualId, "chromaticDrift">;
+type CanvasVisualId = Exclude<VisualId, "chromaticDrift" | "japaneseCafe">;
 
 const painters = {
   focusComingSoon: paintFocusComingSoon,

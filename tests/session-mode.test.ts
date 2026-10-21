@@ -19,9 +19,9 @@ test("Focus and Unwind expose their catalogs with two shared abstract scenes", (
   const focus = availableVisuals(visuals, "focus").map(scene => scene.id);
   const unwind = availableVisuals(visuals, "unwind").map(scene => scene.id);
 
-  assert.deepEqual(focus, ["morningLattice", "quietMachine", "nightDrive", "readingRoom", "focusComingSoon", "deepPassage", "chromaticDrift"]);
+  assert.deepEqual(focus, ["morningLattice", "quietMachine", "nightDrive", "readingRoom", "japaneseCafe", "focusComingSoon", "deepPassage", "chromaticDrift"]);
   assert.deepEqual(focus.filter(id => unwind.includes(id)), ["deepPassage", "chromaticDrift"]);
-  assert.equal(unwind.length, visuals.length - 5);
+  assert.equal(unwind.length, visuals.length - 6);
   const placeholder = visuals.find(scene => scene.id === "focusComingSoon")!;
   assert.deepEqual(placeholder.defaultSounds, {});
   assert.ok(Object.values(getSceneSoundMix(defaults, placeholder)).every(volume => volume === 0));

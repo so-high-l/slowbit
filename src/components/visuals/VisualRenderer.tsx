@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import CanvasScene from "./CanvasScene";
 import GrainientScene from "./GrainientScene";
+import JapaneseCafeScene from "./JapaneseCafeScene";
 import type { VisualId } from "@/lib/types";
 export default function VisualRenderer({
   visualId,
@@ -36,7 +37,9 @@ export default function VisualRenderer({
   }, [visualId]);
   return (
     <div className="visual-layer" ref={root} data-visual={visualId}>
-      {visualId === "chromaticDrift" ? (
+      {visualId === "japaneseCafe" ? (
+        <JapaneseCafeScene paused={paused} exploring={exploring} />
+      ) : visualId === "chromaticDrift" ? (
         <GrainientScene paused={paused} immersive={exploring} motionScale={motionScale} />
       ) : (
         <CanvasScene kind={visualId} paused={paused} exploring={exploring} motionScale={motionScale} />

@@ -1,4 +1,4 @@
-import { chromaticDriftTrackUrls, FocusPlaylist, focusTrackUrls, lofiTrackUrls, nightDriveTrackUrls, readingRoomTrackUrls } from "./focus-music.ts";
+import { chromaticDriftTrackUrls, FocusPlaylist, focusTrackUrls, japaneseCafeTrackUrls, lofiTrackUrls, nightDriveTrackUrls, readingRoomTrackUrls } from "./focus-music.ts";
 import type { SoundId, VisualId, SessionMode } from "./types";
 import { recordingProfile, type RecordedChannel, type RecordingProfile } from "./audio-profiles.ts";
 import { sceneSoundscapes } from "./scene-soundscapes.ts";
@@ -32,6 +32,7 @@ export class AmbientEngine {
   private lofi?: FocusPlaylist;
   private nightDriveLofi?: FocusPlaylist;
   private readingRoomJazz?: FocusPlaylist;
+  private japaneseCafeLofi?: FocusPlaylist;
   private chromaticDriftAmbient?: FocusPlaylist;
   private synthesis?: SceneSynthesis;
   private curtain = false;
@@ -152,6 +153,7 @@ export class AmbientEngine {
   }
 
   private publishNowPlaying(playlist: string, track: string | null) {
+    if (!track && this.activeNowPlaying?.playlist !== playlist) return;
     const next = track ? { playlist, track } : null;
     if (next?.track === this.activeNowPlaying?.track && next?.playlist === this.activeNowPlaying?.playlist) return;
     this.activeNowPlaying = next;
@@ -346,6 +348,7 @@ export class AmbientEngine {
     this.lofi?.update(false, false, 0);
     this.nightDriveLofi?.update(false, false, 0);
     this.readingRoomJazz?.update(false, false, 0);
+    this.japaneseCafeLofi?.update(false, false, 0);
     this.chromaticDriftAmbient?.update(false, false, 0);
     this.synthesis?.stop();
     this.pondEnabled = false;
@@ -393,6 +396,14 @@ export class AmbientEngine {
       }
     }
     this.readingRoomJazz?.update(readingRoomJazzEnabled, audible, volumes.lofi ?? 0, transition);
+    const japaneseCafeEnabled = mode === "focus" && soundscape?.playlist === "japaneseCafeLofi";
+    if (japaneseCafeEnabled && audible && volumes.lofi > 0 && !this.japaneseCafeLofi && this.context.state === "running") {
+      const urls = japaneseCafeTrackUrls(ASSET_URL);
+      if (urls.length) {
+        try { this.japaneseCafeLofi = new FocusPlaylist(this.context, this.master, urls, undefined, track => this.publishNowPlaying("Japanese Café Radio", track)); } catch { /* Other sound layers remain available if media nodes are unsupported. */ }
+      }
+    }
+    this.japaneseCafeLofi?.update(japaneseCafeEnabled, audible, volumes.lofi ?? 0, transition);
     const chromaticDriftAmbientEnabled = soundscape?.playlist === "chromaticDriftAmbient";
     if (chromaticDriftAmbientEnabled && audible && volumes.lofi > 0 && !this.chromaticDriftAmbient && this.context.state === "running") {
       const urls = chromaticDriftTrackUrls(ASSET_URL);
@@ -441,6 +452,7 @@ export class AmbientEngine {
     this.lofi?.close();
     this.nightDriveLofi?.close();
     this.readingRoomJazz?.close();
+    this.japaneseCafeLofi?.close();
     this.chromaticDriftAmbient?.close();
     this.synthesis?.close();
     this.pondEnabled = false;

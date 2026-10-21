@@ -46,6 +46,43 @@ export const chromaticDriftTrackFiles = [
   "hoggyart-777-hz-higher-angelic-frequencies-223415.mp3",
   "liecio-calming-and-relaxing-meditation-music-110208.mp3",
 ];
+/** Exact R2 object names supplied by the owner. Do not normalize these keys. */
+export const japaneseCafeTrackFiles = [
+  "HoliznaCC0 - So Broke.mp3",
+  "HoliznaCC0 - Something In the Air.mp3",
+  "HoliznaCC0 - Still Life ( Lofi , Chill , Nostalgic ).mp3",
+  "HoliznaCC0 - Theta Frequency ( Lofi , Chill , Calm ).mp3",
+  "HoliznaCC0 - Vintage.mp3.mp3",
+  "HoliznaCC0 - Waves.mp3.mp3",
+  "HoliznaCC0 - Whatever.mp3",
+  "HoliznaCC0 - When Time Called Me Darling ( Lofi, Relaxing, Chill).mp3",
+  "HoliznaCC0 - Windows Down.mp3.mp3",
+  "HoliznaCC0 - Yesterday.mp3",
+  "HoliznaCC0 - You Loved Me Once.mp3",
+  "HoliznaCC0 - A Little Shade.mp3",
+  "HoliznaCC0 - All The Way Sad.mp3",
+  "HoliznaCC0 - Autumn.mp3",
+  "HoliznaCC0 - Birds ( LoFi , Chill ).mp3",
+  "HoliznaCC0 - Blue Skies.mp3.mp3",
+  "HoliznaCC0 - Cellar Door.mp3",
+  "HoliznaCC0 - Clouds.mp3",
+  "HoliznaCC0 - Come Again.mp3",
+  "HoliznaCC0 - Everything You Ever Dreamed..mp3",
+  "HoliznaCC0 - Fractured.mp3",
+  "HoliznaCC0 - Ghosts.mp3",
+  "HoliznaCC0 - Glad To Be Stuck Inside.mp3.mp3",
+  "HoliznaCC0 - Keeping Cool.mp3",
+  "HoliznaCC0 - Laundry On The Wire.mp3.mp3",
+  "HoliznaCC0 - Letting Go Of The Past.mp3",
+  "HoliznaCC0 - Morning Coffee.mp3",
+  "HoliznaCC0 - Mundane.mp3",
+  "HoliznaCC0 - Poor, But Happy.mp3",
+  "HoliznaCC0 - Pretty Little Lies.mp3",
+  "HoliznaCC0 - Puppy Love.mp3",
+  "HoliznaCC0 - Ramen.mp3.mp3",
+  "HoliznaCC0 - Shut up, or shut in.mp3",
+  "HoliznaCC0 - Small Towns Smaller Lives.mp3",
+];
 export function focusTrackUrls(base: string) {
   return base ? focusTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/${file}`) : [];
 }
@@ -61,8 +98,14 @@ export function readingRoomTrackUrls(base: string) {
 export function chromaticDriftTrackUrls(base: string) {
   return base ? chromaticDriftTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/chromatic-drift/${file}`) : [];
 }
+export function japaneseCafeTrackUrls(base: string) {
+  return base ? japaneseCafeTrackFiles.map(file => `${base.replace(/\/+$/, "")}/audio/lofi/jap-cafe/${encodeURIComponent(file)}`) : [];
+}
 export function trackDisplayName(url: string) {
-  const filename = decodeURIComponent(url.split("/").pop() ?? "").replace(/\.[^.]+$/, "");
+  const filename = decodeURIComponent(url.split("/").pop() ?? "")
+    .replace(/(?:\.mp3)+$/i, "")
+    .replace(/\.[^.]+$/, "")
+    .replace(/^[^-]+\s+-\s+/, "");
   return filename.replace(/\b\d{5,}\b/g, "").replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim().replace(/\b\w/g, letter => letter.toUpperCase());
 }
 export function shuffleBag(size: number, seed = Math.floor(Math.random() * 0x1_0000_0000)) {

@@ -506,7 +506,7 @@ test("missing new ambience stays silent and a late scene download cannot leak th
 });
 
 test("revised presets keep restrained layers and binaural audio off", () => {
-  assert.equal(Object.keys(sceneSoundscapes).length, 20);
+  assert.equal(Object.keys(sceneSoundscapes).length, 21);
   const frequencies = new Set<number>();
   for (const [id, profile] of Object.entries(sceneSoundscapes)) {
     const visual = visuals.find(v => v.id === id)!;
@@ -517,7 +517,7 @@ test("revised presets keep restrained layers and binaural audio off", () => {
     assert.ok(Object.entries(volumes).filter(([channel, volume]) => channel !== "vinylMusic" && volume > 0).length <= maxLayers);
     frequencies.add(profile.beatHz);
   }
-  assert.equal(frequencies.size, 20);
+  assert.equal(frequencies.size, 21);
 });
 
 for (const scene of ["clouds", "ribbonTunnel"] as const) {
@@ -555,7 +555,7 @@ test("duplicate recording channels cannot play even with stale mixer overrides",
   assert.equal(calls.length, 0);
 });
 
-for (const scene of ["aurora", "stars", "pond", "mist", "ink", "vinyl", "nightSky"] as const) {
+for (const scene of ["japaneseCafe", "aurora", "stars", "pond", "mist", "ink", "vinyl", "nightSky"] as const) {
   test(`${scene} ambience loads its own file with the correct loop seam handling`, async t => {
     const { engine, sources, calls, respond } = setup(t);
     await engine.start();
@@ -567,7 +567,7 @@ for (const scene of ["aurora", "stars", "pond", "mist", "ink", "vinyl", "nightSk
     await tick();
     assert.equal(sources[1].loop, true);
     const buffer = sources[1].buffer as AudioBuffer;
-    const native = scene !== "pond";
+    const native = scene !== "pond" && scene !== "japaneseCafe";
     assert.equal(buffer.length, native ? 100 : 80, "native cycles remain intact; field recordings receive a 2s overlap");
   });
 }

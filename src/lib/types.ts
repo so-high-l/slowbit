@@ -7,6 +7,7 @@ export type VisualId =
   | "quietMachine"
   | "nightDrive"
   | "readingRoom"
+  | "japaneseCafe"
   | "focusComingSoon"
   | "rain"
   | "aurora"

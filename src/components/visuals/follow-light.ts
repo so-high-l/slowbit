@@ -9,6 +9,7 @@ export const sceneLights: Record<VisualId, LightStyle> = {
   quietMachine: { color: "221,191,144", x: 0.55, y: 0.48, spread: 0.07 },
   nightDrive: { color: "245,181,110", x: 0.5, y: 0.48, spread: 0 },
   readingRoom: { color: "245,174,95", x: 0.73, y: 0.45, spread: 0 },
+  japaneseCafe: { color: "246,190,131", x: 0.56, y: 0.46, spread: 0 },
   orbitStudy: { color: "218,230,248", x: 0.61, y: 0.38, spread: 0.10 },
   morningLattice: { color: "249,216,158", x: 0.70, y: 0.42, spread: 0.06, reflection: true },
   rain: { color: "204,222,237", x: 0.61, y: 0.42, spread: 0.07, reflection: true },

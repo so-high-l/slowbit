@@ -15,6 +15,7 @@ export function hasAirTones(scene: VisualId) {
 export function soundLabel(scene: VisualId, id: SoundId, fallback: string): string {
   if (id === "lofi" && scene === "nightDrive") return "Lo-fi Radio";
   if (id === "lofi" && scene === "readingRoom") return "Jazz Radio";
+  if (id === "lofi" && scene === "japaneseCafe") return "Café Lo-fi Radio";
   if (id === "lofi" && scene === "chromaticDrift") return "777 Hz + ambience";
   if (id === "ambience") return sceneSoundscapes[scene]?.ambience?.name ?? fallback;
   if (id === "texture") return sceneSoundscapes[scene]?.texture?.name ?? fallback;
@@ -40,6 +41,15 @@ export function readingRoomImmersiveMix(volumes: SoundMix, immersive: boolean): 
     ...silentMix,
     rain: volumes.rain,
     lofi: Math.min(1, volumes.lofi * 4.8),
+  };
+}
+
+/** The café field recording recedes naturally when the view moves outdoors. */
+export function japaneseCafeImmersiveMix(volumes: SoundMix, outside: boolean): SoundMix {
+  if (!outside) return volumes;
+  return {
+    ...volumes,
+    ambience: volumes.ambience * 0.28,
   };
 }
 

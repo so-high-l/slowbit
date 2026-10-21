@@ -4,7 +4,7 @@ import { useAudioSession } from "@/components/audio/AudioProvider";
 import { visuals } from "@/data/catalog";
 import { getSceneSoundMix, getSceneBeatHz } from "@/lib/preferences";
 import { silentMix } from "@/lib/sound-presets";
-import { readingRoomImmersiveMix } from "@/lib/sound-controls";
+import { japaneseCafeImmersiveMix, readingRoomImmersiveMix } from "@/lib/sound-controls";
 import type { Preferences, SoundMix, VisualId, SessionMode } from "@/lib/types";
 export function useAudioMixer(
   prefs: Preferences,
@@ -24,7 +24,9 @@ export function useAudioMixer(
       : mixOverride ?? (visual ? getSceneSoundMix(prefs, visual) : silentMix);
     const immersiveVolumes = scene === "readingRoom"
       ? readingRoomImmersiveMix(volumes, exploring)
-      : volumes;
+      : scene === "japaneseCafe"
+        ? japaneseCafeImmersiveMix(volumes, exploring)
+        : volumes;
     engine.current?.mix(
       scene === "meadow" && exploring
         ? { ...immersiveVolumes, forest: immersiveVolumes.forest * 0.3, wind: immersiveVolumes.wind * 0.65 }
@@ -33,7 +35,7 @@ export function useAudioMixer(
       playing,
       prefs.muted,
       scene,
-      scene === "morningLattice" ? 2 : scene === "readingRoom" ? 1.8 : scene === "orbitStudy" ? 0.45 : scene === "meadow" || scene === "magneticField" ? 1.5 : 0.3,
+      scene === "morningLattice" ? 2 : scene === "readingRoom" ? 1.8 : scene === "japaneseCafe" ? 2.2 : scene === "orbitStudy" ? 0.45 : scene === "meadow" || scene === "magneticField" ? 1.5 : 0.3,
       mode,
       scene === "morningLattice" && exploring,
       scene === "orbitStudy" && exploring,

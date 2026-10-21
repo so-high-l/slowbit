@@ -388,8 +388,8 @@ function Session() {
             <div className="now-playing" key={visualId} role="status" aria-live="polite">
               <span className="now-playing-mark" aria-hidden="true"><i /><i /><i /><i /></span>
               <span className="now-playing-copy">
-                <span className="now-playing-track">{trackDisplayName(audioSession.nowPlaying.track)}</span>
-                <span className="now-playing-playlist">Playing from {audioSession.nowPlaying.playlist}</span>
+                <span className="now-playing-track">Now playing: {trackDisplayName(audioSession.nowPlaying.track)}</span>
+                <span className="now-playing-playlist"> from {audioSession.nowPlaying.playlist}</span>
               </span>
             </div>
           )}
@@ -418,39 +418,43 @@ function Session() {
                   ? exploring ? "Return to the full mechanism · Z" : "Zoom into the main circle · Z"
                   : visualId === "nightDrive"
                     ? exploring ? "Return to the quiet cabin · Z" : "Wake the radio lights · Z"
-                  : visualId === "readingRoom"
-                    ? exploring ? "Turn off the reading light · Z" : "Turn on the reading light · Z"
-                  : exploring ? "Return to the normal scene · Z" : "Enter the immersive scene · Z"}
+                    : visualId === "readingRoom"
+                      ? exploring ? "Turn off the reading light · Z" : "Turn on the reading light · Z"
+                      : visualId === "japaneseCafe"
+                        ? exploring ? "Return to your window seat · Z" : "Step outside the café · Z"
+                        : exploring ? "Return to the normal scene · Z" : "Enter the immersive scene · Z"}
               onClick={() => setExploring((v) => !v)}
             >
               <Orbit size={13} />
               {visualId === "quietMachine"
                 ? exploring ? "Return to the full mechanism" : "Look inside the mechanism"
                 : visualId === "nightDrive"
-                ? exploring ? "Return to the quiet cabin" : "Tune into the night"
-                : visualId === "readingRoom"
-                ? exploring ? "Dim the room" : "Turn on the reading light"
-                : visualId === "orbitStudy"
-                ? exploring ? "Return to the orbit map" : "Enter the orbital system"
-                : visualId === "morningLattice"
-                ? exploring ? "Open the curtain" : "Draw the curtain"
-                : visualId === "meadow"
-                ? exploring ? "Sit back up" : "Lie back in the grass"
-                : visualId === "lantern"
-                ? exploring ? "Back to the compartment" : "Closer to the window"
-                : visualId === "vinyl"
-                ? exploring ? "Lift the needle" : "Put the record on"
-                : reducedMotion
-                ? exploring
-                  ? "A still point"
-                  : "Find a still point"
-                : visualId === "stars" || visualId === "drift"
-                  ? exploring
-                    ? "Drifting deeper"
-                    : "Drift deeper"
-                  : exploring
-                    ? "Following the light"
-                    : "Follow the light"}
+                  ? exploring ? "Return to the quiet cabin" : "Tune into the night"
+                  : visualId === "readingRoom"
+                    ? exploring ? "Dim the room" : "Turn on the reading light"
+                    : visualId === "japaneseCafe"
+                      ? exploring ? "Return to your window seat" : "Step outside"
+                      : visualId === "orbitStudy"
+                        ? exploring ? "Return to the orbit map" : "Enter the orbital system"
+                        : visualId === "morningLattice"
+                          ? exploring ? "Open the curtain" : "Draw the curtain"
+                          : visualId === "meadow"
+                            ? exploring ? "Sit back up" : "Lie back in the grass"
+                            : visualId === "lantern"
+                              ? exploring ? "Back to the compartment" : "Closer to the window"
+                              : visualId === "vinyl"
+                                ? exploring ? "Lift the needle" : "Put the record on"
+                                : reducedMotion
+                                  ? exploring
+                                    ? "A still point"
+                                    : "Find a still point"
+                                  : visualId === "stars" || visualId === "drift"
+                                    ? exploring
+                                      ? "Drifting deeper"
+                                      : "Drift deeper"
+                                    : exploring
+                                      ? "Following the light"
+                                      : "Follow the light"}
               <kbd>Z</kbd>
             </button>}
             <div className="control-dock">

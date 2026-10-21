@@ -9,6 +9,7 @@ export const visualIds: VisualId[] = [
   "quietMachine",
   "nightDrive",
   "readingRoom",
+  "japaneseCafe",
   "focusComingSoon",
   "rain",
   "aurora",

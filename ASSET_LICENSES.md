@@ -53,6 +53,37 @@ External media from **Pixabay**, under the **Pixabay Content License**. These re
 - **License:** https://pixabay.com/service/license-summary/
 - **Usage:** Scene-specific randomized ambient playlist for Chromatic Drift. Slowbit buffers only the current and next tracks and crossfades them over six seconds.
 
+### Japanese Corner Café
+
+#### Visuals
+
+- **Exterior files:** `public/videos/japanese-corner-cafe/poster.png`, `japanese-corner-cafe-loop.webm`, and `japanese-corner-cafe-loop.mp4`.
+- **Source:** Supplied by the project owner through the Japanese café reference implementation. The original artwork and animation source record was not included.
+- **Interior file:** `public/images/japanese-cafe/interior-window.png`.
+- **Creation:** Generated for Slowbit with OpenAI image generation, using the owner-supplied exterior artwork as a visual reference so the two views form one place.
+- **Usage:** The normal Focus view adds lightweight, aligned motion to the interior artwork for water shimmer, coffee steam, lamp breathing, and occasional distant lights. Z crossfades to the animated exterior view.
+- **MIT status:** These visual files are not covered by Slowbit's MIT source-code license. Retain the original exterior source and rights record before redistributing the media.
+
+#### Café lo-fi playlist
+
+The 34 recordings in `audio/lofi/jap-cafe/` are by **HoliznaCC0** and are identified by the source catalog as **CC0 1.0 Universal**. Free Music Archive lists both the individual recordings and their albums as CC0; representative source records include [Lo-fi And Chill](https://freemusicarchive.org/music/holiznacc0/lo-fi-and-chill), [Busted Guitar (LOFI EDIT)](https://freemusicarchive.org/music/holiznacc0/busted-guitar-lofi-edit), and [Orphaned Media](https://freemusicarchive.org/music/holiznacc0/orphaned-media). The dedication text is at https://creativecommons.org/publicdomain/zero/1.0/.
+
+- **R2 prefix:** `audio/lofi/jap-cafe/`
+- **Exact object names:** Recorded in `japaneseCafeTrackFiles` in `src/lib/focus-music.ts`, including the original spaces, punctuation, and repeated `.mp3` suffixes.
+- **Usage:** Scene-specific randomized Café Lo-fi Radio playlist. Slowbit keeps two media elements, loads only the active and upcoming recordings, and crossfades them over six seconds.
+- **Attribution:** CC0 does not require attribution; the artist and sources remain documented here as provenance.
+- **MIT status:** Public-domain audio; not licensed under Slowbit's MIT source-code license.
+
+#### Osaka café ambience
+
+- **R2 object:** `audio/785167__artsnbytes__osaka-city-centre-cafe-calm.flac`
+- **Title / author:** Osaka City centre cafe - Calm — artsnbytes
+- **Source:** https://freesound.org/people/artsnbytes/sounds/785167/
+- **License:** Creative Commons Zero 1.0 Universal (CC0 1.0)
+- **License text:** https://creativecommons.org/publicdomain/zero/1.0/
+- **Usage:** Quiet supporting café field recording. It plays softly in the interior and fades to 28% of its selected level in the exterior Z view.
+- **MIT status:** Public-domain audio; not licensed under Slowbit's MIT source-code license.
+
 ### Light Rain Loop
 
 - **R2 object:** `audio/mixkit-light-rain-looping-1249.wav`

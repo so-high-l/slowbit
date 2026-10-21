@@ -241,14 +241,36 @@ em {
 }
 
 @keyframes grainient-guide-breathe {
-  0%, 100% { transform: scale(.92); filter: blur(.2px); }
-  50% { transform: scale(1.08); filter: blur(.7px); }
+
+  0%,
+  100% {
+    transform: scale(.92);
+    filter: blur(.2px);
+  }
+
+  50% {
+    transform: scale(1.08);
+    filter: blur(.7px);
+  }
 }
 
 @keyframes grainient-bloom-ring {
-  0%, 18% { opacity: 0; transform: scale(.16); }
-  28% { opacity: .38; }
-  76%, 100% { opacity: 0; transform: scale(2.35); }
+
+  0%,
+  18% {
+    opacity: 0;
+    transform: scale(.16);
+  }
+
+  28% {
+    opacity: .38;
+  }
+
+  76%,
+  100% {
+    opacity: 0;
+    transform: scale(2.35);
+  }
 }
 
 .grainient-scene-shell[data-paused="true"] .grainient-guide::before,
@@ -257,9 +279,13 @@ em {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .grainient-guide,
   .grainient-guide::before,
-  .grainient-guide::after { animation: none; transition: none; }
+  .grainient-guide::after {
+    animation: none;
+    transition: none;
+  }
 }
 
 .scene-vignette {
@@ -269,6 +295,226 @@ em {
       transparent 5%,
       #03090e88 100%);
   pointer-events: none;
+}
+
+.japanese-cafe-scene,
+.japanese-cafe-layer,
+.japanese-cafe-media,
+.japanese-cafe-interior-life,
+.japanese-cafe-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.japanese-cafe-scene {
+  overflow: hidden;
+  background: #171818;
+}
+
+.japanese-cafe-layer,
+.japanese-cafe-media {
+  object-fit: cover;
+  object-position: center;
+}
+
+.japanese-cafe-layer {
+  will-change: opacity, transform;
+  transition:
+    opacity 3.2s cubic-bezier(.22, .72, .22, 1),
+    transform 4.2s cubic-bezier(.22, .72, .22, 1),
+    filter 3.2s ease;
+}
+
+.japanese-cafe-interior {
+  opacity: 1;
+  transform: scale(1);
+  filter: saturate(.86) brightness(.78) contrast(1.04);
+}
+
+.japanese-cafe-interior-life {
+  display: block;
+  overflow: visible;
+}
+
+
+
+
+
+.japanese-cafe-city-light {
+  fill: #ffe2a8;
+  opacity: .04;
+  animation: japanese-cafe-window-wake 18s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.japanese-cafe-city-light.light-b {
+  animation-delay: -4.2s;
+  animation-duration: 21s;
+}
+
+.japanese-cafe-city-light.light-c {
+  animation-delay: -9.5s;
+  animation-duration: 24s;
+}
+
+.japanese-cafe-city-light.light-d {
+  animation-delay: -13s;
+  animation-duration: 20s;
+}
+
+.japanese-cafe-city-light.light-e {
+  animation-delay: -7s;
+  animation-duration: 27s;
+}
+
+.japanese-cafe-lamp-breath {
+  opacity: .13;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: japanese-cafe-lamp-breath 14s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.japanese-cafe-steam {
+  fill: none;
+  stroke: #fff1d7;
+  stroke-linecap: round;
+  stroke-width: 4;
+  opacity: .68;
+}
+
+.japanese-cafe-steam path {
+  stroke-dasharray: 34 22;
+  animation: japanese-cafe-steam-rise 9s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.japanese-cafe-steam .steam-two {
+  animation-delay: -3.1s;
+  animation-duration: 10.8s;
+  opacity: .7;
+}
+
+.japanese-cafe-steam .steam-three {
+  animation-delay: -6.4s;
+  animation-duration: 12.6s;
+  opacity: .45;
+}
+
+.japanese-cafe-scene[data-interior-moving="true"] .japanese-cafe-city-light,
+.japanese-cafe-scene[data-interior-moving="true"] .japanese-cafe-lamp-breath,
+.japanese-cafe-scene[data-interior-moving="true"] .japanese-cafe-steam path {
+  animation-play-state: running;
+}
+
+
+@keyframes japanese-cafe-window-wake {
+
+  0%,
+  16%,
+  60%,
+  100% {
+    opacity: .03;
+  }
+
+  27%,
+  46% {
+    opacity: .42;
+  }
+}
+
+@keyframes japanese-cafe-lamp-breath {
+
+  0%,
+  100% {
+    opacity: .09;
+    transform: scale(.98);
+  }
+
+  48% {
+    opacity: .18;
+    transform: scale(1.025);
+  }
+}
+
+@keyframes japanese-cafe-steam-rise {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 56;
+    transform: translate3d(0, 9px, 0);
+  }
+
+  22% {
+    opacity: .18;
+  }
+
+  65% {
+    opacity: .12;
+  }
+
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -56;
+    transform: translate3d(5px, -18px, 0);
+  }
+}
+
+.japanese-cafe-exterior {
+  opacity: 0;
+  transform: scale(1.055);
+  filter: saturate(.88) brightness(.82);
+}
+
+.japanese-cafe-media {
+  display: block;
+}
+
+.japanese-cafe-scene[data-immersive="true"] .japanese-cafe-interior {
+  opacity: 0;
+  transform: scale(1.065);
+  filter: saturate(1) brightness(.84);
+}
+
+.japanese-cafe-scene[data-immersive="true"] .japanese-cafe-exterior {
+  opacity: 1;
+  transform: scale(1);
+  filter: saturate(1) brightness(.96);
+}
+
+.japanese-cafe-shade {
+  background:
+    linear-gradient(180deg, #10161712 0%, transparent 42%, #120d0a24 100%),
+    radial-gradient(ellipse at 50% 46%, transparent 30%, #090d0f38 100%);
+  opacity: .72;
+  transition: opacity 3.2s ease;
+}
+
+.japanese-cafe-scene[data-immersive="true"] .japanese-cafe-shade {
+  opacity: .3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .japanese-cafe-layer,
+  .japanese-cafe-shade {
+    transition: opacity .2s linear;
+  }
+
+  .japanese-cafe-city-light,
+  .japanese-cafe-lamp-breath,
+  .japanese-cafe-steam path {
+    animation: none;
+  }
+
+  .japanese-cafe-interior,
+  .japanese-cafe-exterior,
+  .japanese-cafe-scene[data-immersive="true"] .japanese-cafe-interior,
+  .japanese-cafe-scene[data-immersive="true"] .japanese-cafe-exterior {
+    transform: none;
+  }
 }
 
 .eyebrow {
@@ -678,19 +924,40 @@ em {
   animation: now-playing-pulse 1.4s ease-in-out infinite;
 }
 
-.now-playing-mark i:nth-child(2) { height: 11px; animation-delay: -.8s; }
-.now-playing-mark i:nth-child(3) { height: 8px; animation-delay: -.4s; }
-.now-playing-mark i:nth-child(4) { height: 13px; animation-delay: -.2s; }
+.now-playing-mark i:nth-child(2) {
+  height: 11px;
+  animation-delay: -.8s;
+}
+
+.now-playing-mark i:nth-child(3) {
+  height: 8px;
+  animation-delay: -.4s;
+}
+
+.now-playing-mark i:nth-child(4) {
+  height: 13px;
+  animation-delay: -.2s;
+}
 
 @keyframes now-playing-pulse {
-  0%, 100% { transform: scaleY(.65); opacity: .45; }
-  50% { transform: scaleY(1); opacity: .9; }
+
+  0%,
+  100% {
+    transform: scaleY(.65);
+    opacity: .45;
+  }
+
+  50% {
+    transform: scaleY(1);
+    opacity: .9;
+  }
 }
 
 .now-playing-copy {
   display: grid;
   min-width: 0;
   gap: 1px;
+  padding-left: 5px;
 }
 
 .now-playing-playlist {
@@ -704,9 +971,9 @@ em {
 
 .now-playing-track {
   overflow: hidden;
-  color: #ffffff;
+  color: #c7c6c6;
   font-family: var(--serif);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 400;
   line-height: 1.35;
   text-overflow: ellipsis;
@@ -973,13 +1240,24 @@ kbd {
 }
 
 .audio-panel .sound-track label,
-.audio-panel .mixer-more-sounds summary { color: #edf3f1; }
+.audio-panel .mixer-more-sounds summary {
+  color: #edf3f1;
+}
+
 .audio-panel .sound-track output,
-.audio-panel .binaural-controls p { color: #c5d2d0; }
-.audio-panel .mixer-heading { padding-top: 10px; }
+.audio-panel .binaural-controls p {
+  color: #c5d2d0;
+}
+
+.audio-panel .mixer-heading {
+  padding-top: 10px;
+}
+
 .audio-panel .icon-button:hover,
 .audio-panel .mixer-preset button:hover,
-.audio-panel .binaural-heading button:hover { background-color: #ffffff16; }
+.audio-panel .binaural-heading button:hover {
+  background-color: #ffffff16;
+}
 
 .button-hint {
   position: fixed;
@@ -998,16 +1276,24 @@ kbd {
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .audio-panel { background: #142023; }
+  .audio-panel {
+    background: #142023;
+  }
 }
-@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+
+@media (prefers-reduced-transparency: reduce),
+(prefers-contrast: more) {
   .audio-panel {
     background: #142023;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     border-color: #a7bbb5;
   }
-  .button-hint { background: #142023; border-color: #a7bbb5; }
+
+  .button-hint {
+    background: #142023;
+    border-color: #a7bbb5;
+  }
 }
 
 .panel-close {
@@ -1079,6 +1365,7 @@ input[type="range"] {
   padding: 16px 0 0;
   margin-bottom: 18px;
 }
+
 .binaural-heading {
   display: flex;
   align-items: center;
@@ -1086,12 +1373,14 @@ input[type="range"] {
   gap: 12px;
   font-size: 13px;
 }
+
 .binaural-title {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
 }
+
 .binaural-new {
   padding: 2px 7px;
   border-radius: 999px;
@@ -1101,6 +1390,7 @@ input[type="range"] {
   font-weight: 600;
   line-height: 1.4;
 }
+
 .binaural-heading button {
   border: 1px solid #ffffff26;
   border-radius: 16px;
@@ -1110,14 +1400,17 @@ input[type="range"] {
   background: transparent;
   cursor: pointer;
 }
+
 .binaural-heading button[aria-pressed="true"] {
   background: #c0d8c61a;
 }
+
 .binaural-controls p {
   font-size: 11px;
   color: #a8beb5;
   margin: 8px 0 18px;
 }
+
 .mixer-more-sounds summary {
   cursor: pointer;
   color: #c6d6cf;
@@ -1447,7 +1740,9 @@ input[type="range"] {
     width: 20px;
   }
 
-  .session-header { gap: 10px; }
+  .session-header {
+    gap: 10px;
+  }
 
   .session-header .timer-chip {
     position: static;
@@ -1467,7 +1762,9 @@ input[type="range"] {
     flex-shrink: 0;
   }
 
-  .session-header .finish-button span { display: none; }
+  .session-header .finish-button span {
+    display: none;
+  }
 
   .finish-button {
     font-size: 11px;
@@ -2303,7 +2600,8 @@ input[type="range"] {
   line-height: 1.6;
 }
 
-@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+@media (prefers-reduced-transparency: reduce),
+(prefers-contrast: more) {
   .ending.modal-backdrop {
     background: var(--bg);
     backdrop-filter: none;
@@ -2586,17 +2884,23 @@ input[type="range"] {
   backdrop-filter: blur(8px);
 }
 
-.session-bottom > .explore-switch {
+.session-bottom>.explore-switch {
   margin-top: 0;
 }
 
-.session.controls-hidden .session-bottom > :not(.explore-switch) {
+.session.controls-hidden .session-bottom> :not(.explore-switch) {
   pointer-events: none;
 }
 
 @media (pointer: coarse) {
-  .explore-switch { min-height: 44px; padding: 10px 14px; }
-  .explore-switch kbd { display: none; }
+  .explore-switch {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  .explore-switch kbd {
+    display: none;
+  }
 }
 
 .explore-switch.active {
@@ -3970,6 +4274,7 @@ input[type="range"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .session .scene-caption,
   .session .scene-caption[data-orbit-immersive] {
     transition-duration: .01ms;
@@ -4034,12 +4339,29 @@ input[type="range"] {
 }
 
 /* Mode is a small change of atmosphere, not a separate destination. */
-.mode-step, .mode-configuration { animation: mode-arrive 650ms ease both; }
-@keyframes mode-arrive {
-  from { opacity: 0; transform: translateY(9px); }
-  to { opacity: 1; transform: translateY(0); }
+.mode-step,
+.mode-configuration {
+  animation: mode-arrive 650ms ease both;
 }
-.mode-switch { display: flex; gap: 18px; margin-bottom: 22px; }
+
+@keyframes mode-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mode-switch {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
 .mode-switch button {
   padding: 5px 0;
   background: transparent;
@@ -4047,41 +4369,145 @@ input[type="range"] {
   letter-spacing: .1em;
   color: #9faaa8;
 }
-.mode-switch button[aria-pressed="true"] { color: #e7d5c5; }
-.mode-choice:hover .mood-marker, .mode-choice:focus-visible .mood-marker { opacity: 1; }
-.mode-choice:hover, .mode-choice:focus-visible { color: #f2e4d8; }
-.checkin-room .mood-atmosphere { transition: filter 1200ms ease, opacity 1200ms ease; }
-.checkin-room[data-mode="focus"] .mood-atmosphere { filter: grayscale(1) sepia(.35) hue-rotate(155deg) saturate(.85); opacity: .65; }
-.checkin-room[data-mode="focus"] .atmosphere-layer img { animation-duration: 90s; }
-.checkin-room[data-mode="focus"] { --station-accent: #a9cbd4; }
-.checkin-room[data-mode="focus"] .mode-switch button[aria-pressed="true"],
-.checkin-room[data-mode="focus"] .mood-choice.is-selected { color: #d4e6ec; }
-.checkin-room[data-mode="focus"] .mood-marker { background: #a9cbd4; box-shadow: 0 0 10px #a9cbd426; }
-@media (prefers-reduced-motion: reduce) {
-  .mode-step, .mode-configuration { animation: none; }
-  .checkin-room .mood-atmosphere { transition: none; }
+
+.mode-switch button[aria-pressed="true"] {
+  color: #e7d5c5;
 }
 
-.mode-switch button { display: inline-flex; align-items: center; gap: 7px; min-width: 104px; }
-.mode-selection-dot { width: 4px; height: 4px; flex: 0 0 4px; border-radius: 50%; background: currentColor; opacity: 0; transition: opacity 350ms ease; }
-.mode-switch button[aria-pressed="true"] .mode-selection-dot { opacity: 1; }
-.mode-option-name { display: inline-flex; align-items: center; gap: 12px; font-size: .86em; }
-.mode-mood-stack { display: grid; }
-.mode-mood-layer { grid-area: 1 / 1; align-self: start; opacity: 0; pointer-events: none; transition: opacity 450ms ease; }
-.mode-mood-layer[data-visible="true"] { opacity: 1; pointer-events: auto; }
+.mode-choice:hover .mood-marker,
+.mode-choice:focus-visible .mood-marker {
+  opacity: 1;
+}
+
+.mode-choice:hover,
+.mode-choice:focus-visible {
+  color: #f2e4d8;
+}
+
+.checkin-room .mood-atmosphere {
+  transition: filter 1200ms ease, opacity 1200ms ease;
+}
+
+.checkin-room[data-mode="focus"] .mood-atmosphere {
+  filter: grayscale(1) sepia(.35) hue-rotate(155deg) saturate(.85);
+  opacity: .65;
+}
+
+.checkin-room[data-mode="focus"] .atmosphere-layer img {
+  animation-duration: 90s;
+}
+
+.checkin-room[data-mode="focus"] {
+  --station-accent: #a9cbd4;
+}
+
+.checkin-room[data-mode="focus"] .mode-switch button[aria-pressed="true"],
+.checkin-room[data-mode="focus"] .mood-choice.is-selected {
+  color: #d4e6ec;
+}
+
+.checkin-room[data-mode="focus"] .mood-marker {
+  background: #a9cbd4;
+  box-shadow: 0 0 10px #a9cbd426;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .mode-selection-dot, .mode-mood-layer { transition: none; }
+
+  .mode-step,
+  .mode-configuration {
+    animation: none;
+  }
+
+  .checkin-room .mood-atmosphere {
+    transition: none;
+  }
+}
+
+.mode-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 104px;
+}
+
+.mode-selection-dot {
+  width: 4px;
+  height: 4px;
+  flex: 0 0 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 350ms ease;
+}
+
+.mode-switch button[aria-pressed="true"] .mode-selection-dot {
+  opacity: 1;
+}
+
+.mode-option-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: .86em;
+}
+
+.mode-mood-stack {
+  display: grid;
+}
+
+.mode-mood-layer {
+  grid-area: 1 / 1;
+  align-self: start;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 450ms ease;
+}
+
+.mode-mood-layer[data-visible="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .mode-selection-dot,
+  .mode-mood-layer {
+    transition: none;
+  }
 }
 
 /* Both steps share a stable footprint; GSAP handles the handoff. */
-.checkin-main.mode-flow { display: grid; }
-.mode-flow > .mode-step, .mode-flow > .mode-configuration { grid-area: 1 / 1; animation: none; }
-.mode-flow > .mode-step { align-self: center; }
-.mode-flow:not(.has-mode) > .mode-configuration { visibility: hidden; pointer-events: none; }
-.mode-flow.has-mode > .mode-step { pointer-events: none; }
-.mode-flow .mode-switch button { transform-origin: left center; }
+.checkin-main.mode-flow {
+  display: grid;
+}
 
-.mode-switch button { position: relative; }
+.mode-flow>.mode-step,
+.mode-flow>.mode-configuration {
+  grid-area: 1 / 1;
+  animation: none;
+}
+
+.mode-flow>.mode-step {
+  align-self: center;
+}
+
+.mode-flow:not(.has-mode)>.mode-configuration {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.mode-flow.has-mode>.mode-step {
+  pointer-events: none;
+}
+
+.mode-flow .mode-switch button {
+  transform-origin: left center;
+}
+
+.mode-switch button {
+  position: relative;
+}
+
 .mode-new-label {
   position: static;
   display: inline-block;
@@ -4094,4 +4520,7 @@ input[type="range"] {
   color: #a0aaa8;
   pointer-events: none;
 }
-.mode-switch .mode-new-label { font-size: 7px; }
+
+.mode-switch .mode-new-label {
+  font-size: 7px;
+}

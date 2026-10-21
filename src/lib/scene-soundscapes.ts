@@ -15,13 +15,14 @@ export const sceneAudioAssets = {
   vinyl: { file: "222684__unfa__vinyl-dust-loop-static-01.flac", author: "unfa", source: "https://freesound.org/people/unfa/sounds/222684/", nativeLoop: true },
   rural: { file: "825635__nicktayloe__night-insects-in-september-midwest-us-loop.wav", author: "NickTayloe", source: "https://freesound.org/people/NickTayloe/sounds/825635/", nativeLoop: true },
   vinylMusic: { file: "859607__blankierest__sleepy-upright-piano-seamless-loop.wav", author: "blankie.rest", source: "https://freesound.org/people/blankie.rest/sounds/859607/", nativeLoop: true },
+  japaneseCafe: { file: "785167__artsnbytes__osaka-city-centre-cafe-calm.flac", author: "artsnbytes", source: "https://freesound.org/people/artsnbytes/sounds/785167/", nativeLoop: false },
 } as const;
 
 export type TextureKind = "tape" | "halo" | "float" | "air" | "round" | "bow" | "ribbon" | "current" | "chromatic" | "glass";
 export type SceneSoundscape = {
   beatHz: number;
   carrierHz: number;
-  playlist?: "lofi" | "nightDriveLofi" | "readingRoomJazz" | "chromaticDriftAmbient";
+  playlist?: "lofi" | "nightDriveLofi" | "readingRoomJazz" | "japaneseCafeLofi" | "chromaticDriftAmbient";
   ambience?: { asset: keyof typeof sceneAudioAssets; name: string; cutoff: number; level: number };
   texture?: { kind: TextureKind; name: string };
   mix: Partial<SoundMix>;
@@ -33,6 +34,7 @@ export const sceneSoundscapes: Partial<Record<VisualId, SceneSoundscape>> = {
   quietMachine: { beatHz: 13, carrierHz: 200, playlist: "lofi", ambience: { asset: "machinePad", name: "Soft atmosphere", cutoff: 2600, level: 0.35 }, texture: { kind: "tape", name: "Analog tape" }, mix: { lofi: 0.2, ambience: 0.1, texture: 0, brown: 0.12, binaural: 0 } },
   nightDrive: { beatHz: 14, carrierHz: 210, playlist: "nightDriveLofi", mix: { lofi: 0.24, brown: 0.08, binaural: 0 } },
   readingRoom: { beatHz: 6.5, carrierHz: 196, playlist: "readingRoomJazz", mix: { rain: 0.18, night: 0.08, lofi: 0.05, binaural: 0 } },
+  japaneseCafe: { beatHz: 8.5, carrierHz: 196, playlist: "japaneseCafeLofi", ambience: { asset: "japaneseCafe", name: "Café ambience", cutoff: 4600, level: 1 }, mix: { lofi: 0.14, ambience: 0.7, rain: 0.15, binaural: 0 } },
   aurora: { beatHz: 6, carrierHz: 220, ambience: { asset: "polar", name: "Polar air", cutoff: 2200, level: 0.55 }, texture: { kind: "halo", name: "Luminous tones" }, mix: { ambience: 0.28, texture: 0.12, binaural: 0 } },
   stars: { beatHz: 3, carrierHz: 160, ambience: { asset: "city", name: "Distant city", cutoff: 1200, level: 0.55 }, mix: { ambience: 0.26, brown: 0.06, binaural: 0 } },
   embers: { beatHz: 4.5, carrierHz: 180, mix: { fire: 0.38, forest: 0.05, binaural: 0 } },
