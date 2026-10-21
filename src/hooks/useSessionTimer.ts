@@ -23,11 +23,13 @@ export function useSessionTimer(
     last.current = performance.now();
     const tick = setInterval(() => {
       const now = performance.now();
-      const delta = (now - last.current) / 1000;
+      const delta = document.visibilityState === "visible" && document.hasFocus()
+        ? Math.min(1, (now - last.current) / 1000)
+        : 0;
+      last.current = now;
       elapsed.current += delta;
       setNightProgress(Math.min(1, elapsed.current / Math.max(1, darkAfter.current)));
       if (left.current !== null) left.current = Math.max(0, left.current - delta);
-      last.current = now;
       setRemaining(left.current === null ? null : Math.ceil(left.current));
       if (left.current !== null && left.current <= 0 && !done.current) {
         done.current = true;

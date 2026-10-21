@@ -7,6 +7,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { availableVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
 import { modeDurations } from "@/lib/session-mode";
+import { analytics } from "@/lib/analytics";
 export default function Settings() {
   const router = useRouter();
   const {
@@ -85,6 +86,8 @@ export default function Settings() {
                   onChange={(e) =>
                     update({ globalVolume: Number(e.target.value) })
                   }
+                  onPointerUp={(e) => analytics.masterVolumeChanged(p.mode ?? "unwind", Number(e.currentTarget.value))}
+                  onKeyUp={(e) => analytics.masterVolumeChanged(p.mode ?? "unwind", Number(e.currentTarget.value))}
                 />
               </div>
               <div className="preference-row">
@@ -94,7 +97,7 @@ export default function Settings() {
                   role="switch"
                   aria-label="Start with sound muted"
                   aria-checked={p.muted}
-                  onClick={() => update({ muted: !p.muted })}
+                  onClick={() => { analytics.muteChanged(p.mode ?? "unwind", !p.muted); update({ muted: !p.muted }); }}
                 >
                   {p.muted ? "On" : "Off"}
                 </button>
@@ -115,7 +118,7 @@ export default function Settings() {
                     <button
                       className="secondary-button"
                       aria-label={`Restore ${v.name}`}
-                      onClick={() => restoreVisual(v.id)}
+                      onClick={() => { analytics.sceneUnhidden(v, p.mode ?? "unwind"); restoreVisual(v.id); }}
                     >
                       Restore
                     </button>

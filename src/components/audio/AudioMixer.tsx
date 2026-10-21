@@ -1,4 +1,5 @@
 "use client";
+import { useRef } from "react";
 import {
   Volume2,
   VolumeX,
@@ -12,12 +13,13 @@ import {
   TrainFront,
   Droplets,
 } from "lucide-react";
-import type { Visual } from "@/lib/types";
+import type { SoundId, Visual } from "@/lib/types";
 import { sounds } from "@/data/catalog";
 import { usePreferences } from "@/hooks/usePreferences";
 import { sceneSoundscapes } from "@/lib/scene-soundscapes";
 import { getSceneBeatHz } from "@/lib/preferences";
 import { duplicateSound, hasAirTones, soundLabel } from "@/lib/sound-controls";
+import { analytics } from "@/lib/analytics";
 const icons = {
   pondDrops: Droplets,
   textureTone: Music2,
@@ -37,10 +39,22 @@ const icons = {
   orbitalPad: AudioLines,
   train: TrainFront,
 };
-export default function AudioMixer({ visual }: { visual: Visual }) {
+export default function AudioMixer({ visual, sessionId }: { visual: Visual; sessionId?: string }) {
   const { preferences: p, getSceneSoundMix, setVolume, setBeatHz, resetSceneSoundMix, update } = usePreferences();
   const mix = getSceneSoundMix(visual);
   const soundscape = sceneSoundscapes[visual.id];
+  const committed = useRef<Record<string, number>>({});
+  const current = useRef<Record<string, number>>({});
+  if (committed.current.master === undefined) committed.current.master = p.globalVolume;
+  current.current.master = p.globalVolume;
+  const commit = (id: SoundId, name: string, value: number) => {
+    const previous = committed.current[id] ?? value;
+    if (previous === value) return;
+    committed.current[id] = value;
+    analytics.soundChanged(visual, p.mode ?? "unwind", id, name, previous, value, sessionId);
+    if ((id === "lofi" || id === "piano") && (p.mode ?? "unwind") === "focus")
+      analytics.focusAudioVolumeChanged(soundscape?.playlist ?? id, value);
+  };
   const beatHz = getSceneBeatHz(p, visual.id);
   const available = sounds.filter((s) =>
     s.id !== "binaural" &&
@@ -60,13 +74,18 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
     const name = soundLabel(visual.id, s.id, s.name);
     const Icon = /water|lapping|bubbles/i.test(name) ? Droplets
       : name === "Forest ambience" || name === "Birdsong" ? Trees : icons[s.id];
+    if (committed.current[s.id] === undefined) committed.current[s.id] = mix[s.id];
+    current.current[s.id] = mix[s.id];
     return (
       <div className="sound-track" key={s.id}>
         <Icon size={19} aria-hidden="true" />
         <label htmlFor={`volume-${s.id}`} title={s.id === "vinylMusic" ? "Plays while the record is on · Z" : undefined}>{name}{s.id === "vinylMusic" ? " · Z" : ""}</label>
         <output htmlFor={`volume-${s.id}`}>{Math.round(mix[s.id] * 100)}%</output>
         <input id={`volume-${s.id}`} type="range" min="0" max="1" step=".01"
-          value={mix[s.id]} onChange={(e) => setVolume(visual.id, s.id, Number(e.target.value))}
+          value={mix[s.id]} onChange={(e) => { current.current[s.id] = Number(e.target.value); setVolume(visual.id, s.id, current.current[s.id]); }}
+          onPointerUp={() => commit(s.id, name, current.current[s.id])}
+          onKeyUp={() => commit(s.id, name, current.current[s.id])}
+          onBlur={() => commit(s.id, name, current.current[s.id])}
           aria-label={`${name} volume`} />
       </div>
     );
@@ -80,7 +99,7 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
         </div>
         <button
           className="icon-button"
-          onClick={() => update({ muted: !p.muted })}
+          onClick={() => { analytics.muteChanged(p.mode ?? "unwind", !p.muted, sessionId); update({ muted: !p.muted }); }}
           aria-label={p.muted ? "Unmute" : "Mute"}
         >
           {p.muted ? <VolumeX /> : <Volume2 />}
@@ -103,7 +122,7 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
             <button type="button" aria-pressed={mix.binaural > 0}
               aria-label="Binaural beat"
               data-tooltip={mix.binaural > 0 ? "Turn off the binaural beat" : "Enable the binaural beat — use stereo headphones"}
-              onClick={() => setVolume(visual.id, "binaural", mix.binaural > 0 ? 0 : 0.07)}>
+              onClick={() => { const value = mix.binaural > 0 ? 0 : 0.07; analytics.soundChanged(visual, p.mode ?? "unwind", "binaural", "Binaural beat", mix.binaural, value, sessionId); committed.current.binaural = value; setVolume(visual.id, "binaural", value); }}>
               {mix.binaural > 0 ? "On" : "Off"}
             </button>
           </div>
@@ -134,7 +153,10 @@ export default function AudioMixer({ visual }: { visual: Visual }) {
           max="1"
           step=".01"
           value={p.globalVolume}
-          onChange={(e) => update({ globalVolume: Number(e.target.value) })}
+          onChange={(e) => { current.current.master = Number(e.target.value); update({ globalVolume: current.current.master }); }}
+          onPointerUp={() => { const value = current.current.master ?? p.globalVolume; if (committed.current.master !== value) { analytics.masterVolumeChanged(p.mode ?? "unwind", value, sessionId); committed.current.master = value; } }}
+          onKeyUp={() => { const value = current.current.master ?? p.globalVolume; if (committed.current.master !== value) { analytics.masterVolumeChanged(p.mode ?? "unwind", value, sessionId); committed.current.master = value; } }}
+          onBlur={() => { const value = current.current.master ?? p.globalVolume; if (committed.current.master !== value) { analytics.masterVolumeChanged(p.mode ?? "unwind", value, sessionId); committed.current.master = value; } }}
         />
       </div>
     </div>

@@ -146,6 +146,14 @@ export default function Home() {
     return () => { context.revert(); transitionTimeline.current = null; };
   }, [hasMode]);
   function selectMode(mode: SessionMode) {
+    if (selectedMode !== mode) {
+      const nextScene = availableVisuals(visuals, mode, p.hiddenVisuals)[0];
+      analytics.modeSelected(mode, selectedMode ?? undefined, selectedMode ? "mode_switch" : "mode_picker", 0, {
+        ...(visual ? { previousScene: visual.name } : {}),
+        ...(nextScene ? { nextScene: nextScene.name } : {}),
+        ...(scene && sceneSoundscapes[scene]?.playlist ? { previousPlaylist: sceneSoundscapes[scene]?.playlist } : {}),
+      });
+    }
     if (!selectedMode) {
       modePositions.current = Array.from(transitionRoot.current?.querySelectorAll(".mode-choice") ?? []).map(el => el.getBoundingClientRect());
     }
@@ -153,6 +161,7 @@ export default function Home() {
     setDuration(current => durationForMode(mode, current));
   }
   function tune(next: Mood) {
+    if (next !== mood) analytics.moodSelected(next, "unwind");
     setMood(next);
   }
   function begin() {
@@ -182,7 +191,7 @@ export default function Home() {
           <header className="checkin-header">
             <Link href="/" className="checkin-brand" aria-label="Slowbit home">slowbit.</Link>
             <nav aria-label="Main navigation">
-              <button aria-label={p.muted ? "Unmute preview" : "Mute preview"} onClick={() => update({ muted: !p.muted })}>{p.muted ? <VolumeX size={21} strokeWidth={1.4} /> : <Volume2 size={21} strokeWidth={1.4} />}</button>
+              <button aria-label={p.muted ? "Unmute preview" : "Mute preview"} onClick={() => { analytics.muteChanged(selectedMode ?? p.mode ?? "unwind", !p.muted); update({ muted: !p.muted }); }}>{p.muted ? <VolumeX size={21} strokeWidth={1.4} /> : <Volume2 size={21} strokeWidth={1.4} />}</button>
               <Link href="/favorites/" aria-label="Saved spaces"><Heart size={20} strokeWidth={1.4} /></Link>
               <Link href="/settings/" aria-label="Settings"><Settings2 size={22} strokeWidth={1.4} /></Link>
               <a href="https://github.com/so-high-l/slowbit" target="_blank" rel="noopener noreferrer" aria-label="Slowbit on GitHub (opens in a new tab)" title="View on GitHub"><Github size={22} strokeWidth={1.4} aria-hidden="true" /></a>
@@ -227,7 +236,7 @@ export default function Home() {
                 key={item.id} ref={el => { focusRefs.current[index] = el; }}
                 className={`mood-choice ${focusMood === item.id ? "is-selected" : ""}`}
                 role="radio" aria-checked={focusMood === item.id} tabIndex={focusMood === item.id ? 0 : -1}
-                onClick={() => setFocusMood(item.id)}
+                onClick={() => { if (focusMood !== item.id) analytics.moodSelected(item.id, "focus"); setFocusMood(item.id); }}
                 onKeyDown={e => {
                   let target = index;
                   if (e.key === "ArrowRight" || e.key === "ArrowDown") target = (index + 1) % focusMoods.length;
@@ -235,7 +244,7 @@ export default function Home() {
                   else if (e.key === "Home") target = 0;
                   else if (e.key === "End") target = focusMoods.length - 1;
                   else return;
-                  e.preventDefault(); setFocusMood(focusMoods[target].id); focusRefs.current[target]?.focus();
+                  e.preventDefault(); analytics.moodSelected(focusMoods[target].id, "focus"); setFocusMood(focusMoods[target].id); focusRefs.current[target]?.focus();
                 }}><span className="mood-marker" aria-hidden="true" /><span>{item.label}</span></button>)}
             </div>
             </div>
@@ -258,9 +267,9 @@ export default function Home() {
       <dialog ref={sceneDialog} className="scene-picker" onCancel={() => setChoosingScene(false)} onClose={() => setChoosingScene(false)} onClick={e => { if (e.target === e.currentTarget) setChoosingScene(false); }}>
         <div><header><h2>Somewhere else?</h2><button autoFocus aria-label="Close scene selection" onClick={() => setChoosingScene(false)}><X size={20} /></button></header>
           <p>Your choice. You can change the sound later.</p>
-          <div className="scene-picker-options">{prioritizedScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { if (scene !== v.id) analytics.sceneSelected(v, selectedMode ?? "unwind"); setCustomScene(v.id); setChoosingScene(false); }}><span>{v.name}</span><small>{v.tags.join(" · ")}</small><ArrowRight size={17} /></button>)}</div>
+          <div className="scene-picker-options">{prioritizedScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { if (scene !== v.id) analytics.sceneSelected(v, selectedMode ?? "unwind", visual, "scene_picker"); setCustomScene(v.id); setChoosingScene(false); }}><span>{v.name}</span><small>{v.tags.join(" · ")}</small><ArrowRight size={17} /></button>)}</div>
           {!visual && <Link href="/settings/">Restore scenes in Settings</Link>}
-          <button className="scene-picker-reset" onClick={() => { const suggested = visuals.find(v => v.id === recommended); if (suggested && scene !== recommended) analytics.sceneSelected(suggested, selectedMode ?? "unwind"); setCustomScene(recommended ?? null); setChoosingScene(false); }}>Use a suggested scene for {profile.label.toLowerCase()}</button>
+          <button className="scene-picker-reset" onClick={() => { const suggested = visuals.find(v => v.id === recommended); if (suggested && scene !== recommended) analytics.sceneSelected(suggested, selectedMode ?? "unwind", visual, "mood_recommendation"); setCustomScene(recommended ?? null); setChoosingScene(false); }}>Use a suggested scene for {profile.label.toLowerCase()}</button>
         </div>
       </dialog>
     </main>

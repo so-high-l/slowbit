@@ -16,12 +16,12 @@ test("Japanese Corner Café is Focus-only and uses the shared scene audio contro
   assert.ok(!availableVisuals(visuals, "unwind").includes(scene));
   assert.equal(sceneSoundscapes.japaneseCafe?.playlist, "japaneseCafeLofi");
   assert.equal(soundLabel(scene.id, "lofi", "Lofi"), "Café Lo-fi Radio");
-  assert.deepEqual(scene.defaultSounds, { lofi: 0.22, ambience: 0.12, brown: 0.05, binaural: 0 });
-  assert.equal(soundLabel(scene.id, "ambience", "Ambience"), "Osaka café ambience");
+  assert.deepEqual(scene.defaultSounds, { lofi: 0.14, ambience: 0.7, rain: 0.15, binaural: 0 });
+  assert.equal(soundLabel(scene.id, "ambience", "Ambience"), "Café ambience");
   assert.deepEqual(recordingProfile(scene.id, "ambience"), {
     file: "785167__artsnbytes__osaka-city-centre-cafe-calm.flac",
     loopCrossfade: 2,
-    level: 0.34,
+    level: 1,
     cutoff: 4600,
     highpass: 80,
   });

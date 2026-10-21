@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { build } from "esbuild";
 
-test("PostHog stays off without configuration and is restricted to the MVP events", async () => {
+test("PostHog stays off without configuration and rejects automatic collection", async () => {
   const load = async (token: string) => {
     const built = await build({
       entryPoints: ["src/lib/analytics.ts"], bundle: true, write: false, format: "esm", platform: "browser",
@@ -10,6 +10,7 @@ test("PostHog stays off without configuration and is restricted to the MVP event
         "process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN": JSON.stringify(token),
         "process.env.NEXT_PUBLIC_POSTHOG_HOST": JSON.stringify("https://eu.i.posthog.com"),
         "window": "{}",
+        "document": JSON.stringify({ referrer: "" }),
       },
       plugins: [{
         name: "mock-posthog", setup(builder) {
@@ -45,6 +46,9 @@ test("PostHog stays off without configuration and is restricted to the MVP event
     assert.equal(filter({ event: "$snapshot" }), null);
     assert.equal(filter({ event: "$autocapture" }), null);
     assert.deepEqual(filter({ event: "$pageview" }), { event: "$pageview" });
-    assert.deepEqual(globals.__slowbitAnalyticsTest.events, [{ name: "scene_selected", properties: { scene_id: "ocean", scene_name: "Open water", mode: "unwind" } }]);
+    assert.deepEqual(globals.__slowbitAnalyticsTest.events, [
+      { name: "app_visited", properties: { entry_source: "direct" } },
+      { name: "scene_selected", properties: { mode: "relax", scene: "Open water", scene_id: "ocean", scene_name: "Open water" } },
+    ]);
   } finally { delete globals.__slowbitAnalyticsTest; }
 });

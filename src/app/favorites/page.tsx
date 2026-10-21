@@ -32,7 +32,7 @@ export default function Favorites() {
                   className="saved-preview"
                   aria-label={`Start ${v.name}`}
                   onClick={() => {
-                    analytics.sceneSelected(v, p.mode ?? "unwind");
+                    analytics.sceneSelected(v, p.mode ?? "unwind", undefined, "favorites");
                     update({
                       lastVisual: v.id,
                       hiddenVisuals: p.hiddenVisuals.filter(
@@ -59,7 +59,7 @@ export default function Favorites() {
                   <button
                     className="icon-button is-favorite"
                     aria-label={`Remove ${v.name} from favorites`}
-                    onClick={() => toggleFavorite(v.id)}
+                    onClick={() => { analytics.sceneUnfavorited(v, p.mode ?? "unwind"); toggleFavorite(v.id); }}
                   >
                     <Heart size={19} fill="currentColor" />
                   </button>

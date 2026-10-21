@@ -37,6 +37,7 @@ import { analytics, captureProductEvent } from "@/lib/analytics";
 import { createSessionAnalytics } from "@/lib/analytics-events";
 import type { VisualId } from "@/lib/types";
 import { trackDisplayName } from "@/lib/focus-music";
+import { sceneSoundscapes } from "@/lib/scene-soundscapes";
 export default function SessionPage() {
   const store = usePreferences();
   if (!store.ready)
@@ -65,11 +66,14 @@ function Session() {
   );
   const [sessionAnalytics] = useState(() => createSessionAnalytics(captureProductEvent));
   const visual = visuals.find((v) => v.id === visualId)!;
+  const playlist = sceneSoundscapes[visualId]?.playlist;
+  const latest = useRef({ visual, playlist, phase, playing });
+  latest.current = { visual, playlist, phase, playing };
   const isFocusPlaceholder = visualId === "focusComingSoon";
   useEffect(() => {
     if (phase === "running" && !p.hiddenVisuals.includes(visualId))
-      sessionAnalytics.start(p.defaultSessionDuration, p.mode === "focus" ? p.focusMood ?? "fresh" : p.lastMood ?? "fried", visual, p.mode ?? "unwind");
-  }, [phase, sessionAnalytics, p.defaultSessionDuration, p.lastMood, p.hiddenVisuals, visualId]);
+      sessionAnalytics.start(p.defaultSessionDuration, p.mode === "focus" ? p.focusMood ?? "fresh" : p.lastMood ?? "fried", visual, p.mode ?? "unwind", playlist);
+  }, [phase, sessionAnalytics, p.defaultSessionDuration, p.lastMood, p.hiddenVisuals, visualId, playlist, p.mode, p.focusMood, visual]);
   const [opening, setOpening] = useState(!!arrival);
   const [motionScale, setMotionScale] = useState(arrival?.pace ?? 1);
   const finishOpening = useCallback(() => setOpening(false), []);
@@ -106,17 +110,81 @@ function Session() {
   const endRef = useRef<HTMLDivElement>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fullscreen = useFullscreen();
+  const fullscreenStart = useRef<number | null>(null);
+  const previousFullscreen = useRef(false);
+  useEffect(() => {
+    if (fullscreen.fullscreen === previousFullscreen.current) return;
+    previousFullscreen.current = fullscreen.fullscreen;
+    if (fullscreen.fullscreen) {
+      fullscreenStart.current = sessionAnalytics.activeSeconds();
+      analytics.fullscreenEntered(visual, p.mode ?? "unwind", sessionAnalytics.sessionId());
+    } else {
+      analytics.fullscreenExited(visual, p.mode ?? "unwind", Math.max(0, Math.round(sessionAnalytics.activeSeconds() - (fullscreenStart.current ?? sessionAnalytics.activeSeconds()))), sessionAnalytics.sessionId());
+      fullscreenStart.current = null;
+    }
+  }, [fullscreen.fullscreen, p.mode, sessionAnalytics, visual]);
   const audio = useAudioMixer(p, playing, 1, visualId, undefined, visualId === "orbitStudy" ? orbitImmersive : exploring);
+  const playlistActiveSeconds = useRef(0);
+  const activePlaylist = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    let last = performance.now();
+    const tick = () => {
+      const now = performance.now();
+      const current = latest.current;
+      if (current.phase === "running" && current.playing && document.visibilityState === "visible" && document.hasFocus()) {
+        const delta = Math.min(1.5, (now - last) / 1000);
+        sessionAnalytics.addActiveSeconds(delta, current.visual, current.playlist);
+        if (p.mode === "focus" && current.playlist) playlistActiveSeconds.current += delta;
+      }
+      last = now;
+    };
+    const interval = window.setInterval(tick, 1000);
+    const resetClock = () => { last = performance.now(); };
+    document.addEventListener("visibilitychange", resetClock);
+    window.addEventListener("focus", resetClock);
+    window.addEventListener("blur", resetClock);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", resetClock);
+      window.removeEventListener("focus", resetClock);
+      window.removeEventListener("blur", resetClock);
+    };
+  }, [p.mode, sessionAnalytics]);
+  useEffect(() => {
+    if (phase !== "running" || p.mode !== "focus" || !playlist) return;
+    const properties = { mode: "focus" as const, scene: visual.name, scene_id: visual.id, scene_name: visual.name };
+    if (!activePlaylist.current) {
+      captureProductEvent("playlist_started", { ...properties, playlist, playlist_id: playlist, playlist_name: playlist, category: playlist.includes("Jazz") || playlist.includes("jazz") ? "jazzy_lofi" : playlist.includes("Ambient") || playlist.includes("ambient") ? "ambient" : "lofi_beats", source: "scene_default" });
+    } else if (activePlaylist.current !== playlist) {
+      captureProductEvent("playlist_changed", { ...properties, previous_playlist: activePlaylist.current, next_playlist: playlist, elapsed_seconds_before_change: Math.round(playlistActiveSeconds.current) });
+      playlistActiveSeconds.current = 0;
+    }
+    activePlaylist.current = playlist;
+  }, [phase, p.mode, playlist, visual]);
   const timer = useSessionTimer(
     p.defaultSessionDuration,
     phase === "running" && playing,
     () => {
-      sessionAnalytics.complete(visual);
+      sessionAnalytics.complete(visual, playlist);
+      analytics.recordModeActivity(p.mode ?? "unwind", sessionAnalytics.activeSeconds(), visual.name, playlist);
       setPlaying(false);
       setPhase("ended");
       setPanel(false);
     },
   );
+  useEffect(() => {
+    const endOnLeave = () => {
+      const current = latest.current;
+      sessionAnalytics.end("navigation", current.visual, current.playlist);
+      analytics.recordModeActivity(p.mode ?? "unwind", sessionAnalytics.activeSeconds(), current.visual.name, current.playlist);
+    };
+    window.addEventListener("pagehide", endOnLeave);
+    window.addEventListener("popstate", endOnLeave);
+    return () => {
+      window.removeEventListener("pagehide", endOnLeave);
+      window.removeEventListener("popstate", endOnLeave);
+    };
+  }, [p.mode, sessionAnalytics]);
   useEffect(() => {
     if (replayTour || arrival || phase !== "ready" || !document.fullscreenElement) return;
     setPhase("running");
@@ -229,7 +297,7 @@ function Session() {
   function switchVisual(id: VisualId, trackSelection = true) {
     if (id === visualId) return;
     const nextVisual = visuals.find((v) => v.id === id)!;
-    if (trackSelection) analytics.sceneSelected(nextVisual, p.mode ?? "unwind");
+    if (trackSelection) analytics.sceneSelected(nextVisual, p.mode ?? "unwind", visual, "session_navigation", sessionAnalytics.sessionId());
     setVisualId(id);
     setExploring(false);
     setOpening(false);
@@ -251,13 +319,16 @@ function Session() {
       switchVisual(others[Math.floor(Math.random() * others.length)].id);
   }
   function togglePlay() {
-    if (!playing) void audio.start();
+    if (!playing) {
+      void audio.start();
+      if (p.mode === "focus" && playlist) captureProductEvent("playlist_resumed", { mode: "focus", scene: visual.name, scene_id: visual.id, scene_name: visual.name, playlist, playlist_id: playlist, playlist_name: playlist });
+    } else if (p.mode === "focus" && playlist) captureProductEvent("playlist_paused", { mode: "focus", scene: visual.name, scene_id: visual.id, scene_name: visual.name, playlist, playlist_id: playlist, playlist_name: playlist, elapsed_seconds: Math.round(playlistActiveSeconds.current) });
     setPlaying((v) => !v);
     reveal();
   }
   function hide() {
     const remaining = available.filter((v) => v.id !== visualId);
-    if (!p.hiddenVisuals.includes(visualId)) analytics.sceneHidden(visual, p.mode ?? "unwind");
+    if (!p.hiddenVisuals.includes(visualId)) analytics.sceneHidden(visual, p.mode ?? "unwind", sessionAnalytics.sessionId());
     hideVisual(visualId);
     if (remaining.length) switchVisual(remaining[0].id, false);
     else {
@@ -288,7 +359,7 @@ function Session() {
       }
       if (phase !== "running") return;
       if (k === "z" && !isFocusPlaceholder) setExploring((v) => !v);
-      if (k === "m" && !isFocusPlaceholder) update({ muted: !p.muted });
+      if (k === "m" && !isFocusPlaceholder) { analytics.muteChanged(p.mode ?? "unwind", !p.muted, sessionAnalytics.sessionId()); update({ muted: !p.muted }); }
       if (k === " ") togglePlay();
       if (k === "arrowright") next(1);
       if (k === "arrowleft") next(-1);
@@ -377,6 +448,8 @@ function Session() {
               aria-label="Finish session"
               data-tooltip="Finish this session and see your closing screen"
               onClick={() => {
+                sessionAnalytics.end("manual", visual, playlist);
+                analytics.recordModeActivity(p.mode ?? "unwind", sessionAnalytics.activeSeconds(), visual.name, playlist);
                 setPlaying(false);
                 setPhase("ended");
               }}
@@ -469,7 +542,8 @@ function Session() {
                   }
                   aria-pressed={p.favoriteVisuals.includes(visualId)}
                   onClick={(e) => {
-                    if (!p.favoriteVisuals.includes(visualId)) analytics.sceneFavorited(visual, p.mode ?? "unwind");
+                    if (!p.favoriteVisuals.includes(visualId)) analytics.sceneFavorited(visual, p.mode ?? "unwind", sessionAnalytics.sessionId());
+                    else analytics.sceneUnfavorited(visual, p.mode ?? "unwind", sessionAnalytics.sessionId());
                     toggleFavorite(visualId);
                     gsap.fromTo(
                       e.currentTarget,
@@ -557,6 +631,7 @@ function Session() {
                 aria-label="Sounds"
                 data-tooltip={panel ? "Close the sound board" : "Adjust this scene’s sounds and volume"}
                 onClick={() => {
+                  if (!panel) analytics.soundMixerOpened(visual, p.mode ?? "unwind", sessionAnalytics.sessionId());
                   setPanel((v) => !v);
                   update({ showBoard: false });
                 }}
@@ -569,7 +644,7 @@ function Session() {
                 data-tour="mute"
                 aria-label={p.muted ? "Unmute audio" : "Mute audio"}
                 data-tooltip={p.muted ? "Unmute sound · M" : "Mute sound · M"}
-                onClick={() => update({ muted: !p.muted })}
+                onClick={() => { analytics.muteChanged(p.mode ?? "unwind", !p.muted, sessionAnalytics.sessionId()); update({ muted: !p.muted }); }}
               >
                 {p.muted ? <VolumeX size={19} /> : <Volume2 size={19} />}
               </button>}
@@ -640,7 +715,7 @@ function Session() {
           >
             <X size={19} />
           </button>
-          <AudioMixer visual={visual} />
+          <AudioMixer visual={visual} sessionId={sessionAnalytics.sessionId()} />
           {audio.error && (
             <button className="text-button" onClick={audio.start}>
               Try starting sound again
