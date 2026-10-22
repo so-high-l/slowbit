@@ -1,4 +1,4 @@
-import type { SessionMode } from "./types";
+import type { FocusMood, SessionMode, VisualId } from "./types";
 
 export const modeDurations: Record<SessionMode, readonly (number | null)[]> = {
   unwind: [5, 10, 15, null],
@@ -15,3 +15,31 @@ export const focusMoods = [
   { id: "distracted", label: "Distracted" },
   { id: "focused", label: "Focused" },
 ] as const;
+
+export const focusSceneByMood: Record<FocusMood, VisualId> = {
+  fresh: "morningLattice",
+  low_energy: "japaneseCafe",
+  sleepy: "readingRoom",
+  distracted: "quietMachine",
+  focused: "nightDrive",
+};
+
+const focusSceneOrder: VisualId[] = [
+  "morningLattice",
+  "quietMachine",
+  "nightDrive",
+  "readingRoom",
+  "japaneseCafe",
+  "deepPassage",
+  "chromaticDrift",
+];
+
+export function availableFocusScene(
+  mood: FocusMood,
+  hidden: VisualId[],
+): VisualId | undefined {
+  const preferred = focusSceneByMood[mood];
+  return hidden.includes(preferred)
+    ? focusSceneOrder.find(id => !hidden.includes(id))
+    : preferred;
+}
