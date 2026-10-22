@@ -3,16 +3,61 @@ import posthog from "posthog-js";
 import { allowedEvents, analyticsMode, type ProductCapture } from "./analytics-events";
 import type { AnalyticsScene, AnalyticsMode } from "./analytics-events";
 let initialized = false;
+let capturingEnabled = false;
+let visitCaptured = false;
+
+export const ANALYTICS_CONSENT_KEY = "slowbit:analytics-consent:v1";
+export const ANALYTICS_CONSENT_DECIDED_AT_KEY = "slowbit:analytics-consent-decided-at:v1";
+export const ANALYTICS_CONSENT_EVENT = "slowbit:analytics-consent-changed";
+export type AnalyticsConsent = "granted" | "declined" | null;
+
+export function getAnalyticsConsent(): AnalyticsConsent {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.localStorage.getItem(ANALYTICS_CONSENT_KEY);
+    return value === "granted" || value === "declined" ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getExistingAnalyticsDistinctId() {
+  if (typeof window === "undefined" || !initialized || !capturingEnabled || getAnalyticsConsent() !== "granted") return null;
+  try {
+    const id = posthog.get_distinct_id();
+    return typeof id === "string" && id.trim() ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+function captureVisit() {
+  if (visitCaptured || !capturingEnabled) return;
+  visitCaptured = true;
+  posthog.capture("app_visited", { entry_source: document.referrer ? "referral" : "direct" });
+}
 
 export function initializeAnalytics() {
   const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
-  if (initialized || typeof window === "undefined" || !token || !host) return;
+  if (typeof window === "undefined" || getAnalyticsConsent() !== "granted" || !token || !host) return;
+  if (initialized) {
+    if (!capturingEnabled) {
+      posthog.reset(true);
+      posthog.opt_in_capturing({ captureEventName: false });
+      capturingEnabled = true;
+      captureVisit();
+    }
+    return;
+  }
   try {
     posthog.init(token, {
       api_host: host,
       defaults: "2026-05-30",
       persistence: "localStorage",
+      opt_out_capturing_by_default: true,
+      opt_out_persistence_by_default: true,
+      opt_out_capturing_persistence_type: "localStorage",
       person_profiles: "identified_only",
       autocapture: false,
       capture_pageview: "history_change",
@@ -27,14 +72,42 @@ export function initializeAnalytics() {
       before_send: event => event && allowedEvents.has(event.event) ? event : null,
     });
     initialized = true;
-    posthog.capture("app_visited", { entry_source: document.referrer ? "referral" : "direct" });
+    posthog.opt_in_capturing({ captureEventName: false });
+    capturingEnabled = true;
+    captureVisit();
   } catch {
     // Analytics must never prevent entry, playback, or preference changes.
   }
 }
 
+export function setAnalyticsConsent(consent: Exclude<AnalyticsConsent, null>) {
+  if (typeof window === "undefined") return false;
+  try {
+    window.localStorage.setItem(ANALYTICS_CONSENT_KEY, consent);
+    // v1 briefly stored a decline timestamp for a seven-day re-prompt. The
+    // decision is now persistent, so remove that obsolete metadata.
+    window.localStorage.removeItem(ANALYTICS_CONSENT_DECIDED_AT_KEY);
+  } catch {
+    return false;
+  }
+  if (consent === "granted") {
+    initializeAnalytics();
+  } else if (initialized) {
+    capturingEnabled = false;
+    try {
+      // Persistence is disabled and removed on opt-out. Reset clears the
+      // in-memory anonymous identity before recording the denied state again.
+      posthog.opt_out_capturing();
+      posthog.reset(true);
+      posthog.opt_out_capturing();
+    } catch { /* Best-effort withdrawal. */ }
+  }
+  window.dispatchEvent(new CustomEvent(ANALYTICS_CONSENT_EVENT, { detail: consent }));
+  return true;
+}
+
 export const captureProductEvent: ProductCapture = (event, properties) => {
-  if (!initialized) return;
+  if (!initialized || !capturingEnabled) return;
   try { posthog.capture(event, properties); } catch { /* Best-effort analytics. */ }
 };
 

@@ -99,7 +99,9 @@ export default function MessageComposer({
         </div>
       </div>
       <p id="note-audience">
-        Shared with everyone who opens the board. No name or profile.
+        Public to everyone who opens the board and may remain visible
+        indefinitely. Don&apos;t include personal or sensitive information. No name
+        or profile is attached.
       </p>
       {error && (
         <p className="note-error" id="note-error" role="alert">
