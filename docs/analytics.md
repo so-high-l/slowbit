@@ -1,8 +1,12 @@
 # Product analytics
 
-PostHog receives explicit product events and route pageviews. Slowbit does not use autocapture, session recordings, surveys, `identify()`, or message-board text. A persistent anonymous browser ID supports aggregate retention analysis and resets when browser storage is cleared.
+PostHog receives explicit product events and route pageviews only after a visitor explicitly opts in. Analytics are disabled by default: the SDK is not initialized and no PostHog request or identifier is created before consent. Slowbit does not use autocapture, session recordings, heatmaps, surveys, `identify()`, or message-board text. For opted-in visitors, a persistent pseudonymous browser ID supports aggregate retention analysis.
 
-Set both public values in production. Leave them unset locally to keep development and test traffic out of production data:
+Consent is stored separately at `slowbit:analytics-consent:v1`. A declined choice persists until the visitor changes it or clears site data; Slowbit does not periodically ask again. Declining does not initialize PostHog. Withdrawing consent calls PostHog's opt-out flow, disables persistence, clears its stored browser identity, and stops future product-event capture. It does not delete historical server-side events. Visitors can change the decision in Settings.
+
+Slowbit uses PostHog Cloud EU. The current Free-plan event retention is a one-year query window; this is not documented as a guarantee that every underlying record is permanently erased at exactly one year. Settings can display and copy an already-existing pseudonymous PostHog distinct ID while consent is enabled. It never initializes PostHog merely to create or display an ID. Historical deletion requests are handled with the internal [PostHog deletion procedure](POSTHOG_DELETION_PROCEDURE.md).
+
+Set both public values in production. Leave them unset locally to keep development and test traffic out of production data. Even when configured, PostHog remains dormant until consent:
 
 ```dotenv
 NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=your_public_project_token

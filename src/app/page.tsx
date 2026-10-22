@@ -25,7 +25,7 @@ const landingAssets = [
 
 export default function Home() {
   const router = useRouter();
-  const { preferences: p, ready, update } = usePreferences();
+  const { preferences: p, ready, update, updateImmediately } = usePreferences();
   const [selectedMode, setSelectedMode] = useState<SessionMode | null>(null);
   const transitionRoot = useRef<HTMLElement>(null);
   const modePositions = useRef<DOMRect[]>([]);
@@ -166,7 +166,7 @@ export default function Home() {
   }
   function begin() {
     if (!visual || !selectedMode) return;
-    update({ focusMood, mode: selectedMode, lastMood: mood, lastVisual: visual.id, defaultSessionDuration: duration });
+    updateImmediately({ focusMood, mode: selectedMode, lastMood: mood, lastVisual: visual.id, defaultSessionDuration: duration });
     audio.prepareSession({ mode: selectedMode, mood: selectedMode === "focus" ? focusMood : mood, duration, pace, opening: selectedMode === "focus" ? ["You’re here to focus.", "You chose " + visual.name.toLowerCase() + ".", "Settle in. Change anything as you go."] : useMoodMix ? [...profile.opening] : [profile.opening[0], "You chose " + visual.name.toLowerCase() + ".", "We’ll start there. You can change anything as you go."] });
     router.push("/session/");
   }
@@ -272,6 +272,7 @@ export default function Home() {
           <button className="scene-picker-reset" onClick={() => { const suggested = visuals.find(v => v.id === recommended); if (suggested && scene !== recommended) analytics.sceneSelected(suggested, selectedMode ?? "unwind", visual, "mood_recommendation"); setCustomScene(recommended ?? null); setChoosingScene(false); }}>Use a suggested scene for {profile.label.toLowerCase()}</button>
         </div>
       </dialog>
+      <footer className="landing-legal-footer"><Link href="/privacy/">Privacy</Link></footer>
     </main>
   );
 }

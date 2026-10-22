@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   useCallback,
   type ReactNode,
@@ -21,6 +22,9 @@ import {
 import type { Preferences, Visual, VisualId, SoundId, SoundMix } from "@/lib/types";
 function useStore() {
   const [preferences, setPreferences] = useState<Preferences>(defaults);
+  const preferencesRef = useRef(preferences);
+  const pendingWrite = useRef<number | null>(null);
+  preferencesRef.current = preferences;
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState(false);
   useEffect(() => {
@@ -34,20 +38,36 @@ function useStore() {
   }, []);
   useEffect(() => {
     if (!ready) return;
-    const timeout = window.setTimeout(() => {
+    pendingWrite.current = window.setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
       } catch {
         setStorageError(true);
       }
+      pendingWrite.current = null;
     }, 280);
-    return () => window.clearTimeout(timeout);
+    return () => {
+      if (pendingWrite.current !== null) window.clearTimeout(pendingWrite.current);
+      pendingWrite.current = null;
+    };
   }, [preferences, ready]);
   const update = useCallback(
     (patch: Partial<Preferences>) =>
       setPreferences((p) => ({ ...p, ...patch })),
     [],
   );
+  const updateImmediately = useCallback((patch: Partial<Preferences>) => {
+    const next = { ...preferencesRef.current, ...patch };
+    if (pendingWrite.current !== null) window.clearTimeout(pendingWrite.current);
+    pendingWrite.current = null;
+    preferencesRef.current = next;
+    setPreferences(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      setStorageError(true);
+    }
+  }, []);
   const toggleFavorite = useCallback(
     (id: VisualId) =>
       setPreferences((p) => ({
@@ -108,6 +128,7 @@ function useStore() {
     ready,
     storageError,
     update,
+    updateImmediately,
     toggleFavorite,
     hideVisual,
     restoreVisual,

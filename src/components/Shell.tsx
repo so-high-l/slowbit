@@ -47,7 +47,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {children}
       <footer className="site-footer">
         <span>A little space between you and your screen.</span>
-        <span>No accounts. No noise. Just you.</span>
+        <span className="site-footer-links"><Link href="/privacy/">Privacy</Link><span aria-hidden="true">·</span><span>No accounts. No noise. Just you.</span></span>
       </footer>
     </div>
   );

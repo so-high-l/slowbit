@@ -1,15 +1,14 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import Shell from "@/components/Shell";
+import PageBackButton from "@/components/PageBackButton";
 import { usePreferences } from "@/hooks/usePreferences";
 import { availableVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
 import { modeDurations } from "@/lib/session-mode";
 import { analytics } from "@/lib/analytics";
+import AnalyticsPrivacyControls from "@/components/AnalyticsPrivacyControls";
 export default function Settings() {
-  const router = useRouter();
   const {
     preferences: p,
     ready,
@@ -22,18 +21,7 @@ export default function Settings() {
   return (
     <Shell>
       <main className="content-page settings-page">
-        <button
-          type="button"
-          className="secondary-button settings-back-button"
-          data-tooltip="Go back to the previous page"
-          onClick={() => {
-            if (window.history.length > 1) router.back();
-            else router.replace("/");
-          }}
-        >
-          <ArrowLeft size={18} aria-hidden="true" />
-          Back
-        </button>
+        <PageBackButton />
         <div className="page-heading">
           <span className="eyebrow">MAKE YOURSELF AT HOME</span>
           <h1>
@@ -158,10 +146,12 @@ export default function Settings() {
               <h2>Small footprint. Private by default.</h2>
               <p>
                 Your favorites, sound levels, and preferences stay in this
-                browser. Clearing its site data will clear them. Only notes you
-                choose to post are sent to the shared board, without names,
-                profiles, or account identifiers.
+                browser. Clearing its site data will clear them. Optional
+                analytics stay off unless you allow them. Slowbit does not send
+                board messages to PostHog or use session recordings, automatic
+                interaction capture, or identified profiles.
               </p>
+              <AnalyticsPrivacyControls />
               <p>
                 Motion follows your device’s reduced-motion preference. Sounds
                 start only when you begin a session.

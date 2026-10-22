@@ -8,6 +8,7 @@ import CanvasScene from "@/components/visuals/CanvasScene";
 import { usePreferences } from "@/hooks/usePreferences";
 import { availableVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
+import PageBackButton from "@/components/PageBackButton";
 export default function Favorites() {
   const { preferences: p, ready, toggleFavorite, update } = usePreferences();
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function Favorites() {
   return (
     <Shell>
       <main className="content-page">
+        <PageBackButton />
         <div className="page-heading">
           <span className="eyebrow">FAMILIAR PLACES, OPEN DOORS</span>
           <h1>
