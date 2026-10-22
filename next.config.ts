@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 const development = process.env.NODE_ENV === "development";
 const config: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   output: development ? undefined : "export",
   trailingSlash: true,
   env: {
