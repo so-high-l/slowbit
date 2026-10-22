@@ -21,7 +21,8 @@ export default function PrivacyPolicy() {
           <p>Last updated: October 22, 2026</p>
         </header>
 
-        <div className="privacy-intro">
+        <section className="privacy-intro">
+          <h2>1. Introduction</h2>
           <p>
             Slowbit is a free, open-source web application for focus, rest, and
             calming visual and audio experiences. It is currently offered as a
@@ -32,10 +33,10 @@ export default function PrivacyPolicy() {
             policy describes the information Slowbit processes, why it is used,
             how long it may remain, and the choices available to you.
           </p>
-        </div>
+        </section>
 
         <section>
-          <h2>1. Who operates Slowbit?</h2>
+          <h2>2. Who operates Slowbit?</h2>
           <p>Slowbit is operated by Souhail EL MAHDANI, an individual based in Morocco.</p>
           <p>
             Privacy questions and requests can be sent to{" "}
@@ -44,21 +45,33 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>2. Information Slowbit processes</h2>
+          <h2>3. Information Slowbit processes</h2>
           <p>
             Slowbit can process browser preferences, optional product analytics,
             public board messages, and ordinary technical request data needed to
             deliver and secure the service. Slowbit does not require an account.
           </p>
           <p>
+            Pseudonymous identifiers and technical request metadata can still be
+            personal information under applicable law, even when they do not
+            contain a visitor&apos;s name.
+          </p>
+          <p>
             Slowbit does not contain advertising, sell personal information, or
             embed YouTube, Spotify, SoundCloud, external radio players, feedback
             widgets, third-party iframes, or hosted web fonts.
           </p>
+          <p>
+            Where a legal basis is required, Slowbit relies on explicit consent
+            for optional analytics. Local preferences and technical request
+            handling are used to provide the functionality you request, operate
+            the service, and protect it. The appropriate basis can vary by
+            jurisdiction and by the specific processing involved.
+          </p>
         </section>
 
         <section>
-          <h2>3. Information stored in your browser</h2>
+          <h2>4. Browser storage and local preferences</h2>
           <p>
             Slowbit uses browser storage to remember favorite and hidden scenes,
             sound and volume settings, onboarding state, optional analytics
@@ -73,7 +86,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>4. Optional PostHog analytics</h2>
+          <h2>5. Optional PostHog analytics</h2>
           <p>
             Slowbit uses PostHog Cloud EU only after you select Allow. Analytics
             help us understand use of modes, scenes, sessions, playlists, and
@@ -98,7 +111,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>5. Public message board</h2>
+          <h2>6. Anonymous public message board</h2>
           <p>
             The message board is public. A message can be read by anyone who
             opens it and may remain visible indefinitely. Do not include personal,
@@ -127,7 +140,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>6. Service providers</h2>
+          <h2>7. Hosting and third-party service providers</h2>
           <ul>
             <li><strong>Vercel Hobby</strong> hosts the website and processes requests to deliver it.</li>
             <li><strong>Cloudflare</strong> delivers audio and visual assets from R2 and provides the board&apos;s Worker and D1 database.</li>
@@ -141,12 +154,12 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>7. Retention</h2>
+          <h2>8. Data retention</h2>
           <ul>
             <li>Browser preferences remain until you clear site data or Slowbit changes or removes the stored setting.</li>
             <li>PostHog&apos;s current free-plan event retention is a one-year query window. This is not a guarantee that every underlying record is permanently erased at exactly one year.</li>
-            <li>Vercel Hobby runtime logs are currently retained for one hour.</li>
-            <li>Cloudflare Workers Logs are enabled and currently retained for three days.</li>
+            <li>Vercel Hobby runtime logs are currently retained for one hour. Build, deployment, security, and other operational records can follow different retention rules.</li>
+            <li>Cloudflare Workers Logs are enabled and currently retained for three days. They can include technical request information, errors, and execution metadata.</li>
             <li>Cloudflare R2 Data Access Logs are disabled.</li>
             <li>Public D1 board messages are retained indefinitely unless manually removed. Posting-token hashes expire after 24 hours and are cleaned up opportunistically.</li>
           </ul>
@@ -157,7 +170,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>8. International processing</h2>
+          <h2>9. International data processing and transfers</h2>
           <p>
             Slowbit is operated from Morocco and is available worldwide. Vercel,
             Cloudflare, and PostHog operate infrastructure in multiple countries,
@@ -167,7 +180,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>9. Your choices and rights</h2>
+          <h2>10. Privacy choices and rights</h2>
           <p>
             You can use Slowbit without analytics, change analytics consent in
             Settings, clear locally stored preferences, and request access,
@@ -182,7 +195,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>10. Historical analytics deletion</h2>
+          <h2>11. Historical data-deletion requests</h2>
           <p>
             Withdrawing analytics consent stops future optional collection and
             clears local PostHog identifiers where supported. It does not itself
@@ -198,7 +211,7 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>11. Security</h2>
+          <h2>12. Security</h2>
           <p>
             Slowbit uses established infrastructure providers and applies
             reasonable technical and organizational measures for this public beta.
@@ -207,23 +220,12 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2>12. Children</h2>
+          <h2>13. Children&apos;s privacy</h2>
           <p>
             Slowbit is a general-audience service and is not directed to children.
             It does not knowingly request names, accounts, or other direct contact
             information from children. If you believe a child has submitted
             personal information on the public board, contact the operator.
-          </p>
-        </section>
-
-        <section>
-          <h2>13. Legal bases</h2>
-          <p>
-            Where a legal basis is required, Slowbit relies on your consent for
-            optional analytics. Browser preferences and technical request handling
-            are used to provide the functionality you request, operate the service,
-            and protect it. The appropriate basis can vary by jurisdiction and by
-            the specific processing involved.
           </p>
         </section>
 

@@ -13,7 +13,7 @@ import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { useFullscreen } from "@/hooks/useFullscreen";
 import { checkIns, checkInMix, availableCheckInScene, stationOrder } from "@/lib/check-in";
 import { sceneSoundscapes } from "@/lib/scene-soundscapes";
-import { durationForMode, modeDurations, focusMoods } from "@/lib/session-mode";
+import { availableFocusScene, durationForMode, modeDurations, focusMoods } from "@/lib/session-mode";
 import type { SessionMode, FocusMood, Mood, VisualId } from "@/lib/types";
 
 const landingAssets = [
@@ -44,14 +44,20 @@ export default function Home() {
   const stationRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const sceneDialog = useRef<HTMLDialogElement>(null);
   const profile = checkIns[mood];
-  const recommended = availableCheckInScene(mood, p.hiddenVisuals);
+  const unwindRecommended = availableCheckInScene(mood, p.hiddenVisuals);
+  const focusRecommended = availableFocusScene(focusMood, p.hiddenVisuals);
+  const recommended = selectedMode === "focus" ? focusRecommended : unwindRecommended;
+  const recommendedVisual = visuals.find(v => v.id === recommended);
+  const recommendationLabel = selectedMode === "focus"
+    ? focusMoods.find(item => item.id === focusMood)?.label ?? "Focus"
+    : profile.label;
   const modeScenes = availableVisuals(visuals, selectedMode ?? "unwind", p.hiddenVisuals);
-  const scene = customScene && modeScenes.some(v => v.id === customScene) ? customScene : selectedMode === "focus" ? modeScenes[0]?.id : recommended;
+  const scene = customScene && modeScenes.some(v => v.id === customScene) ? customScene : recommended;
   const visual = visuals.find(v => v.id === scene);
   const availableScenes = modeScenes;
   const prioritizedScenes = [...availableScenes].sort((a, b) => {
-    const aRecommended = a.recommendedMoods.includes(mood) ? 1 : 0;
-    const bRecommended = b.recommendedMoods.includes(mood) ? 1 : 0;
+    const aRecommended = selectedMode === "focus" ? Number(a.id === recommended) : Number(a.recommendedMoods.includes(mood));
+    const bRecommended = selectedMode === "focus" ? Number(b.id === recommended) : Number(b.recommendedMoods.includes(mood));
     return bRecommended - aRecommended;
   });
   const useMoodMix = scene === profile.scene;
@@ -153,6 +159,7 @@ export default function Home() {
         ...(nextScene ? { nextScene: nextScene.name } : {}),
         ...(scene && sceneSoundscapes[scene]?.playlist ? { previousPlaylist: sceneSoundscapes[scene]?.playlist } : {}),
       });
+      setCustomScene(null);
     }
     if (!selectedMode) {
       modePositions.current = Array.from(transitionRoot.current?.querySelectorAll(".mode-choice") ?? []).map(el => el.getBoundingClientRect());
@@ -163,6 +170,14 @@ export default function Home() {
   function tune(next: Mood) {
     if (next !== mood) analytics.moodSelected(next, "unwind");
     setMood(next);
+    // A new check-in should start from that mood's recommendation. Visitors
+    // can still choose any other scene afterward in the scene picker.
+    setCustomScene(null);
+  }
+  function tuneFocus(next: FocusMood) {
+    if (next !== focusMood) analytics.moodSelected(next, "focus");
+    setFocusMood(next);
+    setCustomScene(null);
   }
   function begin() {
     if (!visual || !selectedMode) return;
@@ -236,7 +251,7 @@ export default function Home() {
                 key={item.id} ref={el => { focusRefs.current[index] = el; }}
                 className={`mood-choice ${focusMood === item.id ? "is-selected" : ""}`}
                 role="radio" aria-checked={focusMood === item.id} tabIndex={focusMood === item.id ? 0 : -1}
-                onClick={() => { if (focusMood !== item.id) analytics.moodSelected(item.id, "focus"); setFocusMood(item.id); }}
+                onClick={() => tuneFocus(item.id)}
                 onKeyDown={e => {
                   let target = index;
                   if (e.key === "ArrowRight" || e.key === "ArrowDown") target = (index + 1) % focusMoods.length;
@@ -244,7 +259,7 @@ export default function Home() {
                   else if (e.key === "Home") target = 0;
                   else if (e.key === "End") target = focusMoods.length - 1;
                   else return;
-                  e.preventDefault(); analytics.moodSelected(focusMoods[target].id, "focus"); setFocusMood(focusMoods[target].id); focusRefs.current[target]?.focus();
+                  e.preventDefault(); tuneFocus(focusMoods[target].id); focusRefs.current[target]?.focus();
                 }}><span className="mood-marker" aria-hidden="true" /><span>{item.label}</span></button>)}
             </div>
             </div>
@@ -269,7 +284,7 @@ export default function Home() {
           <p>Your choice. You can change the sound later.</p>
           <div className="scene-picker-options">{prioritizedScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { if (scene !== v.id) analytics.sceneSelected(v, selectedMode ?? "unwind", visual, "scene_picker"); setCustomScene(v.id); setChoosingScene(false); }}><span>{v.name}</span><small>{v.tags.join(" · ")}</small><ArrowRight size={17} /></button>)}</div>
           {!visual && <Link href="/settings/">Restore scenes in Settings</Link>}
-          <button className="scene-picker-reset" onClick={() => { const suggested = visuals.find(v => v.id === recommended); if (suggested && scene !== recommended) analytics.sceneSelected(suggested, selectedMode ?? "unwind", visual, "mood_recommendation"); setCustomScene(recommended ?? null); setChoosingScene(false); }}>Use a suggested scene for {profile.label.toLowerCase()}</button>
+          {recommendedVisual && <button className="scene-picker-reset" onClick={() => { if (scene !== recommended) analytics.sceneSelected(recommendedVisual, selectedMode ?? "unwind", visual, "mood_recommendation"); setCustomScene(null); setChoosingScene(false); }}>Suggested for {recommendationLabel}: {recommendedVisual.name}</button>}
         </div>
       </dialog>
       <footer className="landing-legal-footer"><Link href="/privacy/">Privacy</Link></footer>

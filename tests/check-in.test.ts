@@ -14,6 +14,21 @@ test("mood suggestions have distinct scenes and mixes; quieter moods do not inhe
   mix.rain = 1;
   assert.equal(checkInMix("fried").rain, 0.4);
 });
+test("each listed unwind mood maps to its intended named scene", () => {
+  const expected = {
+    fried: ["rain", "Rainy window"],
+    restless: ["drift", "Weightless"],
+    stuck: ["aurora", "Northern lights"],
+    overstimulated: ["stars", "After midnight"],
+    chill: ["embers", "Slow burn"],
+    burned_out: ["ocean", "Open water"],
+  } as const;
+  for (const mood of stationOrder) {
+    const sceneId = availableCheckInScene(mood, []);
+    assert.equal(sceneId, expected[mood][0]);
+    assert.equal(visuals.find(visual => visual.id === sceneId)?.name, expected[mood][1]);
+  }
+});
 test("check-in falls back around hidden scenes and explicitly handles all hidden", () => {
   const all = visuals.map(visual => visual.id);
   for (const mood of stationOrder) {

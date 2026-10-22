@@ -25,6 +25,26 @@ test("privacy route and controls match the confirmed launch configuration", asyn
     policy,
     /Owner review needed|TODO|\[CONFIRM/i
   );
+  assert.deepEqual(
+    [...policy.matchAll(/<h2>(.*?)<\/h2>/g)].map((match) => match[1]),
+    [
+      "1. Introduction",
+      "2. Who operates Slowbit?",
+      "3. Information Slowbit processes",
+      "4. Browser storage and local preferences",
+      "5. Optional PostHog analytics",
+      "6. Anonymous public message board",
+      "7. Hosting and third-party service providers",
+      "8. Data retention",
+      "9. International data processing and transfers",
+      "10. Privacy choices and rights",
+      "11. Historical data-deletion requests",
+      "12. Security",
+      "13. Children&apos;s privacy",
+      "14. Changes to this policy",
+      "15. Contact",
+    ]
+  );
 
   assert.match(policy, /Souhail EL MAHDANI/);
   assert.match(policy, /elmahdanisouhail@gmail\.com/);
@@ -67,4 +87,5 @@ test("privacy route and controls match the confirmed launch configuration", asyn
     worker,
     /now\s*\+\s*24\s*\*\s*60\s*\*\s*60\s*\*\s*1000/
   );
+
 });

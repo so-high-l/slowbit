@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { durationForMode, modeDurations } from "../src/lib/session-mode.ts";
+import { availableFocusScene, durationForMode, focusSceneByMood, modeDurations } from "../src/lib/session-mode.ts";
 import { availableVisuals } from "../src/lib/scene-availability.ts";
 import { visuals } from "../src/data/catalog.ts";
 import { defaults, getSceneSoundMix, normalize } from "../src/lib/preferences.ts";
@@ -13,6 +13,21 @@ test("mode duration choices preserve compatible values and replace incompatible 
   assert.equal(durationForMode("focus", 45), 45);
   assert.equal(durationForMode("focus", null), null);
   assert.equal(durationForMode("unwind", null), null);
+});
+
+test("each Focus mood maps to a distinct scene and falls back around hidden scenes", () => {
+  assert.deepEqual(focusSceneByMood, {
+    fresh: "morningLattice",
+    low_energy: "japaneseCafe",
+    sleepy: "readingRoom",
+    distracted: "quietMachine",
+    focused: "nightDrive",
+  });
+  assert.equal(new Set(Object.values(focusSceneByMood)).size, 5);
+  for (const [mood, scene] of Object.entries(focusSceneByMood)) {
+    assert.equal(availableFocusScene(mood as keyof typeof focusSceneByMood, []), scene);
+    assert.notEqual(availableFocusScene(mood as keyof typeof focusSceneByMood, [scene]), scene);
+  }
 });
 
 test("Focus and Unwind expose their catalogs with two shared abstract scenes", () => {
