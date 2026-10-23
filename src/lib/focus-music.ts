@@ -1,6 +1,26 @@
 export const focusTrackFiles = [
-  "leberch-flowing-piano-606083.mp3", "leberch-peaceful-piano-576857.mp3",
-  "leberch-atmospheric-piano-603148.mp3", "leberch-piano-calm-525211.mp3",
+  "HoliznaCC0 - Drifting Piano.mp3",
+  "Ondrosik - Whispered.mp3",
+  "Ondrosik - ondrik and Ivanka.mp3",
+  "Ondrosik - A Bedtime Confession.mp3",
+  "Ondrosik - For ivanka 2.mp3",
+  "Ondrosik - Pilgrimage.mp3",
+  "Ondrosik - sunday evening.mp3",
+  "Ondrosik - Dotted Stories.mp3",
+  "Ondrosik - breakthrough version 2025.mp3",
+  "Ondrosik - Here Comes the Little Train.mp3",
+  "Ondrosik - For Ivanka 1.mp3",
+  "Ondrosik - Face in the Grass.mp3",
+  "Ondrosik - Cristal snowflakes.mp3",
+  "Ondrosik - nostalgic (version 2025).mp3",
+  "Ondrosik - Violet music.mp3",
+  "Ondrosik - Falling stars.mp3",
+  "Ondrosik - Violet-Music-2025.mp3",
+  "Ondrosik - Fragile Memories.mp3",
+  "Ondrosik - nostalgic.mp3",
+  "Ondrosik - sweet home.mp3",
+  "Ondrosik - No words.mp3",
+  "Ondrosik - labirint.mp3",
 ];
 export const lofiTrackFiles = [
   "absolutesound-deep-thinking-lofi-music-510766.mp3",
@@ -84,7 +104,7 @@ export const japaneseCafeTrackFiles = [
   "HoliznaCC0 - Small Towns Smaller Lives.mp3",
 ];
 export function focusTrackUrls(base: string) {
-  return base ? focusTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/${file}`) : [];
+  return base ? focusTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/sunlit-wall/${encodeURIComponent(file)}`) : [];
 }
 export function lofiTrackUrls(base: string) {
   return base ? lofiTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/lofi/${file}`) : [];

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { chromaticDriftTrackFiles, chromaticDriftTrackUrls, FocusPlaylist, focusTrackUrls, japaneseCafeTrackFiles, japaneseCafeTrackUrls, lofiTrackFiles, lofiTrackUrls, nightDriveTrackFiles, nightDriveTrackUrls, readingRoomTrackFiles, readingRoomTrackUrls, shuffleBag, pianoFade, trackDisplayName } from "../src/lib/focus-music.ts";
+import { chromaticDriftTrackFiles, chromaticDriftTrackUrls, FocusPlaylist, focusTrackFiles, focusTrackUrls, japaneseCafeTrackFiles, japaneseCafeTrackUrls, lofiTrackFiles, lofiTrackUrls, nightDriveTrackFiles, nightDriveTrackUrls, readingRoomTrackFiles, readingRoomTrackUrls, shuffleBag, pianoFade, trackDisplayName } from "../src/lib/focus-music.ts";
 import { availableVisuals } from "../src/lib/scene-availability.ts";
 import { normalize, defaults, saveSceneSoundMix, getSceneSoundMix } from "../src/lib/preferences.ts";
 import type { Visual } from "../src/lib/types.ts";
@@ -39,6 +39,12 @@ test("shuffle cycles contain every track without consecutive repeats", () => {
     assert.equal(new Set(bag).size, 4); assert.notEqual(bag[0], last); last = bag[3];
   }
   assert.deepEqual(focusTrackUrls(""), []);
+  assert.equal(focusTrackFiles.length, 22);
+  assert.equal(new Set(focusTrackFiles).size, 22);
+  assert.ok(focusTrackFiles.includes("Ondrosik - labirint.mp3"));
+  assert.ok(focusTrackFiles.every(file => !file.includes("leberch")));
+  assert.deepEqual(focusTrackUrls("https://assets.test/"), focusTrackFiles.map(file => `https://assets.test/audio/focus/sunlit-wall/${encodeURIComponent(file)}`));
+  assert.equal(trackDisplayName(focusTrackUrls("https://assets.test/").at(-1)!), "Labirint");
   assert.deepEqual(lofiTrackUrls(""), []);
   assert.deepEqual(lofiTrackUrls("https://assets.test/"), lofiTrackFiles.map(file => `https://assets.test/audio/lofi/${file}`));
   assert.deepEqual(nightDriveTrackUrls(""), []);
@@ -89,17 +95,17 @@ test("leaving fades output and cleans players after the fade", t => {
 test("all missing tracks exhaust bounded attempts without throwing or retry loops", t => {
   const { playlist, media } = setup(); t.after(() => playlist.close());
   playlist.update(true, true, .3);
-  for (let i = 0; i < 4; i++) media[0].onerror!();
-  for (let i = 0; i < 10; i++) playlist.update(true, true, .3);
-  assert.equal(media.reduce((n, m) => n + m.loads, 0), 4);
+  for (let i = 0; i < focusTrackFiles.length; i++) media[0].onerror!();
+  for (let i = 0; i < focusTrackFiles.length + 2; i++) playlist.update(true, true, .3);
+  assert.equal(media.reduce((n, m) => n + m.loads, 0), focusTrackFiles.length);
   assert.ok(media.every(m => !m.src));
 });
 test("stalled requests time out and stop after every file has failed", t => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   const { playlist, media } = setup(); t.after(() => playlist.close());
   playlist.update(true, true, .3);
-  for (let i = 0; i < 5; i++) t.mock.timers.tick(30000);
-  assert.equal(media.reduce((n, m) => n + m.loads, 0), 4);
+  for (let i = 0; i < focusTrackFiles.length + 1; i++) t.mock.timers.tick(30000);
+  assert.equal(media.reduce((n, m) => n + m.loads, 0), focusTrackFiles.length);
 });
 test("play promise rejection is contained and the next candidate is prepared", async t => {
   const { playlist, media } = setup(); t.after(() => playlist.close());
