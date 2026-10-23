@@ -217,7 +217,7 @@ export default function CanvasScene({
       else painters[kind]({ ctx, w, h, t, particles, focus, reducedMotion: reduced });
       ctx.restore();
       // Deep Blue draws its guide inside the water, sharing the camera depth.
-      if (kind !== "jelly" && kind !== "quietMachine" && kind !== "nightDrive" && kind !== "readingRoom" && kind !== "deepPassage" && kind !== "focusComingSoon") paintFollowLight(ctx, kind, w, h, t, focus, reduced);
+      if (kind !== "morningLattice" && kind !== "jelly" && kind !== "quietMachine" && kind !== "nightDrive" && kind !== "readingRoom" && kind !== "deepPassage" && kind !== "focusComingSoon") paintFollowLight(ctx, kind, w, h, t, focus, reduced);
     };
     frame = requestAnimationFrame(draw);
     return () => {
