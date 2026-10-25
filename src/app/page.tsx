@@ -5,8 +5,9 @@ import { analytics } from "@/lib/analytics";
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Moon, Crosshair, Github, Heart, Settings2, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowRight, Moon, Crosshair, X } from "lucide-react";
 import MoodAtmosphere from "@/components/checkin/MoodAtmosphere";
+import SiteHeader from "@/components/SiteHeader";
 import { visuals } from "@/data/catalog";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
@@ -203,15 +204,7 @@ export default function Home() {
         </div>
       ) : (
         <div className="checkin-layout">
-          <header className="checkin-header">
-            <Link href="/" className="checkin-brand" aria-label="Slowbit home">slowbit.</Link>
-            <nav aria-label="Main navigation">
-              <button aria-label={p.muted ? "Unmute preview" : "Mute preview"} onClick={() => { analytics.muteChanged(selectedMode ?? p.mode ?? "unwind", !p.muted); update({ muted: !p.muted }); }}>{p.muted ? <VolumeX size={21} strokeWidth={1.4} /> : <Volume2 size={21} strokeWidth={1.4} />}</button>
-              <Link href="/favorites/" aria-label="Saved spaces"><Heart size={20} strokeWidth={1.4} /></Link>
-              <Link href="/settings/" aria-label="Settings"><Settings2 size={22} strokeWidth={1.4} /></Link>
-              <a href="https://github.com/so-high-l/slowbit" target="_blank" rel="noopener noreferrer" aria-label="Slowbit on GitHub (opens in a new tab)" title="View on GitHub"><Github size={22} strokeWidth={1.4} aria-hidden="true" /></a>
-            </nav>
-          </header>
+          <SiteHeader />
           <section ref={transitionRoot} className={`checkin-main mode-flow ${hasMode ? "has-mode" : ""}`} aria-labelledby={hasMode ? "checkin-question" : "mode-question"}>
             <div className="mode-step" inert={hasMode} aria-hidden={hasMode}>
               <h1 id="mode-question">what do you need right now?</h1>
@@ -287,7 +280,7 @@ export default function Home() {
           {recommendedVisual && <button className="scene-picker-reset" onClick={() => { if (scene !== recommended) analytics.sceneSelected(recommendedVisual, selectedMode ?? "unwind", visual, "mood_recommendation"); setCustomScene(null); setChoosingScene(false); }}>Suggested for {recommendationLabel}: {recommendedVisual.name}</button>}
         </div>
       </dialog>
-      <footer className="landing-legal-footer"><Link href="/privacy/">Privacy</Link></footer>
+      <footer className="landing-legal-footer"><Link href="/credits/">Music Credits</Link><span aria-hidden="true">·</span><Link href="/privacy/">Privacy</Link></footer>
     </main>
   );
 }

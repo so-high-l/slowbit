@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
     <Shell>
       <main className="content-page privacy-page">
         <PageBackButton />
-        <header className="privacy-heading">
+        <header className="page-heading">
           <span className="eyebrow">SLOWBIT · PRIVACY</span>
           <h1>Privacy Policy</h1>
           <p>Last updated: October 22, 2026</p>

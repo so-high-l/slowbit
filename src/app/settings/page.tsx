@@ -22,13 +22,13 @@ export default function Settings() {
     <Shell>
       <main className="content-page settings-page">
         <PageBackButton />
-        <div className="page-heading">
+        <header className="page-heading">
           <span className="eyebrow">MAKE YOURSELF AT HOME</span>
           <h1>
             A few <em>little things.</em>
           </h1>
           <p>Your space, your pace.</p>
-        </div>
+        </header>
         {!ready ? (
           <p>Loading your preferences…</p>
         ) : (
@@ -141,6 +141,13 @@ export default function Settings() {
                 The board stays hidden until you choose to open it. Leaving a
                 note after a session is always optional.
               </p>
+            </section>
+            <section className="settings-section">
+              <h2>Music credits</h2>
+              <p>Meet the artists behind Slowbit’s focus and unwind spaces.</p>
+              <Link className="secondary-button settings-tour-link" href="/credits/">
+                Meet the artists
+              </Link>
             </section>
             <section className="settings-section">
               <h2>Small footprint. Private by default.</h2>
