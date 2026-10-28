@@ -315,22 +315,25 @@ Status meanings:
 
 ### License-use findings
 
-- The current [Pixabay Content License](https://pixabay.com/service/license-summary/) permits free use, adaptation, and use without attribution, but prohibits standalone distribution. Its [binding terms](https://pixabay.com/service/terms/) define substantially unchanged audio distributed on a standalone basis as prohibited. Slowbit serves the original files from R2 as selectable, continuously playable channels and playlists. All 42 Pixabay audio objects are therefore **RIGHTS REVIEW**, despite having source pages.
+- The current [Pixabay Content License](https://pixabay.com/service/license-summary/) permits free use, adaptation, and use without attribution, but prohibits standalone distribution. Its [binding terms](https://pixabay.com/service/terms/) define substantially unchanged audio distributed on a standalone basis as prohibited. Slowbit serves the original files from R2 as selectable, continuously playable channels and playlists. The 41 active Pixabay audio objects are therefore **RIGHTS REVIEW**, despite having source pages. The separately documented AbsoluteSound object is excluded from playback and is not counted as active.
 - The current [Mixkit Sound Effects Free License](https://mixkit.co/license/modal/sfxFree/) permits commercial and noncommercial projects without required attribution, but prohibits redistributing an item on its own, as stock, in a tool/template, or with source files. Slowbit's direct-file audio delivery should be confirmed with Mixkit before launch. All nine Mixkit creative assets are **RIGHTS REVIEW**.
 - [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) requires no attribution and is intended to permit commercial copying, modification, distribution, and performance. Creator/source details remain here as provenance.
 
 ### Quiet Machine playlist
 
-Each object below is licensed on its current source page under the Pixabay Content License. Attribution is not required. Download date: unknown. First seen in repository: 2026-10-13. Compatibility: unresolved for playlist delivery. Status: **RIGHTS REVIEW**.
+Each active object below is licensed on its current source page under the Pixabay Content License. Attribution is not required. Download date: unknown. First seen in repository: 2026-10-13. Compatibility: unresolved for playlist delivery. Status: **RIGHTS REVIEW**.
 
 | R2 object | Original title | Contributor | Source |
 | --- | --- | --- | --- |
-| `audio/lofi/absolutesound-deep-thinking-lofi-music-510766.mp3` | Deep Thinking Lofi Music | AbsoluteSound | https://pixabay.com/music/lofi-deep-thinking-lofi-music-510766/ |
 | `audio/lofi/knoodles-chill-hop-trap-lofi-558426.mp3` | Chill Hop Trap Lofi | knoodles | https://pixabay.com/music/trap-chill-hop-trap-lofi-558426/ |
 | `audio/lofi/knoodles-chill-house-midnight-drive-551512.mp3` | Chill House Midnight Drive | knoodles | https://pixabay.com/music/beats-chill-house-midnight-drive-551512/ |
 | `audio/lofi/knoodles-chill-trap-lofi-evening-565444.mp3` | Chill Trap Lofi Evening | knoodles | https://pixabay.com/music/trap-chill-trap-lofi-evening-565444/ |
 | `audio/lofi/serenomusic-abstract-chill-612078.mp3` | Abstract Chill | SerenoMusic | https://pixabay.com/music/lofi-abstract-chill-612078/ |
 | `audio/lofi/zephiramusic-lofi-background-580735.mp3` | Lofi Background | ZephiraMusic | https://pixabay.com/music/lofi-lofi-background-580735/ |
+
+#### Excluded from playback
+
+`audio/lofi/absolutesound-deep-thinking-lofi-music-510766.mp3` — **Deep Thinking Lofi Music** by **AbsoluteSound** ([source](https://pixabay.com/music/lofi-deep-thinking-lofi-music-510766/)) is excluded from Slowbit playback as of 2026-10-26 because the project owner confirmed that the artist requires paid licensing. It has been removed from Quiet Machine's configured playlist and public Music Credits. The original R2 object is intentionally retained and was not deleted. No paid license is recorded in this repository.
 
 ### Recovered scene-specific CC0 recordings
 
@@ -379,7 +382,7 @@ The tables above and existing scene sections supply the exact title, contributor
 | Slowbit-generated audio | `audio/quiet-machine-d-minor-loop.wav`; `public/audio/orbital-pad-loop.mp3` | 2 | Generator scripts and Git history; no attribution; download n/a | Compatible | **VERIFIED** |
 | Freesound/OpenGameArt CC0 recordings | Nine recovered rows above plus `audio/underwater-loop.wav` and `audio/soft-brown-noise.flac` | 11 | Exact numeric source pages; CC0; no attribution; download unknown | Compatible | **VERIFIED** |
 | Japanese Café CC0 playlist | All 34 exact `audio/lofi/jap-cafe/` object names in `src/lib/focus-music.ts` | 34 | Four FMA album pages above; CC0; no attribution; download unknown | Compatible | **VERIFIED** |
-| Pixabay audio | 42 exact objects in the Quiet Machine, Sunlit Wall, Night Drive, Reading Room, Chromatic Drift, Deep Passage, and Distant Owl sections | 42 | Exact source pages; attribution not required; download unknown | Direct playlist/channel delivery needs review | **RIGHTS REVIEW** |
+| Pixabay audio | 42 documented objects in the Quiet Machine, Sunlit Wall, Night Drive, Reading Room, Chromatic Drift, Deep Passage, and Distant Owl sections | 42 (41 active, 1 excluded) | Exact source pages; attribution not required; download unknown; AbsoluteSound track excluded 2026-10-26 | Direct playlist/channel delivery needs review for active objects | **RIGHTS REVIEW** |
 | Mixkit effects | `audio/mixkit-light-rain-looping-1249.wav`, `audio/night-crickets.wav` plus local duplicate, `audio/mixkit-campfire-crackles-1330.wav`, `audio/mixkit-birds-in-forest-loop-1239.wav`, `audio/mixkit-forest-ambience-loop-1228.wav`, `audio/mixkit-forest-rain-loop-1225.wav`, `audio/mixkit-water-flowing-ambience-loop-3126.wav`, `audio/mixkit-wind-howl-exterior-1276.wav`, `audio/mixkit-water-bubble.wav` | 9 | Numeric Mixkit object URLs/current SFX license; attribution not required; download unknown | Direct-file delivery needs review | **RIGHTS REVIEW** |
 | Sleeper carriage recording | `audio/picshore-sleeper-carriage-serenity-3.wav` | 1 | Exact Picshore source page supplied by owner; current license verified 2026-10-22; attribution not required; download date unknown | Compatible as incorporated app ambience; raw stock/sample redistribution prohibited | **VERIFIED** |
 | Slowbit favicon | `public/favicon.svg` | 1 | Original project branding in initial commit; no attribution; download n/a | Compatible | **VERIFIED** |

@@ -23,7 +23,6 @@ export const focusTrackFiles = [
   "Ondrosik - labirint.mp3",
 ];
 export const lofiTrackFiles = [
-  "absolutesound-deep-thinking-lofi-music-510766.mp3",
   "knoodles-chill-hop-trap-lofi-558426.mp3",
   "knoodles-chill-house-midnight-drive-551512.mp3",
   "knoodles-chill-trap-lofi-evening-565444.mp3",
