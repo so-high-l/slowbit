@@ -46,6 +46,8 @@ test("shuffle cycles contain every track without consecutive repeats", () => {
   assert.deepEqual(focusTrackUrls("https://assets.test/"), focusTrackFiles.map(file => `https://assets.test/audio/focus/sunlit-wall/${encodeURIComponent(file)}`));
   assert.equal(trackDisplayName(focusTrackUrls("https://assets.test/").at(-1)!), "Labirint");
   assert.deepEqual(lofiTrackUrls(""), []);
+  assert.equal(lofiTrackFiles.length, 5);
+  assert.ok(!lofiTrackFiles.includes("absolutesound-deep-thinking-lofi-music-510766.mp3"));
   assert.deepEqual(lofiTrackUrls("https://assets.test/"), lofiTrackFiles.map(file => `https://assets.test/audio/lofi/${file}`));
   assert.deepEqual(nightDriveTrackUrls(""), []);
   assert.deepEqual(nightDriveTrackUrls("https://assets.test/"), nightDriveTrackFiles.map(file => `https://assets.test/audio/lofi/night-drive/${file}`));

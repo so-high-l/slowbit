@@ -25,4 +25,5 @@ test("scene credits are derived from track-level artist mappings", () => {
 test("credit entries do not expose licensing status or private contact details", () => {
   const publicCopy = JSON.stringify(musicCredits);
   assert.doesNotMatch(publicCopy, /RIGHTS REVIEW|UNKNOWN|@gmail\.com/i);
+  assert.doesNotMatch(publicCopy, /AbsoluteSound|Deep Thinking Lofi Music/i);
 });
