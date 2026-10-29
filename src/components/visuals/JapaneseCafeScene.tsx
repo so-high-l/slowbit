@@ -7,14 +7,33 @@ const exteriorRoot = "/videos/japanese-corner-cafe";
 export default function JapaneseCafeScene({
   paused = false,
   exploring = false,
+  onReady,
 }: {
   paused?: boolean;
   exploring?: boolean;
+  onReady?: () => void;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const [reducedMotion, setReducedMotion] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
+  const [settledAssets, setSettledAssets] = useState(0);
+  const settled = useRef(new Set<string>());
+
+  const markSettled = (asset: string) => {
+    if (settled.current.has(asset)) return;
+    settled.current.add(asset);
+    setSettledAssets(settled.current.size);
+  };
+
+  useEffect(() => {
+    if (settledAssets >= 2) onReady?.();
+  }, [onReady, settledAssets]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => onReady?.(), 15000);
+    return () => window.clearTimeout(timeout);
+  }, [onReady]);
 
   useEffect(() => {
     const preference = matchMedia("(prefers-reduced-motion: reduce)");
@@ -59,7 +78,13 @@ export default function JapaneseCafeScene({
     <div className="japanese-cafe-scene" data-immersive={exploring} data-interior-moving={animateInterior} aria-hidden="true">
       <div className="japanese-cafe-layer japanese-cafe-interior">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="japanese-cafe-media" src="/images/japanese-cafe/interior-window.png" alt="" />
+        <img
+          className="japanese-cafe-media"
+          src="/images/japanese-cafe/interior-window.png"
+          alt=""
+          onLoad={() => markSettled("interior")}
+          onError={() => markSettled("interior")}
+        />
         <svg
           className="japanese-cafe-interior-life"
           viewBox="0 0 1672 941"
@@ -102,7 +127,13 @@ export default function JapaneseCafeScene({
       <div className="japanese-cafe-layer japanese-cafe-exterior">
         {/* The poster keeps the transition complete before the video is ready. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="japanese-cafe-media" src={`${exteriorRoot}/poster.png`} alt="" />
+        <img
+          className="japanese-cafe-media"
+          src={`${exteriorRoot}/poster.png`}
+          alt=""
+          onLoad={() => markSettled("exterior")}
+          onError={() => markSettled("exterior")}
+        />
         {exploring && !videoFailed && !reducedMotion && (
           <video
             ref={video}

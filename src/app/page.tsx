@@ -1,5 +1,5 @@
 "use client";
-import { availableVisuals } from "@/lib/scene-availability";
+import { availableVisuals, landingVisuals } from "@/lib/scene-availability";
 import gsap from "gsap";
 import { analytics } from "@/lib/analytics";
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
@@ -52,7 +52,7 @@ export default function Home() {
   const recommendationLabel = selectedMode === "focus"
     ? focusMoods.find(item => item.id === focusMood)?.label ?? "Focus"
     : profile.label;
-  const modeScenes = availableVisuals(visuals, selectedMode ?? "unwind", p.hiddenVisuals);
+  const modeScenes = landingVisuals(visuals, selectedMode ?? "unwind", p.hiddenVisuals);
   const scene = customScene && modeScenes.some(v => v.id === customScene) ? customScene : recommended;
   const visual = visuals.find(v => v.id === scene);
   const availableScenes = modeScenes;

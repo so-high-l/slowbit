@@ -7,8 +7,9 @@ export function createImageAssetCache<T extends string>(
   const pending = new Map<T, Promise<void>>();
   return {
     get(key: T): HTMLImageElement | null { return images.get(key) ?? null; },
-    preload(onChange: () => void): () => void {
+    preload(onChange: () => void, onSettled?: () => void): () => void {
       let subscribed = true;
+      const requests: Promise<void>[] = [];
       for (const key of Object.keys(paths) as T[]) {
         if (!pending.has(key)) {
           pending.set(key, new Promise<void>((resolve) => {
@@ -26,8 +27,11 @@ export function createImageAssetCache<T extends string>(
             image.src = paths[key];
           }));
         }
-        void pending.get(key)!.then(() => { if (subscribed) onChange(); });
+        const request = pending.get(key)!;
+        requests.push(request);
+        void request.then(() => { if (subscribed) onChange(); });
       }
+      void Promise.all(requests).then(() => { if (subscribed) onSettled?.(); });
       return () => { subscribed = false; };
     },
   };
