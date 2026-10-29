@@ -120,6 +120,12 @@ export function chromaticDriftTrackUrls(base: string) {
 export function japaneseCafeTrackUrls(base: string) {
   return base ? japaneseCafeTrackFiles.map(file => `${base.replace(/\/+$/, "")}/audio/lofi/jap-cafe/${encodeURIComponent(file)}`) : [];
 }
+/** One shuffle bag across the three existing Lo-fi collections; no media is duplicated. */
+export function trainCarriageTrackUrls(base: string) {
+  return base
+    ? [...lofiTrackUrls(base), ...nightDriveTrackUrls(base), ...japaneseCafeTrackUrls(base)]
+    : [];
+}
 export function trackDisplayName(url: string) {
   const filename = decodeURIComponent(url.split("/").pop() ?? "")
     .replace(/(?:\.mp3)+$/i, "")

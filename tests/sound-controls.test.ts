@@ -6,13 +6,13 @@ import { sceneSoundscapes } from "../src/lib/scene-soundscapes.ts";
 import { duplicateSound, soundLabel } from "../src/lib/sound-controls.ts";
 import { defaults, getSceneSoundMix, normalize, saveSceneSoundMix, resetSceneSoundMix } from "../src/lib/preferences.ts";
 
-test("all 29 scenes expose only one control per recorded file", () => {
-  assert.equal(visuals.length, 29);
+test("all 30 scenes expose only one control per recorded file", () => {
+  assert.equal(visuals.length, 30);
   for (const visual of visuals) {
     const channels: RecordedChannel[] = ["rain", "wind", "forest", "fire", "night", "brown"];
     if (sceneSoundscapes[visual.id]?.ambience) channels.push("ambience");
     if (visual.id === "orbitStudy") channels.push("orbitalPad");
-    if (visual.id === "lantern") channels.push("train");
+    if (visual.id === "lantern" || visual.id === "trainCarriage") channels.push("train");
     if (visual.id === "vinyl") channels.push("vinylMusic");
     const files = channels.filter(id => id !== duplicateSound(visual.id)?.removed).map(id => recordingProfile(visual.id, id).file);
     assert.equal(new Set(files).size, files.length, visual.name);

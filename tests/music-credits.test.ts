@@ -17,9 +17,13 @@ test("music credits include the requested artists with tracks, scenes, and publi
 test("scene credits are derived from track-level artist mappings", () => {
   const sunlit = sceneMusicCredits.find(item => item.scene === "Sunlit Wall");
   const cafe = sceneMusicCredits.find(item => item.scene === "Japanese Corner Café");
+  const carriage = sceneMusicCredits.find(item => item.scene === "Train Carriage");
   assert.ok(sunlit?.tracks.some(track => track.title === "Drifting Piano" && track.artist === "HoliznaCC0"));
   assert.ok(cafe?.tracks.some(track => track.title === "Morning Coffee" && track.artist === "HoliznaCC0"));
   assert.ok(!cafe?.tracks.some(track => track.title === "Drifting Piano"));
+  assert.ok(carriage?.tracks.some(track => track.title === "Morning Coffee" && track.artist === "HoliznaCC0"));
+  assert.ok(carriage?.tracks.some(track => track.title === "Night Drive" && track.artist === "Turning Pages"));
+  assert.ok(carriage?.tracks.some(track => track.title === "Lofi Background" && track.artist === "ZephiraMusic"));
 });
 
 test("credit entries do not expose licensing status or private contact details", () => {

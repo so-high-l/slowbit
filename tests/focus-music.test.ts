@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { chromaticDriftTrackFiles, chromaticDriftTrackUrls, FocusPlaylist, focusTrackFiles, focusTrackUrls, japaneseCafeTrackFiles, japaneseCafeTrackUrls, lofiTrackFiles, lofiTrackUrls, nightDriveTrackFiles, nightDriveTrackUrls, readingRoomTrackFiles, readingRoomTrackUrls, shuffleBag, pianoFade, trackDisplayName } from "../src/lib/focus-music.ts";
+import { chromaticDriftTrackFiles, chromaticDriftTrackUrls, FocusPlaylist, focusTrackFiles, focusTrackUrls, japaneseCafeTrackFiles, japaneseCafeTrackUrls, lofiTrackFiles, lofiTrackUrls, nightDriveTrackFiles, nightDriveTrackUrls, readingRoomTrackFiles, readingRoomTrackUrls, shuffleBag, pianoFade, trackDisplayName, trainCarriageTrackUrls } from "../src/lib/focus-music.ts";
 import { availableVisuals } from "../src/lib/scene-availability.ts";
 import { normalize, defaults, saveSceneSoundMix, getSceneSoundMix } from "../src/lib/preferences.ts";
 import type { Visual } from "../src/lib/types.ts";
@@ -58,6 +58,13 @@ test("shuffle cycles contain every track without consecutive repeats", () => {
   assert.deepEqual(japaneseCafeTrackUrls(""), []);
   assert.deepEqual(japaneseCafeTrackUrls("https://assets.test/"), japaneseCafeTrackFiles.map(file => `https://assets.test/audio/lofi/jap-cafe/${encodeURIComponent(file)}`));
   assert.equal(trackDisplayName(japaneseCafeTrackUrls("https://assets.test")[0]), "So Broke");
+  assert.deepEqual(trainCarriageTrackUrls(""), []);
+  assert.deepEqual(trainCarriageTrackUrls("https://assets.test/"), [
+    ...lofiTrackUrls("https://assets.test/"),
+    ...nightDriveTrackUrls("https://assets.test/"),
+    ...japaneseCafeTrackUrls("https://assets.test/"),
+  ]);
+  assert.equal(trainCarriageTrackUrls("https://assets.test/").length, 49);
   assert.deepEqual(pianoFade(0), [1, 0]);
   assert.ok(pianoFade(.5)[0] > pianoFade(.5)[1]);
   assert.ok(pianoFade(1)[0] < .00001); assert.equal(pianoFade(1)[1], 1);

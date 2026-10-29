@@ -44,7 +44,7 @@ export default function VisualRenderer({
       ) : (
         <CanvasScene kind={visualId} paused={paused} exploring={exploring} motionScale={motionScale} />
       )}
-      {visualId === "lantern" && <div aria-hidden="true" style={{
+      {(visualId === "lantern" || visualId === "trainCarriage") && <div aria-hidden="true" style={{
         position: "absolute", inset: 0, pointerEvents: "none",
         background: "#020611",
         opacity: 0.68 * Math.min(1, Math.max(0, nightProgress)),

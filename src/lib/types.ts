@@ -8,6 +8,7 @@ export type VisualId =
   | "nightDrive"
   | "readingRoom"
   | "japaneseCafe"
+  | "trainCarriage"
   | "focusComingSoon"
   | "rain"
   | "aurora"

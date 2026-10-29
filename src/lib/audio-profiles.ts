@@ -46,6 +46,6 @@ export function recordingProfile(scene: VisualId, channel: RecordedChannel): Rec
   if (scene === "ocean") return { file: files.water, level: 0.3, cutoff: 4200, highpass: 80 };
   if (scene === "jelly") return { file: "underwater-loop.wav", level: 0.16, cutoff: 1200, highpass: 90 };
   if (water.includes(scene)) return { file: files.water, level: 0.2, cutoff: 1800, highpass: 80 };
-  const sheltered = ["rain", "vinyl", "lantern", "ink"].includes(scene);
+  const sheltered = ["rain", "vinyl", "lantern", "trainCarriage", "ink"].includes(scene);
   return { file: files.wind, level: sheltered ? 0.12 : 0.22, cutoff: sheltered ? 700 : scene === "snow" ? 1200 : 2200 };
 }
