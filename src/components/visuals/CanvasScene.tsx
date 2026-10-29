@@ -73,11 +73,13 @@ export default function CanvasScene({
   paused = false,
   exploring = false,
   motionScale = 1,
+  onReady,
 }: {
   kind: CanvasVisualId;
   paused?: boolean;
   exploring?: boolean;
   motionScale?: number;
+  onReady?: () => void;
 }) {
   const { engine } = useAudioSession();
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -85,7 +87,9 @@ export default function CanvasScene({
   const active = useRef(exploring);
   const dirty = useRef(true);
   const pace = useRef(motionScale);
+  const ready = useRef(onReady);
   const toggleOrbit = useRef<(() => void) | null>(null);
+  useEffect(() => { ready.current = onReady; }, [onReady]);
   useEffect(() => { pace.current = motionScale; }, [motionScale]);
   useEffect(() => {
     isPaused.current = paused;
@@ -156,11 +160,13 @@ export default function CanvasScene({
     const observer = new ResizeObserver(resize);
     observer.observe(el);
     resize();
+    const sceneReady = () => ready.current?.();
     const unsubscribeImages = kind === "orbitStudy"
-      ? orbitImages.preload(() => { dirty.current = true; })
+      ? orbitImages.preload(() => { dirty.current = true; }, sceneReady)
       : kind === "readingRoom"
-        ? readingRoomImages.preload(() => { dirty.current = true; })
+        ? readingRoomImages.preload(() => { dirty.current = true; }, sceneReady)
         : undefined;
+    if (!unsubscribeImages) sceneReady();
     const particles = Array.from(
       { length: kind === "stars" ? 260 : 140 },
       () => ({

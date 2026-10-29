@@ -31,7 +31,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { useFullscreen } from "@/hooks/useFullscreen";
 import { useSessionTimer } from "@/hooks/useSessionTimer";
-import { availableVisuals } from "@/lib/scene-availability";
+import { sessionVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
 import { analytics, captureProductEvent } from "@/lib/analytics";
 import { createSessionAnalytics } from "@/lib/analytics-events";
@@ -52,9 +52,9 @@ function Session() {
     hideVisual,
   } = usePreferences();
   const [visualId, setVisualId] = useState<VisualId>(
-    p.lastVisual && availableVisuals(visuals, p.mode, p.hiddenVisuals).some(v => v.id === p.lastVisual)
+    p.lastVisual && sessionVisuals(visuals, p.mode, p.hiddenVisuals).some(v => v.id === p.lastVisual)
       ? p.lastVisual
-      : (availableVisuals(visuals, p.mode, p.hiddenVisuals)[0]?.id ?? "rain"),
+      : (sessionVisuals(visuals, p.mode, p.hiddenVisuals)[0]?.id ?? "rain"),
   );
   const audioSession = useAudioSession();
   const [arrival] = useState(audioSession.pendingSession);
@@ -191,7 +191,7 @@ function Session() {
     setPlaying(true);
     void audio.start();
   }, [arrival, audio.start, phase]);
-  const available = availableVisuals(visuals, p.mode, p.hiddenVisuals);
+  const available = sessionVisuals(visuals, p.mode, p.hiddenVisuals);
   const reveal = useCallback(() => {
     setVisible(true);
     if (idle.current) clearTimeout(idle.current);

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { availableFocusScene, durationForMode, focusSceneByMood, modeDurations } from "../src/lib/session-mode.ts";
-import { availableVisuals } from "../src/lib/scene-availability.ts";
+import { availableVisuals, landingVisuals, sessionVisuals } from "../src/lib/scene-availability.ts";
 import { visuals } from "../src/data/catalog.ts";
 import { defaults, getSceneSoundMix, normalize } from "../src/lib/preferences.ts";
 
@@ -40,6 +40,18 @@ test("Focus and Unwind expose their catalogs with two shared abstract scenes", (
   const placeholder = visuals.find(scene => scene.id === "focusComingSoon")!;
   assert.deepEqual(placeholder.defaultSounds, {});
   assert.ok(Object.values(getSceneSoundMix(defaults, placeholder)).every(volume => volume === 0));
+});
+
+test("the coming-soon placeholder stays off the landing page and last in Focus sessions", () => {
+  const landing = landingVisuals(visuals, "focus").map(scene => scene.id);
+  const session = sessionVisuals(visuals, "focus").map(scene => scene.id);
+
+  assert.ok(!landing.includes("focusComingSoon"));
+  assert.equal(session.at(-1), "focusComingSoon");
+  assert.deepEqual(session.slice(0, -1), landing);
+  assert.ok(!sessionVisuals(visuals, "focus", ["focusComingSoon"]).includes(
+    visuals.find(scene => scene.id === "focusComingSoon")!,
+  ));
 });
 test("session mode and focus durations survive saved preference normalization", () => {
   for (const duration of [25, 45, 60, null]) {
