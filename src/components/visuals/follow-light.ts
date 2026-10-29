@@ -26,6 +26,7 @@ export const sceneLights: Record<VisualId, LightStyle> = {
   jelly: { color: "139,227,236", x: 0.55, y: 0.48, spread: 0.10 },
   meadow: { color: "238,224,148", x: 0.60, y: 0.44, spread: 0.11 },
   lantern: { color: "243,204,148", x: 0.63, y: 0.38, spread: 0.08, reflection: true },
+  trainCarriage: { color: "243,204,148", x: 0.63, y: 0.38, spread: 0.08, reflection: true },
   ink: { color: "197,221,217", x: 0.57, y: 0.46, spread: 0.10 },
   vinyl: { color: "241,199,146", x: 0.72, y: 0.35, spread: 0.025, reflection: true },
   nightSky: { color: "206,224,246", x: 0.58, y: 0.32, spread: 0.13 },

@@ -513,7 +513,7 @@ function Session() {
                           ? exploring ? "Open the curtain" : "Draw the curtain"
                           : visualId === "meadow"
                             ? exploring ? "Sit back up" : "Lie back in the grass"
-                            : visualId === "lantern"
+                            : visualId === "lantern" || visualId === "trainCarriage"
                               ? exploring ? "Back to the compartment" : "Closer to the window"
                               : visualId === "vinyl"
                                 ? exploring ? "Lift the needle" : "Put the record on"

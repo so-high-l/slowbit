@@ -59,6 +59,7 @@ const painters = {
   jelly: paintDeepBlue,
   meadow: paintEveningMeadow,
   lantern: paintPaperLantern,
+  trainCarriage: paintPaperLantern,
   ink: paintSlowInk,
   vinyl: paintLateNightRecord,
   nightSky: paintNightSky,
@@ -186,7 +187,7 @@ export default function CanvasScene({
         // Normal mode drifts quietly; immersion smoothly raises orbital speed.
         if (kind === "orbitStudy") advanceOrbitMotion(orbit, dt);
         if (kind === "pond" && pondDropStarted(previousTime, t)) engine.current?.playPondDrop();
-        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "quietMachine" ? 0.2 : kind === "deepPassage" ? 0.34 : kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "jelly" ? 0.32 : kind === "nightDrive" ? 0.75 : kind === "readingRoom" ? 0.62 : kind === "lantern" ? 0.65 : 1.4)));
+        focus += ((active.current ? 1 : 0) - focus) * (1 - Math.exp(-dt * (kind === "quietMachine" ? 0.2 : kind === "deepPassage" ? 0.34 : kind === "meadow" || kind === "magneticField" ? 0.28 : kind === "morningLattice" ? 1.8 : kind === "jelly" ? 0.32 : kind === "nightDrive" ? 0.75 : kind === "readingRoom" ? 0.62 : kind === "lantern" || kind === "trainCarriage" ? 0.65 : 1.4)));
         if (kind === "quietMachine") {
           if (active.current) machineZoomTime += dt * Math.max(0, Math.min(1, (focus - 0.72) / 0.24));
           else if (!active.current && focus < 0.001) machineZoomTime = 0;
@@ -203,7 +204,7 @@ export default function CanvasScene({
       }
       dirty.current = false;
       ctx.save();
-      if (kind === "lantern") {
+      if (kind === "lantern" || kind === "trainCarriage") {
         // Move into the window, centered at 43% of the carriage height.
         // Overscan keeps its rounded corners and frame outside the viewport.
         const scale = 1 + focus * 0.78;

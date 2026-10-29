@@ -506,7 +506,7 @@ test("missing new ambience stays silent and a late scene download cannot leak th
 });
 
 test("revised presets keep restrained layers and binaural audio off", () => {
-  assert.equal(Object.keys(sceneSoundscapes).length, 21);
+  assert.equal(Object.keys(sceneSoundscapes).length, 22);
   const frequencies = new Set<number>();
   for (const [id, profile] of Object.entries(sceneSoundscapes)) {
     const visual = visuals.find(v => v.id === id)!;
@@ -517,7 +517,7 @@ test("revised presets keep restrained layers and binaural audio off", () => {
     assert.ok(Object.entries(volumes).filter(([channel, volume]) => channel !== "vinylMusic" && volume > 0).length <= maxLayers);
     frequencies.add(profile.beatHz);
   }
-  assert.equal(frequencies.size, 21);
+  assert.equal(frequencies.size, 22);
 });
 
 for (const scene of ["clouds", "ribbonTunnel"] as const) {

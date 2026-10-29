@@ -65,7 +65,7 @@ export default function AudioMixer({ visual, sessionId }: { visual: Visual; sess
     (s.id !== "textureTone" || hasAirTones(visual.id)) &&
     (s.id !== "ambience" || soundscape?.ambience) &&
     (s.id !== "texture" || soundscape?.texture) &&
-    (s.id !== "train" || visual.id === "lantern") &&
+    (s.id !== "train" || visual.id === "lantern" || visual.id === "trainCarriage") &&
     (s.id !== "piano" || (p.mode === "focus" && visual.id === "morningLattice")) &&
     (s.id !== "lofi" || Boolean(soundscape?.playlist)) &&
     (s.id !== "orbitalPad" || ((p.mode ?? "unwind") === "unwind" && visual.id === "orbitStudy")),

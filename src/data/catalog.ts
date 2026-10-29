@@ -44,6 +44,7 @@ export const visuals: Visual[] = [
   { id: "nightDrive", name: "Night Drive", subtitle: "A little further, one quiet mile at a time.", tags: ["Focus", "Night", "Road", "Lo-fi"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.nightDrive!.mix },
   { id: "readingRoom", name: "Reading Room", subtitle: "Settle in. Let the room hold the rest.", tags: ["Focus", "Warm", "Reading", "Study", "Cozy"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.readingRoom!.mix },
   { id: "japaneseCafe", name: "Japanese Corner Café", subtitle: "A warm cup. A quiet corner. One thing at a time.", tags: ["Focus", "Café", "Pixel art", "Lo-fi"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.japaneseCafe!.mix },
+  { id: "trainCarriage", name: "Train Carriage", subtitle: "One long track. One quiet thought at a time.", tags: ["Focus", "Train", "Night", "Lo-fi"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.trainCarriage!.mix },
   { id: "focusComingSoon", name: "More focus scenes", subtitle: "Coming soon.", tags: ["Focus", "Coming soon"], modes: ["focus"], recommendedMoods: [], defaultSounds: {} },
   {
     id: "rain",

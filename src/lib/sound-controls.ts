@@ -16,6 +16,7 @@ export function soundLabel(scene: VisualId, id: SoundId, fallback: string): stri
   if (id === "lofi" && scene === "nightDrive") return "Lo-fi Radio";
   if (id === "lofi" && scene === "readingRoom") return "Jazz Radio";
   if (id === "lofi" && scene === "japaneseCafe") return "Café Lo-fi Radio";
+  if (id === "lofi" && scene === "trainCarriage") return "Carriage Lo-fi Radio";
   if (id === "lofi" && scene === "chromaticDrift") return "777 Hz + ambience";
   if (id === "ambience") return sceneSoundscapes[scene]?.ambience?.name ?? fallback;
   if (id === "texture") return sceneSoundscapes[scene]?.texture?.name ?? fallback;
@@ -50,6 +51,17 @@ export function japaneseCafeImmersiveMix(volumes: SoundMix, outside: boolean): S
   return {
     ...volumes,
     ambience: volumes.ambience * 0.28,
+  };
+}
+
+/** Moving closer to the glass softens the full carriage mix without changing saved sliders. */
+export function trainCarriageImmersiveMix(volumes: SoundMix, immersive: boolean): SoundMix {
+  if (!immersive) return volumes;
+  return {
+    ...volumes,
+    lofi: volumes.lofi * 0.82,
+    train: volumes.train * 0.55,
+    rain: volumes.rain * 0.55,
   };
 }
 
