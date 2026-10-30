@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import Shell from "@/components/Shell";
-import CanvasScene from "@/components/visuals/CanvasScene";
+import ScenePreview from "@/components/ScenePreview";
 import { usePreferences } from "@/hooks/usePreferences";
 import { availableVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
@@ -45,7 +45,7 @@ export default function Favorites() {
                   }}
                 >
                   <div className="card-art">
-                    {v.id === "orbitStudy" ? <CanvasScene kind="orbitStudy" paused /> : <div className="art-motif" />}
+                    <ScenePreview scene={v.id} />
                     <span className="saved-play">Enter this space</span>
                   </div>
                 </button>
