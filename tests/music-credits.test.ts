@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { musicCredits, sceneMusicCredits } from "../src/lib/music-credits.ts";
+import {
+  chromaticDriftTrackFiles,
+  focusTrackFiles,
+  japaneseCafeTrackFiles,
+  loceanTrackFiles,
+  lofiTrackFiles,
+  nightDriveTrackFiles,
+  readingRoomTrackFiles,
+} from "../src/lib/focus-music.ts";
 
 test("music credits include the requested artists with tracks, scenes, and public links", () => {
   const required = ["Ondrosik", "HoliznaCC0", "ZephiraMusic", "SerenoMusic", "HoggyArt", "Turning Pages", "OpenMind Audio"];
@@ -30,4 +39,22 @@ test("credit entries do not expose licensing status or private contact details",
   const publicCopy = JSON.stringify(musicCredits);
   assert.doesNotMatch(publicCopy, /RIGHTS REVIEW|UNKNOWN|@gmail\.com/i);
   assert.doesNotMatch(publicCopy, /AbsoluteSound|Deep Thinking Lofi Music/i);
+});
+
+test("every active playlist track has a public music-credit entry", () => {
+  const expectedCounts = new Map<string, number>([
+    ["Sunlit Wall", focusTrackFiles.length],
+    ["Quiet Machine", lofiTrackFiles.length],
+    ["Night Drive", nightDriveTrackFiles.length],
+    ["Reading Room", readingRoomTrackFiles.length],
+    ["Chromatic Drift", chromaticDriftTrackFiles.length],
+    ["Japanese Corner Café", japaneseCafeTrackFiles.length],
+    ["L’océan", loceanTrackFiles.length],
+    ["Train Carriage", lofiTrackFiles.length + nightDriveTrackFiles.length + japaneseCafeTrackFiles.length],
+  ]);
+
+  for (const [scene, expected] of expectedCounts) {
+    const credit = sceneMusicCredits.find(item => item.scene === scene);
+    assert.equal(credit?.tracks.length, expected, `${scene} credits are out of sync with its active playlist`);
+  }
 });
