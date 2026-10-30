@@ -18,9 +18,11 @@ export function soundLabel(scene: VisualId, id: SoundId, fallback: string): stri
   if (id === "lofi" && scene === "japaneseCafe") return "Café Lo-fi Radio";
   if (id === "lofi" && scene === "trainCarriage") return "Carriage Lo-fi Radio";
   if (id === "lofi" && scene === "chromaticDrift") return "777 Hz + ambience";
+  if (id === "lofi" && scene === "loceanRooftop") return "L’océan Radio";
   if (id === "ambience") return sceneSoundscapes[scene]?.ambience?.name ?? fallback;
   if (id === "texture") return sceneSoundscapes[scene]?.texture?.name ?? fallback;
   if (id === "textureTone") return scene === "clouds" ? "Air harmonics" : "Low hum";
+  if (id === "seaBirds" && scene === "loceanRooftop") return "Sea birds";
   if (id === "forest" && ["meadow", "drift", "pond"].includes(scene)) return "Birdsong";
   if (id === "wind") {
     if (scene === "jelly") return "Underwater ambience";

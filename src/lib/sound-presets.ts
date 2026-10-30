@@ -10,6 +10,7 @@ export const silentMix: Record<SoundId, number> = {
   fire: 0,
   wind: 0,
   forest: 0,
+  seaBirds: 0,
   brown: 0,
   night: 0,
   tones: 0,

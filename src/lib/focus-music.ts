@@ -66,6 +66,13 @@ export const chromaticDriftTrackFiles = [
   "liecio-calming-and-relaxing-meditation-music-110208.mp3",
 ];
 /** Exact R2 object names supplied by the owner. Do not normalize these keys. */
+export const loceanTrackFiles = [
+  "dreamy_sunset.mp3",
+  "guembridiculous.mp3",
+  "kaddour_hits.mp3",
+  "geneve_groove.mp3",
+];
+/** Exact R2 object names supplied by the owner. Do not normalize these keys. */
 export const japaneseCafeTrackFiles = [
   "HoliznaCC0 - So Broke.mp3",
   "HoliznaCC0 - Something In the Air.mp3",
@@ -116,6 +123,9 @@ export function readingRoomTrackUrls(base: string) {
 }
 export function chromaticDriftTrackUrls(base: string) {
   return base ? chromaticDriftTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/chromatic-drift/${file}`) : [];
+}
+export function loceanTrackUrls(base: string) {
+  return base ? loceanTrackFiles.map(file => `${base.replace(/\/$/, "")}/audio/focus/locean/${encodeURIComponent(file)}`) : [];
 }
 export function japaneseCafeTrackUrls(base: string) {
   return base ? japaneseCafeTrackFiles.map(file => `${base.replace(/\/+$/, "")}/audio/lofi/jap-cafe/${encodeURIComponent(file)}`) : [];

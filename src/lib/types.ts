@@ -9,6 +9,7 @@ export type VisualId =
   | "readingRoom"
   | "japaneseCafe"
   | "trainCarriage"
+  | "loceanRooftop"
   | "focusComingSoon"
   | "rain"
   | "aurora"
@@ -33,7 +34,7 @@ export type VisualId =
   | "chromaticDrift"
   | "magneticField";
 export type SoundId =
-  "rain" | "fire" | "wind" | "forest" | "brown" | "night" | "tones" | "train" | "piano" | "lofi" | "orbitalPad" | "ambience" | "texture" | "binaural" | "textureTone" | "pondDrops" | "vinylMusic";
+  "rain" | "fire" | "wind" | "forest" | "seaBirds" | "brown" | "night" | "tones" | "train" | "piano" | "lofi" | "orbitalPad" | "ambience" | "texture" | "binaural" | "textureTone" | "pondDrops" | "vinylMusic";
 export type SoundMix = Record<SoundId, number>;
 export type SoundMixesByScene = Partial<Record<VisualId, Partial<SoundMix>>>;
 export interface Preferences {

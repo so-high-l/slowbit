@@ -31,6 +31,7 @@ const focusSceneOrder: VisualId[] = [
   "readingRoom",
   "japaneseCafe",
   "trainCarriage",
+  "loceanRooftop",
   "deepPassage",
   "chromaticDrift",
 ];

@@ -38,6 +38,7 @@ import { createSessionAnalytics } from "@/lib/analytics-events";
 import type { VisualId } from "@/lib/types";
 import { trackDisplayName } from "@/lib/focus-music";
 import { sceneSoundscapes } from "@/lib/scene-soundscapes";
+import { supportsImmersiveMode } from "@/lib/scene-immersive";
 export default function SessionPage() {
   const store = usePreferences();
   if (!store.ready)
@@ -70,6 +71,7 @@ function Session() {
   const latest = useRef({ visual, playlist, phase, playing });
   latest.current = { visual, playlist, phase, playing };
   const isFocusPlaceholder = visualId === "focusComingSoon";
+  const hasImmersiveMode = supportsImmersiveMode(visualId);
   useEffect(() => {
     if (phase === "running" && !p.hiddenVisuals.includes(visualId))
       sessionAnalytics.start(p.defaultSessionDuration, p.mode === "focus" ? p.focusMood ?? "fresh" : p.lastMood ?? "fried", visual, p.mode ?? "unwind", playlist);
@@ -351,6 +353,7 @@ function Session() {
       }
       if (!["f", "m", "z", " ", "arrowright", "arrowleft"].includes(k)) return;
       if (k === " " && target.closest("button,a")) return;
+      if (k === "z" && !hasImmersiveMode) return;
       e.preventDefault();
       reveal();
       if (k === "f") {
@@ -358,7 +361,7 @@ function Session() {
         else void fullscreen.toggle();
       }
       if (phase !== "running") return;
-      if (k === "z" && !isFocusPlaceholder) setExploring((v) => !v);
+      if (k === "z" && hasImmersiveMode) setExploring((v) => !v);
       if (k === "m" && !isFocusPlaceholder) { analytics.muteChanged(p.mode ?? "unwind", !p.muted, sessionAnalytics.sessionId()); update({ muted: !p.muted }); }
       if (k === " ") togglePlay();
       if (k === "arrowright") next(1);
@@ -478,7 +481,7 @@ function Session() {
                 audio.error ||
                 (!playing ? "Take your time. Your session is paused." : "")}
             </div>
-            {!isFocusPlaceholder && <button
+            {hasImmersiveMode && <button
               className={`explore-switch ${exploring ? "active" : ""}`}
               type="button"
               disabled={p.showBoard || opening}

@@ -6,8 +6,8 @@ import { sceneSoundscapes } from "../src/lib/scene-soundscapes.ts";
 import { duplicateSound, soundLabel } from "../src/lib/sound-controls.ts";
 import { defaults, getSceneSoundMix, normalize, saveSceneSoundMix, resetSceneSoundMix } from "../src/lib/preferences.ts";
 
-test("all 30 scenes expose only one control per recorded file", () => {
-  assert.equal(visuals.length, 30);
+test("all 31 scenes expose only one control per recorded file", () => {
+  assert.equal(visuals.length, 31);
   for (const visual of visuals) {
     const channels: RecordedChannel[] = ["rain", "wind", "forest", "fire", "night", "brown"];
     if (sceneSoundscapes[visual.id]?.ambience) channels.push("ambience");
@@ -27,7 +27,7 @@ test("recording labels match scene-specific water, birds, forest and rain source
       const file = recordingProfile(visual.id, id).file;
       if (file.includes("water-flowing")) assert.match(label, /water/i, visual.name);
       else if (file.includes("underwater")) assert.equal(label, "Underwater ambience");
-      else if (file.includes("birds")) assert.equal(label, "Birdsong");
+      else if (file.includes("birds")) assert.equal(label, visual.id === "loceanRooftop" ? "Distant birds" : "Birdsong");
       else if (file.includes("forest-ambience")) assert.equal(label, "Forest ambience");
       else if (file.includes("forest-rain")) assert.equal(label, "Forest rain");
       else if (file.includes("rain")) assert.equal(label, "Rain");
