@@ -5,9 +5,10 @@ import { analytics } from "@/lib/analytics";
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Moon, Crosshair, X } from "lucide-react";
+import { ArrowRight, Check, Moon, Crosshair, Search, X } from "lucide-react";
 import MoodAtmosphere from "@/components/checkin/MoodAtmosphere";
 import SiteHeader from "@/components/SiteHeader";
+import ScenePreview from "@/components/ScenePreview";
 import { visuals } from "@/data/catalog";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
@@ -41,6 +42,7 @@ export default function Home() {
   const [assetProgress, setAssetProgress] = useState(0);
   const [customScene, setCustomScene] = useState<VisualId | null>(null);
   const [choosingScene, setChoosingScene] = useState(false);
+  const [sceneQuery, setSceneQuery] = useState("");
   const fullscreen = useFullscreen();
   const stationRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const sceneDialog = useRef<HTMLDialogElement>(null);
@@ -61,6 +63,10 @@ export default function Home() {
     const bRecommended = selectedMode === "focus" ? Number(b.id === recommended) : Number(b.recommendedMoods.includes(mood));
     return bRecommended - aRecommended;
   });
+  const normalizedSceneQuery = sceneQuery.trim().toLocaleLowerCase();
+  const filteredScenes = normalizedSceneQuery
+    ? prioritizedScenes.filter(item => [item.name, item.subtitle, ...item.tags].join(" ").toLocaleLowerCase().includes(normalizedSceneQuery))
+    : prioritizedScenes;
   const useMoodMix = scene === profile.scene;
   const pace = useMoodMix ? profile.pace : 1;
   const audio = useAudioMixer(p, entered, 0.18, scene ?? "rain", useMoodMix && !sceneSoundscapes[scene ?? "rain"] ? checkInMix(mood) : undefined, false, selectedMode ?? "unwind");
@@ -106,7 +112,10 @@ export default function Home() {
   }, [entered, audio.start]);
   useEffect(() => {
     if (choosingScene) sceneDialog.current?.showModal();
-    else sceneDialog.current?.close();
+    else {
+      sceneDialog.current?.close();
+      setSceneQuery("");
+    }
   }, [choosingScene]);
   const enter = useCallback(async () => {
     // Both calls start in this user gesture, before awaiting fullscreen.
@@ -272,10 +281,19 @@ export default function Home() {
           {(fullscreen.message || audio.error) && <p className="checkin-notice" role="status">{fullscreen.message || <button onClick={() => void audio.start()}>{audio.error}</button>}</p>}
         </div>
       )}
-      <dialog ref={sceneDialog} className="scene-picker" onCancel={() => setChoosingScene(false)} onClose={() => setChoosingScene(false)} onClick={e => { if (e.target === e.currentTarget) setChoosingScene(false); }}>
-        <div><header><h2>Somewhere else?</h2><button autoFocus aria-label="Close scene selection" onClick={() => setChoosingScene(false)}><X size={20} /></button></header>
-          <p>Your choice. You can change the sound later.</p>
-          <div className="scene-picker-options">{prioritizedScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { if (scene !== v.id) analytics.sceneSelected(v, selectedMode ?? "unwind", visual, "scene_picker"); setCustomScene(v.id); setChoosingScene(false); }}><span>{v.name}</span><small>{v.tags.join(" · ")}</small><ArrowRight size={17} /></button>)}</div>
+      <dialog ref={sceneDialog} className="scene-picker" aria-labelledby="scene-picker-title" aria-describedby="scene-picker-description" onCancel={() => setChoosingScene(false)} onClose={() => setChoosingScene(false)} onClick={e => { if (e.target === e.currentTarget) setChoosingScene(false); }}>
+        <div><header><div><h2 id="scene-picker-title">Choose a space</h2><p id="scene-picker-description">Find the atmosphere that fits right now.</p></div><button aria-label="Close scene selection" onClick={() => setChoosingScene(false)}><X size={20} /></button></header>
+          <label className="scene-picker-search">
+            <Search size={17} aria-hidden="true" />
+            <span className="sr-only">Search scenes</span>
+            <input autoFocus type="search" value={sceneQuery} onChange={event => setSceneQuery(event.target.value)} placeholder="Search by name or feeling" />
+          </label>
+          <div className="scene-picker-options">{filteredScenes.map(v => <button key={v.id} aria-pressed={scene === v.id} onClick={() => { if (scene !== v.id) analytics.sceneSelected(v, selectedMode ?? "unwind", visual, "scene_picker"); setCustomScene(v.id); setChoosingScene(false); }}>
+            <ScenePreview scene={v.id} />
+            <span className="scene-picker-option-copy"><strong>{v.name}</strong><small>{v.subtitle}</small><em>{v.tags.slice(0, 3).join(" · ")}</em></span>
+            <span className="scene-picker-option-state" aria-hidden="true">{scene === v.id ? <Check size={16} /> : <ArrowRight size={16} />}</span>
+          </button>)}</div>
+          {!filteredScenes.length && <p className="scene-picker-empty" role="status">No spaces match “{sceneQuery}”. Try another word.</p>}
           {!visual && <Link href="/settings/">Restore scenes in Settings</Link>}
           {recommendedVisual && <button className="scene-picker-reset" onClick={() => { if (scene !== recommended) analytics.sceneSelected(recommendedVisual, selectedMode ?? "unwind", visual, "mood_recommendation"); setCustomScene(null); setChoosingScene(false); }}>Suggested for {recommendationLabel}: {recommendedVisual.name}</button>}
         </div>
