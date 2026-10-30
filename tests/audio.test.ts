@@ -1,7 +1,7 @@
 import { test, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { recordingProfile } from "../src/lib/audio-profiles.ts";
-import { AmbientEngine, owlDelayMs } from "../src/lib/audio.ts";
+import { AmbientEngine, owlDelayMs, seaBirdDelayMs } from "../src/lib/audio.ts";
 import type { SoundMix } from "../src/lib/types.ts";
 import { visuals } from "../src/data/catalog.ts";
 import { sceneMix, silentMix } from "../src/lib/sound-presets.ts";
@@ -25,6 +25,14 @@ test("owl timing uses a short randomized first wait and much longer later gaps",
   assert.equal(owlDelayMs(false, 0), 75_000);
   assert.equal(owlDelayMs(false, 1), 180_000);
   assert.notEqual(owlDelayMs(false, 0.18), owlDelayMs(false, 0.82));
+});
+
+test("sea-bird timing uses randomized, infrequent coastal calls", () => {
+  assert.equal(seaBirdDelayMs(true, 0), 45_000);
+  assert.equal(seaBirdDelayMs(true, 1), 105_000);
+  assert.equal(seaBirdDelayMs(false, 0), 150_000);
+  assert.equal(seaBirdDelayMs(false, 1), 360_000);
+  assert.notEqual(seaBirdDelayMs(false, 0.18), seaBirdDelayMs(false, 0.82));
 });
 
 const mix = (channel: keyof SoundMix): SoundMix => ({
@@ -334,6 +342,30 @@ test("the owl follows the Crickets channel as a rare one-shot and cancels on mut
   assert.equal(sources.length, afterMute, "muting cancels future owl calls");
 });
 
+test("L’océan sea birds are local randomized one-shots and cancel away from the rooftop", async t => {
+  const { engine, sources, calls, respond } = setup(t);
+  await engine.start();
+  engine.mix(mix("seaBirds"), 0.5, true, false, "loceanRooftop", 0.3, "focus");
+  assert.ok(calls.some(call => call.url.endsWith("/audio/mixkit-sea-birds-squeak-1188.wav")));
+  assert.ok(calls.every(call => !call.url.endsWith("mixkit-birds-in-forest-loop-1239.wav")), "the generic bird loop is not loaded");
+  respond("mixkit-sea-birds-squeak-1188.wav");
+  await tick();
+  const beforeBirds = sources.length;
+  t.mock.timers.tick(44_999);
+  assert.equal(sources.length, beforeBirds, "the birds never call immediately");
+  t.mock.timers.tick(60_001);
+  assert.equal(sources.length, beforeBirds + 1, "the first randomized window eventually produces one call");
+  const birds = sources.at(-1)!;
+  assert.equal(birds.loop, false);
+  const birdGain = birds.connections[0] as { connections: unknown[] };
+  assert.equal(birdGain.connections[0], engine.tracks.get("seaBirds"), "the dedicated slider controls the one-shot");
+  engine.mix(mix("seaBirds"), 0.5, true, false, "nightDrive", 0.3, "focus");
+  assert.ok(birds.stops.length, "leaving the scene stops a call already in progress");
+  const afterSceneChange = sources.length;
+  t.mock.timers.tick(360_000);
+  assert.equal(sources.length, afterSceneChange, "leaving the scene cancels future calls");
+});
+
 for (const channel of ["ambience", "wind"] as const) {
   test(`pond ${channel} alone never loads or triggers bubbles`, async t => {
     const { engine, sources, calls } = setup(t);
@@ -506,7 +538,7 @@ test("missing new ambience stays silent and a late scene download cannot leak th
 });
 
 test("revised presets keep restrained layers and binaural audio off", () => {
-  assert.equal(Object.keys(sceneSoundscapes).length, 22);
+  assert.equal(Object.keys(sceneSoundscapes).length, 23);
   const frequencies = new Set<number>();
   for (const [id, profile] of Object.entries(sceneSoundscapes)) {
     const visual = visuals.find(v => v.id === id)!;
@@ -517,7 +549,7 @@ test("revised presets keep restrained layers and binaural audio off", () => {
     assert.ok(Object.entries(volumes).filter(([channel, volume]) => channel !== "vinylMusic" && volume > 0).length <= maxLayers);
     frequencies.add(profile.beatHz);
   }
-  assert.equal(frequencies.size, 22);
+  assert.equal(frequencies.size, 23);
 });
 
 for (const scene of ["clouds", "ribbonTunnel"] as const) {

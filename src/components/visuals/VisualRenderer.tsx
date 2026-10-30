@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CanvasScene from "./CanvasScene";
 import GrainientScene from "./GrainientScene";
 import JapaneseCafeScene from "./JapaneseCafeScene";
+import LoceanRooftopScene from "./LoceanRooftopScene";
 import { sceneNeedsLoading } from "./scene-loading";
 import type { VisualId } from "@/lib/types";
 
@@ -83,7 +84,9 @@ function VisualRendererScene({
   return (
     <div className="visual-layer" data-visual={visualId}>
       <div key={visualId} className="scene-render" data-ready={ready} aria-hidden={!ready}>
-        {visualId === "japaneseCafe" ? (
+        {visualId === "loceanRooftop" ? (
+          <LoceanRooftopScene paused={paused} onReady={markReady} />
+        ) : visualId === "japaneseCafe" ? (
           <JapaneseCafeScene paused={paused} exploring={exploring} onReady={markReady} />
         ) : visualId === "chromaticDrift" ? (
           <GrainientScene paused={paused} immersive={exploring} motionScale={motionScale} />

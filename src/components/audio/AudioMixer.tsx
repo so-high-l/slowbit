@@ -12,6 +12,7 @@ import {
   Music2,
   TrainFront,
   Droplets,
+  Bird,
 } from "lucide-react";
 import type { SoundId, Visual } from "@/lib/types";
 import { sounds } from "@/data/catalog";
@@ -30,6 +31,7 @@ const icons = {
   fire: Flame,
   wind: Wind,
   forest: Trees,
+  seaBirds: Bird,
   brown: AudioLines,
   night: Moon,
   tones: Music2,
@@ -59,6 +61,7 @@ export default function AudioMixer({ visual, sessionId }: { visual: Visual; sess
   const available = sounds.filter((s) =>
     s.id !== "binaural" &&
     (s.id !== "night" || visual.id !== "jelly") &&
+    (s.id !== "seaBirds" || visual.id === "loceanRooftop") &&
     (s.id !== "vinylMusic" || visual.id === "vinyl") &&
     s.id !== duplicateSound(visual.id)?.removed &&
     (s.id !== "pondDrops" || visual.id === "pond") &&

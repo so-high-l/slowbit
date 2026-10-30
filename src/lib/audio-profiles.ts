@@ -1,6 +1,6 @@
 import type { SoundId, VisualId } from "./types";
 import { sceneAudioAssets, sceneSoundscapes } from "./scene-soundscapes.ts";
-export type RecordedChannel = Exclude<SoundId, "tones" | "piano" | "lofi" | "texture" | "binaural" | "textureTone" | "pondDrops">;
+export type RecordedChannel = Exclude<SoundId, "tones" | "piano" | "lofi" | "texture" | "binaural" | "textureTone" | "pondDrops" | "seaBirds">;
 export type RecordingProfile = { file: string; level: number; cutoff: number; highpass?: number; local?: boolean; loopCrossfade?: number };
 const files = {
   rain: "mixkit-light-rain-looping-1249.wav",

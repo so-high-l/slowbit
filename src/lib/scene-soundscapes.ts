@@ -22,7 +22,7 @@ export type TextureKind = "tape" | "halo" | "float" | "air" | "round" | "bow" | 
 export type SceneSoundscape = {
   beatHz: number;
   carrierHz: number;
-  playlist?: "lofi" | "nightDriveLofi" | "readingRoomJazz" | "japaneseCafeLofi" | "trainCarriageLofi" | "chromaticDriftAmbient";
+  playlist?: "lofi" | "nightDriveLofi" | "readingRoomJazz" | "japaneseCafeLofi" | "trainCarriageLofi" | "chromaticDriftAmbient" | "loceanRadio";
   ambience?: { asset: keyof typeof sceneAudioAssets; name: string; cutoff: number; level: number };
   texture?: { kind: TextureKind; name: string };
   mix: Partial<SoundMix>;
@@ -36,6 +36,7 @@ export const sceneSoundscapes: Partial<Record<VisualId, SceneSoundscape>> = {
   readingRoom: { beatHz: 6.5, carrierHz: 196, playlist: "readingRoomJazz", mix: { rain: 0.18, night: 0.08, lofi: 0.05, binaural: 0 } },
   japaneseCafe: { beatHz: 8.5, carrierHz: 196, playlist: "japaneseCafeLofi", ambience: { asset: "japaneseCafe", name: "Café ambience", cutoff: 4600, level: 1 }, mix: { lofi: 0.14, ambience: 0.7, rain: 0.15, binaural: 0 } },
   trainCarriage: { beatHz: 9.5, carrierHz: 204, playlist: "trainCarriageLofi", mix: { train: 0.73, rain: 0.06, lofi: 0.21, binaural: 0 } },
+  loceanRooftop: { beatHz: 10.5, carrierHz: 218, playlist: "loceanRadio", ambience: { asset: "brush", name: "Atlantic waves", cutoff: 4800, level: 0.55 }, mix: { lofi: 0.31, ambience: 0.58, seaBirds: 0.58, brown: 0, binaural: 0 } },
   aurora: { beatHz: 6, carrierHz: 220, ambience: { asset: "polar", name: "Polar air", cutoff: 2200, level: 0.55 }, texture: { kind: "halo", name: "Luminous tones" }, mix: { ambience: 0.28, texture: 0.12, binaural: 0 } },
   stars: { beatHz: 3, carrierHz: 160, ambience: { asset: "city", name: "Distant city", cutoff: 1200, level: 0.55 }, mix: { ambience: 0.26, brown: 0.06, binaural: 0 } },
   embers: { beatHz: 4.5, carrierHz: 180, mix: { fire: 0.38, forest: 0.05, binaural: 0 } },

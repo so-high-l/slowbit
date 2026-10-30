@@ -1,4 +1,4 @@
-import { chromaticDriftTrackUrls, FocusPlaylist, focusTrackUrls, japaneseCafeTrackUrls, lofiTrackUrls, nightDriveTrackUrls, readingRoomTrackUrls, trainCarriageTrackUrls } from "./focus-music.ts";
+import { chromaticDriftTrackUrls, FocusPlaylist, focusTrackUrls, japaneseCafeTrackUrls, loceanTrackUrls, lofiTrackUrls, nightDriveTrackUrls, readingRoomTrackUrls, trainCarriageTrackUrls } from "./focus-music.ts";
 import type { SoundId, VisualId, SessionMode } from "./types";
 import { recordingProfile, type RecordedChannel, type RecordingProfile } from "./audio-profiles.ts";
 import { sceneSoundscapes } from "./scene-soundscapes.ts";
@@ -13,6 +13,12 @@ export type NowPlaying = { playlist: string; track: string } | null;
 
 export function owlDelayMs(initial: boolean, random = Math.random()) {
   const [minimum, maximum] = initial ? [20_000, 55_000] : [75_000, 180_000];
+  const amount = Math.max(0, Math.min(1, random));
+  return Math.round(minimum + (maximum - minimum) * amount);
+}
+
+export function seaBirdDelayMs(initial: boolean, random = Math.random()) {
+  const [minimum, maximum] = initial ? [45_000, 105_000] : [150_000, 360_000];
   const amount = Math.max(0, Math.min(1, random));
   return Math.round(minimum + (maximum - minimum) * amount);
 }
@@ -35,6 +41,7 @@ export class AmbientEngine {
   private japaneseCafeLofi?: FocusPlaylist;
   private trainCarriageLofi?: FocusPlaylist;
   private chromaticDriftAmbient?: FocusPlaylist;
+  private loceanRadio?: FocusPlaylist;
   private synthesis?: SceneSynthesis;
   private curtain = false;
   private pondEnabled = false;
@@ -46,6 +53,11 @@ export class AmbientEngine {
   private owlLoading = false;
   private owlTimer?: ReturnType<typeof setTimeout>;
   private owlVoice?: { source: AudioBufferSourceNode; gain: GainNode };
+  private seaBirdsEnabled = false;
+  private seaBirdsBuffer?: AudioBuffer;
+  private seaBirdsLoading = false;
+  private seaBirdsTimer?: ReturnType<typeof setTimeout>;
+  private seaBirdsVoice?: { source: AudioBufferSourceNode; gain: GainNode };
   private onNowPlayingChange?: (nowPlaying: NowPlaying) => void;
   private activeNowPlaying: NowPlaying = null;
 
@@ -145,6 +157,69 @@ export class AmbientEngine {
     if (!this.owlTimer && !this.owlVoice) void this.prepareOwl();
   }
 
+  private stopSeaBirds() {
+    clearTimeout(this.seaBirdsTimer);
+    this.seaBirdsTimer = undefined;
+    if (!this.seaBirdsVoice) return;
+    const { source, gain } = this.seaBirdsVoice;
+    this.seaBirdsVoice = undefined;
+    source.onended = null;
+    source.stop();
+    source.disconnect();
+    gain.disconnect();
+  }
+
+  private scheduleSeaBirds(initial: boolean) {
+    if (this.closed || !this.seaBirdsEnabled || !this.seaBirdsBuffer || this.seaBirdsTimer || this.seaBirdsVoice) return;
+    this.seaBirdsTimer = setTimeout(() => {
+      this.seaBirdsTimer = undefined;
+      this.playSeaBirds();
+    }, seaBirdDelayMs(initial));
+  }
+
+  private playSeaBirds() {
+    const track = this.tracks.get("seaBirds");
+    if (this.closed || !this.seaBirdsEnabled || !this.seaBirdsBuffer || !track || this.seaBirdsVoice) return;
+    const source = this.context.createBufferSource();
+    source.buffer = this.seaBirdsBuffer;
+    source.loop = false;
+    const gain = this.context.createGain();
+    gain.gain.value = 0.28;
+    source.connect(gain);
+    gain.connect(track);
+    this.seaBirdsVoice = { source, gain };
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+      if (this.seaBirdsVoice?.source === source) this.seaBirdsVoice = undefined;
+      this.scheduleSeaBirds(false);
+    };
+    source.start();
+  }
+
+  private async prepareSeaBirds() {
+    if (this.seaBirdsBuffer) {
+      this.scheduleSeaBirds(true);
+      return;
+    }
+    if (this.seaBirdsLoading) return;
+    this.seaBirdsLoading = true;
+    try {
+      this.seaBirdsBuffer = await this.buffer("mixkit-sea-birds-squeak-1188.wav", false, true);
+      this.scheduleSeaBirds(true);
+    } catch { /* Atlantic waves continue alone if the optional bird call is unavailable. */ }
+    finally { this.seaBirdsLoading = false; }
+  }
+
+  private updateSeaBirds(enabled: boolean) {
+    this.seaBirdsEnabled = enabled;
+    if (!enabled) {
+      this.stopSeaBirds();
+      return;
+    }
+    if (!this.seaBirdsTimer && !this.seaBirdsVoice) void this.prepareSeaBirds();
+  }
+
   constructor(onNowPlayingChange?: (nowPlaying: NowPlaying) => void) {
     this.onNowPlayingChange = onNowPlayingChange;
     this.context = new AudioContext();
@@ -173,6 +248,7 @@ export class AmbientEngine {
       "fire",
       "wind",
       "forest",
+      "seaBirds",
       "brown",
       "night",
       "tones",
@@ -352,11 +428,14 @@ export class AmbientEngine {
     this.japaneseCafeLofi?.update(false, false, 0);
     this.trainCarriageLofi?.update(false, false, 0);
     this.chromaticDriftAmbient?.update(false, false, 0);
+    this.loceanRadio?.update(false, false, 0);
     this.synthesis?.stop();
     this.pondEnabled = false;
     this.stopDrops();
     this.owlEnabled = false;
     this.stopOwl();
+    this.seaBirdsEnabled = false;
+    this.stopSeaBirds();
     for (const id of this.requests.keys()) this.cancelRequest(id);
     this.master.gain.setTargetAtTime(0, this.context.currentTime, 0.45);
   }
@@ -422,10 +501,19 @@ export class AmbientEngine {
       }
     }
     this.chromaticDriftAmbient?.update(chromaticDriftAmbientEnabled, audible, volumes.lofi ?? 0, transition);
+    const loceanRadioEnabled = mode === "focus" && soundscape?.playlist === "loceanRadio";
+    if (loceanRadioEnabled && audible && volumes.lofi > 0 && !this.loceanRadio && this.context.state === "running") {
+      const urls = loceanTrackUrls(ASSET_URL);
+      if (urls.length) {
+        try { this.loceanRadio = new FocusPlaylist(this.context, this.master, urls, undefined, track => this.publishNowPlaying("L’océan Radio", track)); } catch { /* Waves and distant sea birds remain available if media nodes are unsupported. */ }
+      }
+    }
+    this.loceanRadio?.update(loceanRadioEnabled, audible, volumes.lofi ?? 0, transition);
     this.pondEnabled = scene === "pond" && audible && volumes.pondDrops > 0;
     if (!this.pondEnabled) this.stopDrops();
     else void this.preparePondDrop();
     this.updateOwl(audible && scene !== "jelly" && (volumes.night ?? 0) > 0);
+    this.updateSeaBirds(audible && scene === "loceanRooftop" && (volumes.seaBirds ?? 0) > 0);
     const now = this.context.currentTime;
     for (const [id, gain] of this.tracks) {
       const channelVolume = id === "vinylMusic" && (scene !== "vinyl" || !vinylImmersive) ? 0
@@ -436,7 +524,7 @@ export class AmbientEngine {
         : (id === "ambience" && !soundscape?.ambience) || (id === "texture" && !soundscape?.texture) || (id === "binaural" && !soundscape) ? 0
         : (volumes[id] ?? 0);
       gain.gain.setTargetAtTime(channelVolume * (id === "rain" && this.curtain ? 0.55 : 1), now, id === "vinylMusic" ? 1 : transition);
-      if (id === "tones" || id === "piano" || id === "lofi" || id === "texture" || id === "binaural" || id === "textureTone" || id === "pondDrops") continue;
+      if (id === "tones" || id === "piano" || id === "lofi" || id === "texture" || id === "binaural" || id === "textureTone" || id === "pondDrops" || id === "seaBirds") continue;
       if (id === "ambience" && !soundscape?.ambience) {
         this.cancelRequest(id);
         this.fadeVoice(id);
@@ -465,11 +553,14 @@ export class AmbientEngine {
     this.japaneseCafeLofi?.close();
     this.trainCarriageLofi?.close();
     this.chromaticDriftAmbient?.close();
+    this.loceanRadio?.close();
     this.synthesis?.close();
     this.pondEnabled = false;
     this.stopDrops();
     this.owlEnabled = false;
     this.stopOwl();
+    this.seaBirdsEnabled = false;
+    this.stopSeaBirds();
     for (const id of this.requests.keys()) this.cancelRequest(id);
     for (const load of this.loads) load.abort();
     for (const voice of this.liveVoices) {

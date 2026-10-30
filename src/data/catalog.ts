@@ -45,6 +45,7 @@ export const visuals: Visual[] = [
   { id: "readingRoom", name: "Reading Room", subtitle: "Settle in. Let the room hold the rest.", tags: ["Focus", "Warm", "Reading", "Study", "Cozy"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.readingRoom!.mix },
   { id: "japaneseCafe", name: "Japanese Corner Café", subtitle: "A warm cup. A quiet corner. One thing at a time.", tags: ["Focus", "Café", "Pixel art", "Lo-fi"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.japaneseCafe!.mix },
   { id: "trainCarriage", name: "Train Carriage", subtitle: "One long track. One quiet thought at a time.", tags: ["Focus", "Train", "Night", "Lo-fi"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.trainCarriage!.mix },
+  { id: "loceanRooftop", name: "L’océan", subtitle: "Atlantic light. One quiet task ahead.", tags: ["Focus", "Atlantic", "Ocean", "Sunset"], modes: ["focus"], recommendedMoods: [], defaultSounds: sceneSoundscapes.loceanRooftop!.mix },
   { id: "focusComingSoon", name: "More focus scenes", subtitle: "Coming soon.", tags: ["Focus", "Coming soon"], modes: ["focus"], recommendedMoods: [], defaultSounds: {} },
   {
     id: "rain",
@@ -262,6 +263,7 @@ export const sounds: { id: SoundId; name: string; note: string }[] = [
   { id: "fire", name: "Fire", note: "Warm crackle" },
   { id: "wind", name: "Wind", note: "A slow passing breeze" },
   { id: "forest", name: "Forest ambience", note: "Leaves and distant birds" },
+  { id: "seaBirds", name: "Sea birds", note: "Occasional distant calls over the coast" },
   { id: "brown", name: "Brown noise", note: "Deep, gentle texture" },
   { id: "night", name: "Crickets & owl", note: "Crickets with a rare distant owl" },
 ];

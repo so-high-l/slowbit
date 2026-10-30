@@ -4,6 +4,7 @@ const assetBackedScenes = new Set<VisualId>([
   "readingRoom",
   "orbitStudy",
   "japaneseCafe",
+  "loceanRooftop",
 ]);
 
 export function sceneNeedsLoading(visualId: VisualId) {
