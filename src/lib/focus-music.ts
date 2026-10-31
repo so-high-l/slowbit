@@ -52,6 +52,10 @@ export const readingRoomTrackFiles = [
   "soft-strings-cafe.mp3",
   "twilight-reverb.mp3",
   "whispers-on-5th.mp3",
+  "black_and_brown_morning.mp3",
+  "grab_a_coffee.mp3",
+  "noujoum_lil.mp3",
+  "the_last_note.mp3",
 ];
 export const chromaticDriftTrackFiles = [
   "divineawakeningfrequency-3-warm-soft-ambient-pad-with-gentle-evolving-cinematic-okie-31-445842.mp3",
