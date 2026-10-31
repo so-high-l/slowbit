@@ -52,6 +52,9 @@ test("shuffle cycles contain every track without consecutive repeats", () => {
   assert.deepEqual(nightDriveTrackUrls(""), []);
   assert.deepEqual(nightDriveTrackUrls("https://assets.test/"), nightDriveTrackFiles.map(file => `https://assets.test/audio/lofi/night-drive/${file}`));
   assert.deepEqual(readingRoomTrackUrls(""), []);
+  assert.equal(readingRoomTrackFiles.length, 14);
+  for (const file of ["black_and_brown_morning.mp3", "grab_a_coffee.mp3", "noujoum_lil.mp3", "the_last_note.mp3"])
+    assert.ok(readingRoomTrackFiles.includes(file));
   assert.deepEqual(readingRoomTrackUrls("https://assets.test/"), readingRoomTrackFiles.map(file => `https://assets.test/audio/lofi/reading-room/${file}`));
   assert.deepEqual(chromaticDriftTrackUrls(""), []);
   assert.deepEqual(chromaticDriftTrackUrls("https://assets.test/"), chromaticDriftTrackFiles.map(file => `https://assets.test/audio/chromatic-drift/${file}`));
