@@ -26,14 +26,29 @@ test("L’océan is a Focus-only loaded-video scene without Z mode", () => {
   assert.ok(existsSync("scripts/generate-locean-rooftop-video.mjs"));
 });
 
-test("L’océan radio shuffles its four exact R2 tracks", () => {
-  assert.deepEqual(loceanTrackFiles, ["dreamy_sunset.mp3", "guembridiculous.mp3", "kaddour_hits.mp3", "geneve_groove.mp3"]);
+test("L’océan radio shuffles its nine exact R2 tracks", () => {
+  assert.deepEqual(loceanTrackFiles, [
+    "dreamy_sunset.mp3",
+    "guembridiculous.mp3",
+    "kaddour_hits.mp3",
+    "geneve_groove.mp3",
+    "afromantic.mp3",
+    "jazzilian_2026.mp3",
+    "maybe_next_night.mp3",
+    "sunny_afternoon_in_marrakesh.mp3",
+    "unresolved_thoughts.mp3",
+  ]);
   assert.deepEqual(loceanTrackUrls(""), []);
   assert.deepEqual(loceanTrackUrls("https://assets.example/"), [
     "https://assets.example/audio/focus/locean/dreamy_sunset.mp3",
     "https://assets.example/audio/focus/locean/guembridiculous.mp3",
     "https://assets.example/audio/focus/locean/kaddour_hits.mp3",
     "https://assets.example/audio/focus/locean/geneve_groove.mp3",
+    "https://assets.example/audio/focus/locean/afromantic.mp3",
+    "https://assets.example/audio/focus/locean/jazzilian_2026.mp3",
+    "https://assets.example/audio/focus/locean/maybe_next_night.mp3",
+    "https://assets.example/audio/focus/locean/sunny_afternoon_in_marrakesh.mp3",
+    "https://assets.example/audio/focus/locean/unresolved_thoughts.mp3",
   ]);
-  assert.deepEqual(loceanTrackUrls("https://assets.example").map(trackDisplayName), ["Dreamy Sunset", "Guembridiculous", "Kaddour Hits", "Geneve Groove"]);
+  assert.deepEqual(loceanTrackUrls("https://assets.example").map(trackDisplayName), ["Dreamy Sunset", "Guembridiculous", "Kaddour Hits", "Geneve Groove", "Afromantic", "Jazzilian 2026", "Maybe Next Night", "Sunny Afternoon In Marrakesh", "Unresolved Thoughts"]);
 });

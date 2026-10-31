@@ -71,6 +71,11 @@ export const loceanTrackFiles = [
   "guembridiculous.mp3",
   "kaddour_hits.mp3",
   "geneve_groove.mp3",
+  "afromantic.mp3",
+  "jazzilian_2026.mp3",
+  "maybe_next_night.mp3",
+  "sunny_afternoon_in_marrakesh.mp3",
+  "unresolved_thoughts.mp3",
 ];
 /** Exact R2 object names supplied by the owner. Do not normalize these keys. */
 export const japaneseCafeTrackFiles = [

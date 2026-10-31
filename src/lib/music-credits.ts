@@ -48,7 +48,7 @@ export const musicCredits: MusicCredit[] = [
   { artist: "DesiFreeMusic", tracks: inScenes(["Night Drive", "Train Carriage"], ["Chillhop Night Drive – Moody Lofi Groove"]), href: "https://pixabay.com/music/epic-classical-chillhop-night-drive-moody-lofi-groove-451182/" },
   { artist: "Tristan1234G34", tracks: inScenes(["Night Drive", "Train Carriage"], ["Night Drive Melody"]), href: "https://pixabay.com/music/lofi-night-drive-melody-469369/" },
   { artist: "Free Audio Library", tracks: inScenes(["Reading Room"], ["Amber Slowdance", "Coffee in Blue", "Crimson Latte", "Dreams Over Wood", "Evening Sketches", "Mellow Windows", "Shadows in Swing", "Soft Strings Café", "Twilight Reverb", "Whispers on 5th"]), href: "https://pixabay.com/users/free_audio_library-47261967/" },
-  { artist: "Souhail EL MAHDANI", tracks: inScenes(["L’océan"], ["Dreamy Sunset", "Guembridiculous", "Kaddour Hits", "Geneve Groove"]), href: "https://github.com/so-high-l/slowbit" },
+  { artist: "Souhail EL MAHDANI", tracks: inScenes(["L’océan"], ["Dreamy Sunset", "Guembridiculous", "Kaddour Hits", "Geneve Groove", "Afromantic", "Jazzilian 2026", "Maybe Next Night", "Sunny Afternoon In Marrakesh", "Unresolved Thoughts"]), href: "https://github.com/so-high-l/slowbit" },
 ];
 
 export const sceneMusicCredits: SceneMusicCredit[] = Array.from(
