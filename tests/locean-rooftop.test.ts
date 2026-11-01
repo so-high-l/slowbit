@@ -26,7 +26,7 @@ test("L’océan is a Focus-only loaded-video scene without Z mode", () => {
   assert.ok(existsSync("scripts/generate-locean-rooftop-video.mjs"));
 });
 
-test("L’océan radio shuffles its nine exact R2 tracks", () => {
+test("L’océan radio shuffles its fourteen exact R2 tracks", () => {
   assert.deepEqual(loceanTrackFiles, [
     "dreamy_sunset.mp3",
     "guembridiculous.mp3",
@@ -37,6 +37,11 @@ test("L’océan radio shuffles its nine exact R2 tracks", () => {
     "maybe_next_night.mp3",
     "sunny_afternoon_in_marrakesh.mp3",
     "unresolved_thoughts.mp3",
+    "across_the_atlantic.mp3",
+    "afrolin.mp3",
+    "dropped_from_high.mp3",
+    "golden_pizzicato.mp3",
+    "violin_over_water.mp3",
   ]);
   assert.deepEqual(loceanTrackUrls(""), []);
   assert.deepEqual(loceanTrackUrls("https://assets.example/"), [
@@ -49,6 +54,11 @@ test("L’océan radio shuffles its nine exact R2 tracks", () => {
     "https://assets.example/audio/focus/locean/maybe_next_night.mp3",
     "https://assets.example/audio/focus/locean/sunny_afternoon_in_marrakesh.mp3",
     "https://assets.example/audio/focus/locean/unresolved_thoughts.mp3",
+    "https://assets.example/audio/focus/locean/across_the_atlantic.mp3",
+    "https://assets.example/audio/focus/locean/afrolin.mp3",
+    "https://assets.example/audio/focus/locean/dropped_from_high.mp3",
+    "https://assets.example/audio/focus/locean/golden_pizzicato.mp3",
+    "https://assets.example/audio/focus/locean/violin_over_water.mp3",
   ]);
-  assert.deepEqual(loceanTrackUrls("https://assets.example").map(trackDisplayName), ["Dreamy Sunset", "Guembridiculous", "Kaddour Hits", "Geneve Groove", "Afromantic", "Jazzilian 2026", "Maybe Next Night", "Sunny Afternoon In Marrakesh", "Unresolved Thoughts"]);
+  assert.deepEqual(loceanTrackUrls("https://assets.example").map(trackDisplayName), ["Dreamy Sunset", "Guembridiculous", "Kaddour Hits", "Geneve Groove", "Afromantic", "Jazzilian 2026", "Maybe Next Night", "Sunny Afternoon In Marrakesh", "Unresolved Thoughts", "Across The Atlantic", "Afrolin", "Dropped From High", "Golden Pizzicato", "Violin Over Water"]);
 });
