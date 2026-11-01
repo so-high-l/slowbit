@@ -177,7 +177,21 @@ export function pianoFade(progress: number): [number, number] {
   return [Math.cos(p * Math.PI / 2), Math.sin(Math.max(0, (p - 0.25) / 0.75) * Math.PI / 2)];
 }
 
-type Slot = { media: HTMLAudioElement; source: MediaElementAudioSourceNode; gain: GainNode; track: number; ready: boolean; starting: boolean; timeout?: ReturnType<typeof setTimeout> };
+type Slot = {
+  media: HTMLAudioElement;
+  source: MediaElementAudioSourceNode;
+  gain: GainNode;
+  track: number;
+  ready: boolean;
+  starting: boolean;
+  waitingForNetwork: boolean;
+  recoveryAttempts: number;
+  resumeAt: number;
+  objectUrl?: string;
+  prefetch?: AbortController;
+  timeout?: ReturnType<typeof setTimeout>;
+  stallTimeout?: ReturnType<typeof setTimeout>;
+};
 /** Two reusable media elements; only current and next tracks retain buffers. */
 export class FocusPlaylist {
   private slots: Slot[];
@@ -193,6 +207,20 @@ export class FocusPlaylist {
   private urls: string[];
   private onTrackChange?: (track: string | null) => void;
   private announcedTrack: string | null = null;
+  private wentOffline = false;
+  private readonly onOffline = () => { this.wentOffline = true; };
+  private readonly onOnline = () => {
+    if (!this.wentOffline && !this.slots.some(slot => slot.waitingForNetwork)) return;
+    this.wentOffline = false;
+    this.failed.clear();
+    for (const slot of this.slots) {
+      if (!slot.waitingForNetwork || slot.track < 0) continue;
+      slot.waitingForNetwork = false;
+      slot.recoveryAttempts = 0;
+      this.recover(slot);
+    }
+    if (this.running) this.tick();
+  };
   constructor(context: AudioContext, master: GainNode, urls: string[], makeAudio = () => new Audio(), onTrackChange?: (track: string | null) => void) {
     this.context = context; this.urls = urls;
     this.onTrackChange = onTrackChange;
@@ -202,33 +230,140 @@ export class FocusPlaylist {
       const media = makeAudio(); media.crossOrigin = "anonymous"; media.preload = "none"; media.loop = false;
       const source = context.createMediaElementSource(media), gain = context.createGain();
       gain.gain.value = 0; source.connect(gain); gain.connect(this.output);
-      const slot: Slot = { media, source, gain, track: -1, ready: false, starting: false };
-      media.oncanplay = () => { clearTimeout(slot.timeout); if (slot.track >= 0) slot.ready = true; this.tick(); };
-      media.ontimeupdate = () => this.tick();
+      const slot: Slot = { media, source, gain, track: -1, ready: false, starting: false, waitingForNetwork: false, recoveryAttempts: 0, resumeAt: 0 };
+      media.oncanplay = () => {
+        clearTimeout(slot.timeout);
+        if (slot.track >= 0) {
+          slot.ready = true;
+          slot.waitingForNetwork = false;
+          if (slot.resumeAt > 0 && Number.isFinite(media.duration)) {
+            media.currentTime = Math.min(slot.resumeAt, Math.max(0, media.duration - 0.25));
+            slot.resumeAt = 0;
+          }
+        }
+        this.tick();
+      };
+      media.ontimeupdate = () => { slot.recoveryAttempts = 0; this.clearStall(slot); this.tick(); };
       media.onended = () => this.tick();
-      media.onerror = () => this.fail(slot);
+      media.onerror = () => {
+        if (this.isOffline()) this.waitForNetwork(slot);
+        else if (media.error?.code === 2) this.recover(slot);
+        else this.fail(slot);
+      };
+      media.onwaiting = media.onstalled = () => this.watchForStall(slot);
+      media.onplaying = media.onprogress = () => this.clearStall(slot);
       return slot;
     });
+    this.wentOffline = this.isOffline();
+    if (typeof window !== "undefined") {
+      window.addEventListener("offline", this.onOffline);
+      window.addEventListener("online", this.onOnline);
+    }
   }
   private announceTrack(track: string | null) {
     if (track === this.announcedTrack) return;
     this.announcedTrack = track;
     this.onTrackChange?.(track);
   }
-  private load(slot: Slot) {
+  private isOffline() {
+    return typeof navigator !== "undefined" && navigator.onLine === false;
+  }
+  private setSource(slot: Slot, source: string) {
+    if (this.closed || slot.track < 0) return;
+    slot.media.preload = "auto";
+    slot.media.src = source;
+    slot.timeout = setTimeout(() => this.isOffline() ? this.waitForNetwork(slot) : this.fail(slot), 30000);
+    slot.media.load();
+  }
+  private async prefetch(slot: Slot, url: string, nextOnly: boolean) {
+    if (typeof document === "undefined" || typeof URL.createObjectURL !== "function") {
+      if (nextOnly) this.setSource(slot, url);
+      return;
+    }
+    const controller = new AbortController();
+    slot.prefetch = controller;
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) throw new Error(`Audio HTTP ${response.status}`);
+      const objectUrl = URL.createObjectURL(await response.blob());
+      if (this.closed || slot.track < 0 || slot.prefetch !== controller) {
+        URL.revokeObjectURL(objectUrl);
+        return;
+      }
+      slot.prefetch = undefined;
+      if (slot.objectUrl) URL.revokeObjectURL(slot.objectUrl);
+      slot.objectUrl = objectUrl;
+      if (nextOnly) this.setSource(slot, objectUrl);
+    } catch {
+      const active = slot.prefetch === controller;
+      if (active) slot.prefetch = undefined;
+      if (!active || this.closed || slot.track < 0) return;
+      if (this.isOffline()) this.waitForNetwork(slot);
+      else if (nextOnly) this.setSource(slot, url);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  private load(slot: Slot, nextOnly = false) {
     if (this.closed || !this.running || slot.track >= 0 || this.failed.size >= this.urls.length) return;
     let track = this.next();
     for (let i = 0; i < this.urls.length && this.failed.has(track); i++) track = this.next();
     if (track < 0 || this.failed.has(track)) return;
-    slot.track = track; slot.ready = false;
-    slot.media.preload = "auto"; slot.media.src = this.urls[track];
-    slot.timeout = setTimeout(() => this.fail(slot), 30000);
-    slot.media.load();
+    slot.track = track; slot.ready = false; slot.waitingForNetwork = false; slot.recoveryAttempts = 0; slot.resumeAt = 0;
+    const url = this.urls[track];
+    if (!nextOnly) this.setSource(slot, url);
+    void this.prefetch(slot, url, nextOnly);
+  }
+  private clearStall(slot: Slot) {
+    clearTimeout(slot.stallTimeout);
+    slot.stallTimeout = undefined;
+  }
+  private watchForStall(slot: Slot) {
+    if (!this.running || slot.track < 0 || slot.stallTimeout) return;
+    const position = slot.media.currentTime;
+    slot.stallTimeout = setTimeout(() => {
+      slot.stallTimeout = undefined;
+      if (!this.running || slot.track < 0 || slot.media.currentTime > position + 0.1) return;
+      if (this.isOffline()) this.waitForNetwork(slot);
+      else this.recover(slot);
+    }, 12000);
+  }
+  private waitForNetwork(slot: Slot) {
+    if (this.closed || slot.track < 0) return;
+    clearTimeout(slot.timeout);
+    this.clearStall(slot);
+    slot.resumeAt = slot.media.currentTime;
+    slot.ready = false;
+    slot.waitingForNetwork = true;
+    slot.media.pause();
+  }
+  private recover(slot: Slot) {
+    if (this.closed || slot.track < 0) return;
+    if (this.isOffline()) {
+      this.waitForNetwork(slot);
+      return;
+    }
+    if (slot.recoveryAttempts >= 2) {
+      this.fail(slot);
+      return;
+    }
+    slot.recoveryAttempts++;
+    slot.resumeAt = slot.media.currentTime || slot.resumeAt;
+    slot.ready = false;
+    slot.waitingForNetwork = false;
+    clearTimeout(slot.timeout);
+    this.clearStall(slot);
+    slot.media.pause();
+    this.setSource(slot, slot.objectUrl ?? this.urls[slot.track]);
   }
   private clear(slot: Slot) {
-    clearTimeout(slot.timeout); slot.media.pause(); slot.track = -1; slot.ready = false; slot.starting = false;
+    clearTimeout(slot.timeout); this.clearStall(slot); slot.prefetch?.abort(); slot.prefetch = undefined;
+    slot.media.pause(); slot.track = -1; slot.ready = false; slot.starting = false; slot.waitingForNetwork = false; slot.recoveryAttempts = 0; slot.resumeAt = 0;
     slot.gain.gain.cancelScheduledValues(this.context.currentTime); slot.gain.gain.value = 0;
     slot.media.removeAttribute("src"); slot.media.load();
+    if (slot.objectUrl) URL.revokeObjectURL(slot.objectUrl);
+    slot.objectUrl = undefined;
   }
   private fail(slot: Slot) {
     if (this.closed || slot.track < 0) return;
@@ -255,7 +390,8 @@ export class FocusPlaylist {
     this.announceTrack(this.urls[a.track] ?? null);
     if (!a.media.ended) this.play(a);
     const remaining = a.media.duration - a.media.currentTime;
-    if (remaining <= 25 || a.media.ended) this.load(b);
+    // Keep one complete next track ready in memory instead of waiting for the final seconds.
+    if (b.track < 0) this.load(b, true);
     if ((remaining <= 6 || a.media.ended) && b.ready) {
       this.play(b);
       if (!b.media.paused && this.crossStart === null) this.crossStart = b.media.currentTime;
@@ -283,8 +419,13 @@ export class FocusPlaylist {
   }
   close() {
     this.closed = true; this.running = false; clearTimeout(this.departure);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("offline", this.onOffline);
+      window.removeEventListener("online", this.onOnline);
+    }
     for (const s of this.slots) {
       s.media.oncanplay = s.media.ontimeupdate = s.media.onended = s.media.onerror = null;
+      s.media.onwaiting = s.media.onstalled = s.media.onplaying = s.media.onprogress = null;
       this.clear(s); s.source.disconnect(); s.gain.disconnect();
     }
     this.output.disconnect();

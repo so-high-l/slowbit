@@ -8,7 +8,7 @@ import { duplicateSound, hasAirTones } from "./sound-controls.ts";
 
 const ASSET_URL = (process.env.NEXT_PUBLIC_ASSET_URL ?? "").replace(/\/$/, "");
 type Voice = { key: string; source: AudioBufferSourceNode; gain: GainNode; filter: BiquadFilterNode; highpass: BiquadFilterNode };
-type RecordingRequest = { key: string; scene: VisualId; retries: number; retry?: ReturnType<typeof setTimeout> };
+type RecordingRequest = { key: string; scene: VisualId; profile: RecordingProfile; retries: number; waitingForNetwork: boolean; retry?: ReturnType<typeof setTimeout> };
 export type NowPlaying = { playlist: string; track: string } | null;
 
 export function owlDelayMs(initial: boolean, random = Math.random()) {
@@ -60,6 +60,14 @@ export class AmbientEngine {
   private seaBirdsVoice?: { source: AudioBufferSourceNode; gain: GainNode };
   private onNowPlayingChange?: (nowPlaying: NowPlaying) => void;
   private activeNowPlaying: NowPlaying = null;
+  private readonly retryOfflineRecordings = () => {
+    for (const [id, request] of this.requests) {
+      if (!request.waitingForNetwork) continue;
+      request.waitingForNetwork = false;
+      request.retries = 0;
+      void this.loadRecording(id, request, request.profile);
+    }
+  };
 
   private stopDrops() {
     for (const drop of this.drops) {
@@ -226,6 +234,7 @@ export class AmbientEngine {
     this.master = this.context.createGain();
     this.master.gain.value = 0;
     this.master.connect(this.context.destination);
+    if (typeof window !== "undefined") window.addEventListener("online", this.retryOfflineRecordings);
   }
 
   private publishNowPlaying(playlist: string, track: string | null) {
@@ -366,7 +375,7 @@ export class AmbientEngine {
     if (this.voices.get(id)?.key === key) return;
     // Leave the old environment immediately, even when the next download fails.
     this.fadeVoice(id);
-    const request = { key, scene, retries: 0 };
+    const request = { key, scene, profile, retries: 0, waitingForNetwork: false };
     this.requests.set(id, request);
     void this.loadRecording(id, request, profile);
   }
@@ -409,7 +418,12 @@ export class AmbientEngine {
       this.requests.delete(id);
     } catch {
       // Stay silent and retry transient failures twice, without substituting noise.
-      if (this.closed || this.requests.get(id) !== request || request.retries >= 2) return;
+      if (this.closed || this.requests.get(id) !== request) return;
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        request.waitingForNetwork = true;
+        return;
+      }
+      if (request.retries >= 2) return;
       const delay = 1500 * 2 ** request.retries++;
       request.retry = setTimeout(() => {
         request.retry = undefined;
@@ -546,6 +560,7 @@ export class AmbientEngine {
   async close() {
     if (this.closed) return;
     this.closed = true;
+    if (typeof window !== "undefined") window.removeEventListener("online", this.retryOfflineRecordings);
     this.piano?.close();
     this.lofi?.close();
     this.nightDriveLofi?.close();
