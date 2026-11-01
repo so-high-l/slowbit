@@ -157,6 +157,35 @@ test("recorded channels stay silent while loading and retry without procedural f
   assert.equal(sources.length, 2, "a successful retry fades in the recording");
 });
 
+test("an ambient download waits while offline and retries when the browser reconnects", async t => {
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  const previousOnline = Object.getOwnPropertyDescriptor(globalThis.navigator, "onLine");
+  const browser = new EventTarget();
+  Object.defineProperty(globalThis, "window", { configurable: true, value: browser });
+  Object.defineProperty(globalThis.navigator, "onLine", { configurable: true, value: false });
+  const { engine, sources, calls, respond } = setup(t);
+  t.after(() => {
+    if (previousWindow) Object.defineProperty(globalThis, "window", previousWindow);
+    else Reflect.deleteProperty(globalThis, "window");
+    if (previousOnline) Object.defineProperty(globalThis.navigator, "onLine", previousOnline);
+    else Reflect.deleteProperty(globalThis.navigator, "onLine");
+  });
+
+  await engine.start();
+  engine.mix(mix("rain"), 0.5, true, false, "rain");
+  respond(recordingProfile("rain", "rain").file, 503);
+  await tick();
+  t.mock.timers.tick(60000);
+  assert.equal(calls.length, 1, "offline requests do not consume retries");
+
+  Object.defineProperty(globalThis.navigator, "onLine", { configurable: true, value: true });
+  browser.dispatchEvent(new Event("online"));
+  assert.equal(calls.length, 2);
+  respond(recordingProfile("rain", "rain").file);
+  await tick();
+  assert.equal(sources.length, 2, "the requested ambience returns after reconnecting");
+});
+
 test("decode failures stop retrying after two retries", async t => {
   const { engine, sources, calls, respond, failDecoding } = setup(t);
   const file = recordingProfile("rain", "rain").file;

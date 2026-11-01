@@ -31,6 +31,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { useFullscreen } from "@/hooks/useFullscreen";
 import { useSessionTimer } from "@/hooks/useSessionTimer";
+import { connectionStatusMessage, useConnectionStatus } from "@/hooks/useConnectionStatus";
 import { sessionVisuals } from "@/lib/scene-availability";
 import { visuals } from "@/data/catalog";
 import { analytics, captureProductEvent } from "@/lib/analytics";
@@ -107,6 +108,7 @@ function Session() {
   const [panel, setPanel] = useState(false);
   const [visible, setVisible] = useState(true);
   const [notice, setNotice] = useState("");
+  const connectionStatus = useConnectionStatus();
   const controls = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -475,10 +477,11 @@ function Session() {
             <p>{visual.subtitle}</p>
           </div>
           <div className="session-bottom">
-            <div className="session-status" role="status">
+            <div className="session-status" data-connection={connectionStatus === "online" ? undefined : connectionStatus} role="status">
               {notice ||
                 fullscreen.message ||
                 audio.error ||
+                connectionStatusMessage(connectionStatus) ||
                 (!playing ? "Take your time. Your session is paused." : "")}
             </div>
             {hasImmersiveMode && <button

@@ -1393,6 +1393,33 @@ body:has(.checkin-room.at-door) .analytics-consent {
   min-height: 18px;
 }
 
+.session-status[data-connection] {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border: 1px solid #dcebe026;
+  border-radius: 999px;
+  background: #10201da3;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.session-status[data-connection]::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #d5aa83;
+  box-shadow: 0 0 8px #d5aa8366;
+}
+
+.session-status[data-connection="reconnecting"]::before {
+  background: #a9cfbd;
+  box-shadow: 0 0 8px #a9cfbd70;
+}
+
 .control-dock {
   display: flex;
   align-items: center;

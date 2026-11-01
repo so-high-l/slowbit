@@ -13,7 +13,9 @@ function setup() {
   const context = { currentTime: 0, createGain() { const node = { gain: { value: 0, setTargetAtTime(v: number) { this.value = v; }, cancelScheduledValues() {} }, connect() {}, disconnect() {} }; gains.push(node); return node; }, createMediaElementSource() { sources++; return { connect() {}, disconnect() {} }; } };
   class Media {
     src = ""; preload = "none"; crossOrigin = ""; loop = false; duration = 100; currentTime = 0; paused = true; ended = false; loads = 0; plays = 0;
+    error: MediaError | null = null;
     oncanplay: (() => void) | null = null; ontimeupdate: (() => void) | null = null; onended: (() => void) | null = null; onerror: (() => void) | null = null;
+    onwaiting: (() => void) | null = null; onstalled: (() => void) | null = null; onplaying: (() => void) | null = null; onprogress: (() => void) | null = null;
     load() { if (this.src) this.loads++; }
     play() { this.paused = false; this.plays++; return Promise.resolve(); }
     pause() { this.paused = true; }
@@ -85,8 +87,8 @@ test("lazy preload, crossfade, pause/resume and reuse of two sources", async t =
   playlist.update(true, true, .3);
   assert.equal(media.filter(m => m.src).length, 1);
   media[0].oncanplay!(); await flush();
-  media[0].currentTime = 74; media[0].ontimeupdate!(); assert.equal(media[1].src, "");
-  media[0].currentTime = 75; media[0].ontimeupdate!(); assert.ok(media[1].src);
+  assert.ok(media[1].src, "the next randomized track starts preloading as soon as the current track is ready");
+  media[0].currentTime = 75; media[0].ontimeupdate!();
   media[1].oncanplay!(); media[0].currentTime = 94; media[0].ontimeupdate!(); await flush();
   media[1].currentTime = 3; media[1].ontimeupdate!();
   assert.ok(gains[1].gain.value < 1); assert.ok(gains[2].gain.value > 0);
@@ -118,6 +120,44 @@ test("stalled requests time out and stop after every file has failed", t => {
   playlist.update(true, true, .3);
   for (let i = 0; i < focusTrackFiles.length + 1; i++) t.mock.timers.tick(30000);
   assert.equal(media.reduce((n, m) => n + m.loads, 0), focusTrackFiles.length);
+});
+test("a mid-track stall reloads from the previous position instead of failing silently", t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const { playlist, media } = setup(); t.after(() => playlist.close());
+  playlist.update(true, true, .3);
+  media[0].oncanplay!();
+  media[0].currentTime = 42;
+  const loads = media[0].loads;
+  media[0].onstalled!();
+  t.mock.timers.tick(12000);
+  assert.equal(media[0].loads, loads + 1);
+  media[0].oncanplay!();
+  assert.equal(media[0].currentTime, 42);
+});
+test("a playlist opened offline resumes its interrupted track on reconnect", t => {
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+  const previousOnline = Object.getOwnPropertyDescriptor(globalThis.navigator, "onLine");
+  const browser = new EventTarget();
+  Object.defineProperty(globalThis, "window", { configurable: true, value: browser });
+  Object.defineProperty(globalThis.navigator, "onLine", { configurable: true, value: false });
+  const { playlist, media } = setup();
+  t.after(() => {
+    playlist.close();
+    if (previousWindow) Object.defineProperty(globalThis, "window", previousWindow);
+    else Reflect.deleteProperty(globalThis, "window");
+    if (previousOnline) Object.defineProperty(globalThis.navigator, "onLine", previousOnline);
+    else Reflect.deleteProperty(globalThis.navigator, "onLine");
+  });
+
+  playlist.update(true, true, .3);
+  media[0].currentTime = 18;
+  media[0].onerror!();
+  const loads = media[0].loads;
+  Object.defineProperty(globalThis.navigator, "onLine", { configurable: true, value: true });
+  browser.dispatchEvent(new Event("online"));
+  assert.equal(media[0].loads, loads + 1);
+  media[0].oncanplay!();
+  assert.equal(media[0].currentTime, 18);
 });
 test("play promise rejection is contained and the next candidate is prepared", async t => {
   const { playlist, media } = setup(); t.after(() => playlist.close());
