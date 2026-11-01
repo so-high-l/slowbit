@@ -80,6 +80,11 @@ export const loceanTrackFiles = [
   "maybe_next_night.mp3",
   "sunny_afternoon_in_marrakesh.mp3",
   "unresolved_thoughts.mp3",
+  "across_the_atlantic.mp3",
+  "afrolin.mp3",
+  "dropped_from_high.mp3",
+  "golden_pizzicato.mp3",
+  "violin_over_water.mp3",
 ];
 /** Exact R2 object names supplied by the owner. Do not normalize these keys. */
 export const japaneseCafeTrackFiles = [
