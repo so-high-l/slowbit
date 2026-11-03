@@ -85,6 +85,13 @@ export const loceanTrackFiles = [
   "dropped_from_high.mp3",
   "golden_pizzicato.mp3",
   "violin_over_water.mp3",
+  "cielo_de_tarifa.mp3",
+  "foggy_window.mp3",
+  "its_not_leviosa.mp3",
+  "lantern_on_water.mp3",
+  "piacello_strokes.mp3",
+  "secret_garden.mp3",
+  "sunbirth_path.mp3",
 ];
 /** Exact R2 object names supplied by the owner. Do not normalize these keys. */
 export const japaneseCafeTrackFiles = [
