@@ -42,6 +42,13 @@ test("L’océan radio shuffles its fourteen exact R2 tracks", () => {
     "dropped_from_high.mp3",
     "golden_pizzicato.mp3",
     "violin_over_water.mp3",
+    "cielo_de_tarifa.mp3",
+    "foggy_window.mp3",
+    "its_not_leviosa.mp3",
+    "lantern_on_water.mp3",
+    "piacello_strokes.mp3",
+    "secret_garden.mp3",
+    "sunbirth_path.mp3",
   ]);
   assert.deepEqual(loceanTrackUrls(""), []);
   assert.deepEqual(loceanTrackUrls("https://assets.example/"), [
@@ -59,6 +66,13 @@ test("L’océan radio shuffles its fourteen exact R2 tracks", () => {
     "https://assets.example/audio/focus/locean/dropped_from_high.mp3",
     "https://assets.example/audio/focus/locean/golden_pizzicato.mp3",
     "https://assets.example/audio/focus/locean/violin_over_water.mp3",
+    "https://assets.example/audio/focus/locean/cielo_de_tarifa.mp3",
+    "https://assets.example/audio/focus/locean/foggy_window.mp3",
+    "https://assets.example/audio/focus/locean/its_not_leviosa.mp3",
+    "https://assets.example/audio/focus/locean/lantern_on_water.mp3",
+    "https://assets.example/audio/focus/locean/piacello_strokes.mp3",
+    "https://assets.example/audio/focus/locean/secret_garden.mp3",
+    "https://assets.example/audio/focus/locean/sunbirth_path.mp3",
   ]);
-  assert.deepEqual(loceanTrackUrls("https://assets.example").map(trackDisplayName), ["Dreamy Sunset", "Guembridiculous", "Kaddour Hits", "Geneve Groove", "Afromantic", "Jazzilian 2026", "Maybe Next Night", "Sunny Afternoon In Marrakesh", "Unresolved Thoughts", "Across The Atlantic", "Afrolin", "Dropped From High", "Golden Pizzicato", "Violin Over Water"]);
+  assert.deepEqual(loceanTrackUrls("https://assets.example").map(trackDisplayName), ["Dreamy Sunset", "Guembridiculous", "Kaddour Hits", "Geneve Groove", "Afromantic", "Jazzilian 2026", "Maybe Next Night", "Sunny Afternoon In Marrakesh", "Unresolved Thoughts", "Across The Atlantic", "Afrolin", "Dropped From High", "Golden Pizzicato", "Violin Over Water", "Cielo De Tarifa", "Foggy Window", "Its Not Leviosa", "Lantern On Water", "Piacello Strokes", "Secret Garden", "Sunbirth Path"]);
 });
